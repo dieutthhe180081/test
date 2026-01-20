@@ -4,6 +4,7 @@ import com.sep490.g28.hvh.be.constant.ERole;
 import com.sep490.g28.hvh.be.entity.User;
 import com.sep490.g28.hvh.be.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
@@ -23,26 +24,8 @@ public class CurrentUserProvider {
     private CurrentUser currentUser;
 
     private CurrentUser get() {
-        if (currentUser != null) return currentUser;
-
-        Jwt jwt = (Jwt) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
-
-        UUID userId = UUID.fromString(jwt.getSubject());
-
-        User user = userRepository
-                .findById(userId)
-                .orElseThrow();
-
-        currentUser = new CurrentUser(
-                userId,
-                jwt.getClaim("email"),
-                user.getRole().getName()
-        );
-
-        return currentUser;
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return (CurrentUser) auth.getDetails();
     }
 
     public UUID getId() {

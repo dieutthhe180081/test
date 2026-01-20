@@ -14,6 +14,8 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
 @Component
 @Slf4j
 public class JwtAccessDeniedHandler implements AccessDeniedHandler {
@@ -29,6 +31,7 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
         AppCommonErrorCode errorCode = AppCommonErrorCode.UNAUTHORIZED;
         response.setStatus(HttpStatus.FORBIDDEN.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE); //set header content type
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
         ExceptionResponse<String> apiResponse = new ExceptionResponse<>(errorCode.getCode(), errorCode.getMessage(), null);
 
