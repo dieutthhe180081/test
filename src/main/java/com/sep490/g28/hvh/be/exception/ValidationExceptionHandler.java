@@ -4,10 +4,10 @@ import com.sep490.g28.hvh.be.dto.ExceptionResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.validation.FieldError;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,6 +20,7 @@ import java.util.Set;
 
 @Slf4j
 @RestControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class ValidationExceptionHandler {
 
     private static final Set<String> VALIDATORS_ATTRIBUTES  = Set.of(

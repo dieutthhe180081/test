@@ -1,6 +1,7 @@
-package com.sep490.g28.hvh.be.storage;
+package com.sep490.g28.hvh.be.integration.storage;
 
 import com.sep490.g28.hvh.be.config.SupabaseConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -13,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class SupabaseStorageService implements StorageService {
     private final RestTemplate restTemplate;
@@ -88,7 +90,7 @@ public class SupabaseStorageService implements StorageService {
             ResponseEntity<Map> res =
                     restTemplate.postForEntity(url, body, Map.class);
 
-            return (String) res.getBody().get("signedUrl");
+            return (String) res.getBody().get("signedURL");
 
         } catch (HttpClientErrorException e) {
 
@@ -97,7 +99,7 @@ public class SupabaseStorageService implements StorageService {
 
             // raw body: {"statusCode":"404","error":"not_found","message":"Object not found"}
             String responseBody = e.getResponseBodyAsString();
-
+            //todo xu li exception
 //            ObjectMapper mapper = new ObjectMapper();
 //            Map<String, Object> err =
 //                    mapper.readValue(e.getResponseBodyAsString(), Map.class);
@@ -115,8 +117,8 @@ public class SupabaseStorageService implements StorageService {
      * @param expiresInSeconds expiration time of the upload url (in seconds)
      * @return a String of signed upload url
      */
-    //todo, cái này private
-    public String createSignedUploadUrl(String path, int expiresInSeconds) {
+    @Override
+    public String getUploadUrl(String path, int expiresInSeconds) {
         String url = supabaseConfig.getUrl()
                 + "/storage/v1/object/upload/sign/"
                 + supabaseConfig.getBucket()
@@ -129,7 +131,7 @@ public class SupabaseStorageService implements StorageService {
 
         ResponseEntity<Map> res = restTemplate.postForEntity(url, body, Map.class);
 
-        System.out.println(res.getBody());
+        log.info("Get upload url successfully: {}", res.getBody());
         //todo xem lai cho nay, de gay loi
         return (String) res.getBody().get("url");
     }

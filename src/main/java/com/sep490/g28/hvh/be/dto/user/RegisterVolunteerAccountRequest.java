@@ -1,7 +1,6 @@
 package com.sep490.g28.hvh.be.dto.user;
 
-import com.sep490.g28.hvh.be.validation.FileSizeMax;
-import com.sep490.g28.hvh.be.validation.FileType;
+import com.sep490.g28.hvh.be.validation.ImageMimeType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -9,7 +8,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
@@ -28,16 +26,15 @@ public class RegisterVolunteerAccountRequest {
     @Pattern(regexp = "^\\d{12}$", message = "INVALID_CID")
     String cid;
 
-    @FileSizeMax(fieldName = "Ảnh mặt trước căn cước công dân", maxFileSizeMb = 5)
-    @FileType(fieldName = "Ảnh mặt trước căn cước công dân", allowedTypes = {"image/jpeg", "image/png"}, allowedTypesMessage = "image/jpeg or image/png")
-    //todo check lại file type, vì một số đien thoai chup ra dinh dang khac
-    MultipartFile cidFront;
+    @NotBlank(message = "INVALID_IMAGE_TYPE")
+    @ImageMimeType(fieldName = "Ảnh mặt trước căn cước công dân")
+    String cidFrontMimeType;
 
-    @FileSizeMax(fieldName = "Ảnh mặt sau căn cước công dân", maxFileSizeMb = 5)
-    @FileType(fieldName = "Ảnh mặt sau căn cước công dân", allowedTypes = {"image/jpeg", "image/png"}, allowedTypesMessage = "image/jpeg or image/png")
-    MultipartFile cidBack;
+    @NotBlank(message = "INVALID_IMAGE_TYPE")
+    @ImageMimeType(fieldName = "Ảnh mặt sau căn cước công dân")
+    String cidBackMimeType;
 
-    @FileSizeMax(fieldName = "Ảnh cầm căn cước công dân", maxFileSizeMb = 5)
-    @FileType(fieldName = "Ảnh cầm căn cước công dân", allowedTypes = {"image/jpeg", "image/png"}, allowedTypesMessage = "image/jpeg or image/png")
-    MultipartFile holdingCidCard;
+    @NotBlank(message = "INVALID_IMAGE_TYPE")
+    @ImageMimeType(fieldName = "Ảnh cầm căn cước công dân")
+    String cidHoldingMimeType;
 }

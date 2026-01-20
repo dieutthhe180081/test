@@ -1,5 +1,6 @@
 package com.sep490.g28.hvh.be.config;
 
+import com.sep490.g28.hvh.be.exception.SupabaseResponseErrorHandler;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +23,8 @@ public class HttpClientConfig {
             return execution.execute(request, body);
         });
 
+        //todo, xem cai handler nay co tao 1 lan duoc khong
+        rt.setErrorHandler(new SupabaseResponseErrorHandler());
         return rt;
     }
 }

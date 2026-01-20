@@ -8,19 +8,20 @@ import java.util.Map;
 
 @Getter
 @AllArgsConstructor
-public enum ValidationErrorCode {
+public enum ValidationErrorCode implements ErrorCode {
 
     //from 1000
-    INVALID_ERROR_CODE(1000, "Might have some spelling mistake in validation", HttpStatus.I_AM_A_TEAPOT),
-    INVALID_DATA_TYPE(1001, "Invalid type for parameter: ", HttpStatus.BAD_REQUEST),
-    INVALID_REQUEST_FORMAT(1002, "Invalid request format. Please check your input, there might be one field with wrong format.", HttpStatus.BAD_REQUEST),
-    MISSING_QUERY_PARAM(1003, "Missing required parameter: ", HttpStatus.BAD_REQUEST),
-    INVALID_EMAIL(1004, "Địa chỉ email không hợp lệ", HttpStatus.BAD_REQUEST),
-    INVALID_PASSWORD(1005, "Mật khẩu phải có ít nhất 8 kí tự, trong đó có ít nhất 1 chữ cái, 1 chữ số, 1 kí tự đặc biệt (!@#$%^&*.,:;’)", HttpStatus.BAD_REQUEST),
-    INVALID_PHONE(1006, "Số điện thoại phải là số di động hợp lệ ở Việt Nam", HttpStatus.BAD_REQUEST),
-    INVALID_CID(1007, "Số căn cước công dân không hợp lệ", HttpStatus.BAD_REQUEST),
-    INVALID_FILE_SIZE_MAX(1008, "{fieldName} phải có kích thước nhỏ hơn {maxFileSizeMb}Mb.", HttpStatus.BAD_REQUEST),
-    INVALID_FILE_TYPE(1009, "{fieldName} phải là định dạng sau {allowedTypesMessage}.", HttpStatus.BAD_REQUEST),
+    INVALID_ERROR_CODE(2000, "Might have some spelling mistake in validation", HttpStatus.I_AM_A_TEAPOT),
+    INVALID_DATA_TYPE(2001, "Invalid type for parameter: ", HttpStatus.BAD_REQUEST),
+    INVALID_REQUEST_FORMAT(2002, "Invalid request format. Please check your input, there might be one field with wrong format.", HttpStatus.BAD_REQUEST),
+    MISSING_QUERY_PARAM(2003, "Missing required parameter: ", HttpStatus.BAD_REQUEST),
+    INVALID_EMAIL(2004, "Địa chỉ email không hợp lệ", HttpStatus.BAD_REQUEST),
+    INVALID_PASSWORD(2005, "Mật khẩu phải có ít nhất 8 kí tự, trong đó có ít nhất 1 chữ cái, 1 chữ số, 1 kí tự đặc biệt (!@#$%^&*.,:;’)", HttpStatus.BAD_REQUEST),
+    INVALID_PHONE(2006, "Số điện thoại phải là số di động hợp lệ ở Việt Nam", HttpStatus.BAD_REQUEST),
+    INVALID_CID(2007, "Số căn cước công dân không hợp lệ", HttpStatus.BAD_REQUEST),
+    INVALID_FILE_SIZE_MAX(2008, "{fieldName} phải có kích thước nhỏ hơn {maxFileSizeMb}Mb.", HttpStatus.BAD_REQUEST),
+    INVALID_FILE_TYPE(2009, "{fieldName} phải là định dạng sau {allowedTypesMessage}.", HttpStatus.BAD_REQUEST),
+    INVALID_IMAGE_TYPE(2010, "{fieldName} phải là định dạng .jpeg, .jpg hoặc .png.", HttpStatus.BAD_REQUEST),
 
     ;
 
@@ -29,7 +30,7 @@ public enum ValidationErrorCode {
     private final HttpStatus httpStatus;
 
     public String formatMessage(Map<String, Object> params) {
-        String result = message;
+        String result = this.getMessage();
         for (var e : params.entrySet()) {
             result = result.replace(
                     "{" + e.getKey() + "}",

@@ -26,7 +26,11 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) //make each request independently
                 .authorizeHttpRequests(auth ->
                         auth
-                                .requestMatchers("/api/v1/auth/**").permitAll() //public endpoint
+                                .requestMatchers(
+                                        "/api/v1/auth/**",
+                                        "/test/**", //todo xoa cai nay di
+                                        "/api/v1/user/register-vol-acc"
+                                ).permitAll() //public endpoint
                                 .anyRequest().authenticated() //all other request require authentication
                         )
                 .oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults()))
