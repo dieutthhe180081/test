@@ -14,24 +14,21 @@ import org.springframework.stereotype.Service;
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
-public class EmailSenderService {
+public class MailSenderService {
     JavaMailSender mailSender;
 
     @Value("${spring.mail.username}")
     @NonFinal
     String fromEmail;
 
-
-    //todo dua cai nay vao message queue
-    private void sendEmail(String toEmail, String subject, String htmlContent) throws MessagingException {
+    public void sendEmail(String toEmail, String subject, String htmlContent) throws MessagingException {
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, "utf-8");
-        mimeMessageHelper.setFrom(fromEmail);
-        mimeMessageHelper.setTo(toEmail);
-        mimeMessageHelper.setSubject(subject);
-        mimeMessageHelper.setText(htmlContent, true);
-        mailSender.send(mimeMessage);
-
+            mimeMessageHelper.setFrom(fromEmail);
+            mimeMessageHelper.setTo(toEmail);
+            mimeMessageHelper.setSubject(subject);
+            mimeMessageHelper.setText(htmlContent, true);
+            mailSender.send(mimeMessage);
     }
 
 }
