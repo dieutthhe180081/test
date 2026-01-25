@@ -36,11 +36,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth ->
                         auth
                                 .requestMatchers(
-//                                        "/test/**", //todo xoa cai nay di
+                                        "/test/**", //todo xoa cai nay di
+                                        "/test-sb/**", //todo xoa cai nay di
                                         "/v3/api-docs/**",
                                         "/swagger-ui/**",
                                         "/swagger-ui.html",
-                                        "/api/v1/user/register-vol-acc"
+                                        "/api/v1/volunteer/register-vol-acc"
                                 ).permitAll() //public endpoint
                                 .anyRequest().authenticated() //all other request require authentication
                         )

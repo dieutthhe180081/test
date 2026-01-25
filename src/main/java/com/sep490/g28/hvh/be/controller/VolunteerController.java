@@ -2,7 +2,7 @@ package com.sep490.g28.hvh.be.controller;
 
 import com.sep490.g28.hvh.be.dto.user.RegisterVolunteerAccountRequest;
 import com.sep490.g28.hvh.be.dto.user.RegisterVolunteerAccountResponse;
-import com.sep490.g28.hvh.be.service.UserService;
+import com.sep490.g28.hvh.be.service.VolunteerService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -13,18 +13,18 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RestController
-@RequestMapping("/api/v1/user")
+@RequestMapping("/api/v1/volunteer")
 @Validated
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
-public class UserController {
+public class VolunteerController {
 
-    UserService userService;
+    VolunteerService volunteerService;
 
     @PostMapping("/register-vol-acc")
     public ResponseEntity<RegisterVolunteerAccountResponse> registerVolAccount(
             @Valid @RequestBody RegisterVolunteerAccountRequest request
     ) {
-        return ResponseEntity.ok(userService.registerVolAccount(request));
+        return ResponseEntity.ok(volunteerService.registerVolAccount(request));
     }
 }

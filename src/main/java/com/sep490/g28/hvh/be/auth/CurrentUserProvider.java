@@ -1,12 +1,10 @@
 package com.sep490.g28.hvh.be.auth;
 
 import com.sep490.g28.hvh.be.constant.ERole;
-import com.sep490.g28.hvh.be.entity.User;
-import com.sep490.g28.hvh.be.repository.UserRepository;
+import com.sep490.g28.hvh.be.repository.VolunteerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 
@@ -20,7 +18,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CurrentUserProvider {
 
-    private final UserRepository userRepository;
+    private final VolunteerRepository volunteerRepository;
     private CurrentUser currentUser;
 
     private CurrentUser get() {

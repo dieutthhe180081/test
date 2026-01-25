@@ -16,7 +16,7 @@ public class ImageMimeTypeValidator implements ConstraintValidator<ImageMimeType
             MediaType mediaType = MediaType.parseMediaType(mimeType);
             // only allow image/jpeg and image/png
             return "image".equals(mediaType.getType())
-                    && ("jpeg".equals(mediaType.getSubtype())
+                    && ("jpg".equals(mediaType.getSubtype())
                     || "png".equals(mediaType.getSubtype()));
 
         } catch (InvalidMediaTypeException ex) {

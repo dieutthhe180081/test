@@ -17,8 +17,8 @@ public class RegisterVolunteerAccountRequest {
     @Email(message = "INVALID_EMAIL")
     String email;
 
-    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*.,:;’])[A-Za-z\\d!@#$%^&*.,:;’]{8,}$", message = "INVALID_PASSWORD")
-    String password;
+//    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*.,:;’])[A-Za-z\\d!@#$%^&*.,:;’]{8,}$", message = "INVALID_PASSWORD")
+//    String password;
 
     @Pattern(regexp = "^(0|\\+84)(3|5|7|8|9)\\d{8}$", message = "INVALID_PHONE")
     String phone;

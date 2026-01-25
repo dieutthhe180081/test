@@ -8,16 +8,16 @@ import java.util.UUID;
 @Component
 public class StoragePathGenerator {
 
-    public String cidFront(UUID userId, String mimeType){
-        return  "/user/" + userId + "/cid-front" + extFromMime(mimeType);
+    public String cidFront(UUID verificationId, String mimeType){
+        return  "/volunteer-verification/" + verificationId + "/cid-front" + extFromMime(mimeType);
     }
 
-    public String cidBack(UUID userId, String mimeType){
-        return  "/user/" + userId + "/cid-back" + extFromMime(mimeType);
+    public String cidBack(UUID verificationId, String mimeType){
+        return  "/volunteer-verification/" + verificationId + "/cid-back" + extFromMime(mimeType);
     }
 
-    public String cidHolding(UUID userId, String mimeType){
-        return  "/user/" + userId + "/cid-holding" + extFromMime(mimeType);
+    public String cidHolding(UUID verificationId, String mimeType){
+        return  "/volunteer-verification/" + verificationId + "/cid-holding" + extFromMime(mimeType);
     }
 
     private static String extFromMime(String mimeType) {
