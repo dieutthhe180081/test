@@ -1,5 +1,6 @@
 package com.sep490.g28.hvh.be.entity;
 
+import com.sep490.g28.hvh.be.constant.ERole;
 import com.sep490.g28.hvh.be.constant.EVolunteerVerificationStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -13,12 +14,12 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "volunteer_verifications")
+@Table(name = "identity_verifications")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class VolunteerVerification {
+public class IdentityVerification {
     @Id
     @Column(columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID id;
@@ -31,9 +32,6 @@ public class VolunteerVerification {
 
     @Column(nullable = false, length = 10)
     private String phone;
-
-    @Column(name = "verify_photos", nullable = false, columnDefinition = "TEXT")
-    private String verifyPhotos;
 
     @Column(name = "cid_front", nullable = false)
     private String cidFront;
@@ -48,8 +46,15 @@ public class VolunteerVerification {
     private boolean resetPasswordFlag = false;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 30)
+    @Column(length = 30, nullable = false)
     private EVolunteerVerificationStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "user_role", nullable = false, length = 30)
+    private ERole userRole;
+
+    @Column(name = "user_id")
+    private UUID userId; //id of the user who has identity verification request approved
 
     @Column(name = "rejection_reason")
     private String rejectionReason;
@@ -65,11 +70,4 @@ public class VolunteerVerification {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reviewed_by", referencedColumnName = "id")
     private SystemAdmin reviewedBy;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(
-            name = "volunteer_id",
-            referencedColumnName = "id"
-    )
-    private Volunteer volunteer;
 }

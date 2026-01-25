@@ -1,15 +1,16 @@
 package com.sep490.g28.hvh.be.service;
 
+import com.sep490.g28.hvh.be.constant.ERole;
 import com.sep490.g28.hvh.be.constant.EVolunteerVerificationStatus;
 import com.sep490.g28.hvh.be.dto.user.RegisterVolunteerAccountRequest;
 import com.sep490.g28.hvh.be.dto.user.RegisterVolunteerAccountResponse;
-import com.sep490.g28.hvh.be.entity.VolunteerVerification;
+import com.sep490.g28.hvh.be.entity.IdentityVerification;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.VolunteerErrorCode;
 import com.sep490.g28.hvh.be.integration.storage.StoragePathGenerator;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
 import com.sep490.g28.hvh.be.repository.VolunteerRepository;
-import com.sep490.g28.hvh.be.repository.VolunteerVerificationRepository;
+import com.sep490.g28.hvh.be.repository.IdentityVerificationRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -23,7 +24,7 @@ import java.util.UUID;
 public class VolunteerServiceImpl implements VolunteerService {
 
     VolunteerRepository volunteerRepository;
-    VolunteerVerificationRepository volunteerVerificationRepository;
+    IdentityVerificationRepository identityVerificationRepository;
     StorageService storageService;
     StoragePathGenerator storagePathGenerator;
 
@@ -41,9 +42,10 @@ public class VolunteerServiceImpl implements VolunteerService {
             throw new AppException(VolunteerErrorCode.PHONE_USED);
         }
 
-        VolunteerVerification verification = new VolunteerVerification();
+        IdentityVerification verification = new IdentityVerification();
         UUID id = UUID.randomUUID();
         verification.setId(id);
+        verification.setUserRole(ERole.VOL);
 
         //2. generate upload url for fe
         //get the path in storage
@@ -66,6 +68,8 @@ public class VolunteerServiceImpl implements VolunteerService {
         verification.setCidFront(cidFrontPath);
         verification.setCidBack(cidBackPath);
         verification.setCidHolding(cidHoldingPath);
+
+        identityVerificationRepository.save(verification);
 
         return RegisterVolunteerAccountResponse.builder()
                 .cidBackUploadUrl(cidBackUploadUrl)
