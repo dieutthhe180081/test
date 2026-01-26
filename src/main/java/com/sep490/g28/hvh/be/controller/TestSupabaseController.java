@@ -1,7 +1,9 @@
 package com.sep490.g28.hvh.be.controller;
 
-import com.sep490.g28.hvh.be.auth.SupabaseAuthService;
-import com.sep490.g28.hvh.be.storage.SupabaseStorageService;
+import com.sep490.g28.hvh.be.constant.ERole;
+import com.sep490.g28.hvh.be.integration.authServer.SupabaseAuthService;
+import com.sep490.g28.hvh.be.integration.storage.SupabaseStorageService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,29 +13,16 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/v1/auth/test-spb")
-//@RequiredArgsConstructor
+@RequestMapping("/test-sb")
+@RequiredArgsConstructor
 public class TestSupabaseController {
 
     private final SupabaseAuthService authService;
     private final SupabaseStorageService storageService;
 
-    public TestSupabaseController(SupabaseAuthService authService, SupabaseStorageService storageService) {
-        this.authService = authService;
-        this.storageService = storageService;
-    }
-
-    @PostMapping
-    public void create(@RequestParam String email,
-                       @RequestParam String password) {
-        authService.createUser(email, password);
-    }
-
-//    @PostMapping("/upload")
-//    public String upload(@RequestParam MultipartFile file) throws IOException {
-//        String path = UUID.randomUUID() + "-" + file.getOriginalFilename();
-//        storageService.upload(file, path);
-//        return path;
+//    public TestSupabaseController(SupabaseAuthService authService, SupabaseStorageService storageService) {
+//        this.authService = authService;
+//        this.storageService = storageService;
 //    }
 
     // test upload file
@@ -66,18 +55,14 @@ public class TestSupabaseController {
         String signedUrl = storageService.createSignedUrl(path);
 
         return ResponseEntity.ok(
-                Map.of("signedUrl", signedUrl)
+                Map.of("signedURL", signedUrl)
         );
     }
 
-    // test: lấy signed upload url
-    @PostMapping("/signed-upload-url")
-    public ResponseEntity<Map<String, String>> getSignedUploadUrl( ) {
-
-        String signedUrl = storageService.createSignedUploadUrl("test/signeduploadurl", 300);
-
-        return ResponseEntity.ok(
-                Map.of("signedUploadUrl", signedUrl)
-        );
+    @GetMapping("/create-account")
+    public ResponseEntity<String> createVolAccount() {
+        authService.createAccount(ERole.VOL, "abc1@gmail.com", "12345678", "0123456789");
+        return ResponseEntity.ok("OK");
     }
+
 }
