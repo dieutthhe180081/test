@@ -7,6 +7,7 @@ import com.sep490.g28.hvh.be.dto.user.RegisterVolunteerAccountResponse;
 import com.sep490.g28.hvh.be.entity.IdentityVerification;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.VolunteerErrorCode;
+import com.sep490.g28.hvh.be.integration.cache.OtpService;
 import com.sep490.g28.hvh.be.integration.storage.StoragePathGenerator;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
 import com.sep490.g28.hvh.be.repository.VolunteerRepository;
@@ -27,11 +28,15 @@ public class VolunteerServiceImpl implements VolunteerService {
     IdentityVerificationRepository identityVerificationRepository;
     StorageService storageService;
     StoragePathGenerator storagePathGenerator;
+    OtpService otpService;
 
     @Override
     public RegisterVolunteerAccountResponse registerVolAccount (RegisterVolunteerAccountRequest request) {
 
-        //1. check the unique email, cid, phone in the volunteers account
+        //1. validate otp
+        otpService.verifyVerifyRegisterOtp(request.getEmail(), request.getOtp());
+
+        //2. check the unique email, cid, phone in the volunteers account
         if (volunteerRepository.existsByCid(request.getCid())) {
             throw new AppException(VolunteerErrorCode.CID_USED);
         }
@@ -47,7 +52,7 @@ public class VolunteerServiceImpl implements VolunteerService {
         verification.setId(id);
         verification.setUserRole(ERole.VOL);
 
-        //2. generate upload url for fe
+        //3. generate upload url for fe
         //get the path in storage
         String cidFrontPath = storagePathGenerator.cidFront(id, request.getCidFrontMimeType());
         String cidBackPath = storagePathGenerator.cidBack(id, request.getCidBackMimeType());
@@ -58,7 +63,7 @@ public class VolunteerServiceImpl implements VolunteerService {
         String cidBackUploadUrl = storageService.getUploadUrl(cidBackPath, 600);
         String cidHoldingUploadUrl = storageService.getUploadUrl(cidHoldingPath, 600);
 
-        //3. create volunteer verification request in db
+        //4. create volunteer verification request in db
         verification.setStatus(EVolunteerVerificationStatus.PENDING);
 
         verification.setCid(request.getCid());

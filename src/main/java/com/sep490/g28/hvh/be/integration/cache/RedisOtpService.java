@@ -18,6 +18,7 @@ public class RedisOtpService implements OtpService {
 
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final String TYPE_VERIFY_EMAIL_PRE = "otp:verify-email:";
+    private static final String TYPE_RESET_PASSWORD_PRE = "otp:forgot-password:";
     private static final String OTP_SUF = "otp";
     private static final String ATTEMPT_SUF = "attempt";
     private static final int MAX_ATTEMPT = 3;
@@ -30,16 +31,29 @@ public class RedisOtpService implements OtpService {
 
 
     @Override
-    public String getVerifyEmailOtp(String email) {
+    public String getVerifyRegisterOtp(String email) {
         String key = TYPE_VERIFY_EMAIL_PRE + email;
         return generateOtp(key);
     }
 
     @Override
-    public boolean verifyVerifyEmailOtp(String email, String inputOtp) {
+    public boolean verifyVerifyRegisterOtp(String email, String inputOtp) {
         String key = TYPE_VERIFY_EMAIL_PRE + email;
         return verifyOtp(key, inputOtp);
     }
+
+    @Override
+    public String getVerifyForgotPasswordOtp(String email) {
+        String key = TYPE_RESET_PASSWORD_PRE + email;
+        return generateOtp(key);
+    }
+
+    @Override
+    public boolean verifyVerifyForgotPasswordOtp(String email, String inputOtp) {
+        String key = TYPE_RESET_PASSWORD_PRE + email;
+        return verifyOtp(key, inputOtp);
+    }
+
 
     private String generateOtp(String key) {
 

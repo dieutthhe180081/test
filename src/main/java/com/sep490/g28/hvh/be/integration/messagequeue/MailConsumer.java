@@ -2,7 +2,7 @@ package com.sep490.g28.hvh.be.integration.messagequeue;
 
 import com.sep490.g28.hvh.be.config.RabbitMqMailProperties;
 import com.sep490.g28.hvh.be.dto.rabbitmq.MailMessage;
-import com.sep490.g28.hvh.be.integration.mail.MailSenderService;
+import com.sep490.g28.hvh.be.integration.mail.EmailSenderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
@@ -20,7 +20,7 @@ import java.util.Map;
 @Slf4j
 public class MailConsumer {
 
-    private final MailSenderService mailSenderService;
+    private final EmailSenderService emailSenderService;
     private final RabbitTemplate rabbitTemplate;
     private final RabbitMqMailProperties properties;
 
@@ -29,7 +29,7 @@ public class MailConsumer {
             MailMessage msg
     ) {
         try {
-            mailSenderService.sendEmail(
+            emailSenderService.sendEmail(
                     msg.getTo(),
                     msg.getSubject(),
                     msg.getBody()

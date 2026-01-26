@@ -22,7 +22,7 @@ public enum ValidationErrorCode implements ErrorCode {
     INVALID_FILE_SIZE_MAX(2008, "{fieldName} phải có kích thước nhỏ hơn {maxFileSizeMb}Mb.", HttpStatus.BAD_REQUEST),
     INVALID_FILE_TYPE(2009, "{fieldName} phải là định dạng sau {allowedTypesMessage}.", HttpStatus.BAD_REQUEST),
     INVALID_IMAGE_TYPE(2010, "{fieldName} phải là định dạng .jpg hoặc .png.", HttpStatus.BAD_REQUEST),
-
+    INVALID_OTP(2011, "Mã OTP là chuỗi 6 kí tự chữ số", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

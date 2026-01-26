@@ -13,6 +13,11 @@ import lombok.experimental.FieldDefaults;
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class RegisterVolunteerAccountRequest {
+
+    @NotBlank (message = "INVALID_OTP")
+    @Pattern(regexp = "^\\d{6}$", message = "INVALID_OTP")
+    String otp;
+
     @NotBlank(message = "INVALID_EMAIL")
     @Email(message = "INVALID_EMAIL")
     String email;
@@ -20,9 +25,11 @@ public class RegisterVolunteerAccountRequest {
 //    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*.,:;’])[A-Za-z\\d!@#$%^&*.,:;’]{8,}$", message = "INVALID_PASSWORD")
 //    String password;
 
+    @NotBlank(message = "INVALID_PHONE")
     @Pattern(regexp = "^(0|\\+84)(3|5|7|8|9)\\d{8}$", message = "INVALID_PHONE")
     String phone;
 
+    @NotBlank (message = "INVALID_CID")
     @Pattern(regexp = "^\\d{12}$", message = "INVALID_CID")
     String cid;
 

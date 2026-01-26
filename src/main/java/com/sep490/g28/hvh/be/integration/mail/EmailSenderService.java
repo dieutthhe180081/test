@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
-public class MailSenderService {
+public class EmailSenderService {
     JavaMailSender mailSender;
 
     @Value("${spring.mail.username}")
