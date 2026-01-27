@@ -1,6 +1,5 @@
 package com.sep490.g28.hvh.be.entity;
 
-import com.sep490.g28.hvh.be.constant.ERole;
 import com.sep490.g28.hvh.be.constant.EVolunteerVerificationStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -42,19 +41,9 @@ public class IdentityVerification {
     @Column(name = "cid_holding", nullable = false)
     private String cidHolding;
 
-    @Column(name = "reset_password_flag", nullable = false)
-    private boolean resetPasswordFlag = false;
-
     @Enumerated(EnumType.STRING)
     @Column(length = 30, nullable = false)
     private EVolunteerVerificationStatus status;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "user_role", nullable = false, length = 30)
-    private ERole userRole;
-
-    @Column(name = "user_id")
-    private UUID userId; //id of the user who has identity verification request approved
 
     @Column(name = "rejection_reason")
     private String rejectionReason;
@@ -70,4 +59,11 @@ public class IdentityVerification {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reviewed_by", referencedColumnName = "id")
     private SystemAdmin reviewedBy;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(
+            name = "volunteer_id",
+            referencedColumnName = "id"
+    )
+    private Volunteer volunteer;
 }

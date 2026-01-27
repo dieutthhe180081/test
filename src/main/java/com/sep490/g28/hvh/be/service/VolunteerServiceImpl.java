@@ -50,7 +50,6 @@ public class VolunteerServiceImpl implements VolunteerService {
         IdentityVerification verification = new IdentityVerification();
         UUID id = UUID.randomUUID();
         verification.setId(id);
-        verification.setUserRole(ERole.VOL);
 
         //3. generate upload url for fe
         //get the path in storage
