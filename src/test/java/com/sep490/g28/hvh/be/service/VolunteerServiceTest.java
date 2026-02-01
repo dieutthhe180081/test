@@ -3,7 +3,7 @@ package com.sep490.g28.hvh.be.service;
 import com.sep490.g28.hvh.be.dto.user.RegisterVolunteerAccountRequest;
 import com.sep490.g28.hvh.be.dto.user.RegisterVolunteerAccountResponse;
 import com.sep490.g28.hvh.be.entity.IdentityVerification;
-import com.sep490.g28.hvh.be.exception.AppCommonErrorCode;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.AppCommonErrorCode;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.integration.cache.OtpService;
 import com.sep490.g28.hvh.be.integration.storage.StoragePathGenerator;

@@ -2,7 +2,7 @@ package com.sep490.g28.hvh.be.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sep490.g28.hvh.be.dto.ExceptionResponse;
-import com.sep490.g28.hvh.be.exception.AppCommonErrorCode;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.AppCommonErrorCode;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,6 +17,15 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Handles authentication failures for JWT-based security.
+ *
+ * <p>This entry point is triggered when a request is made without valid
+ * authentication credentials or when JWT validation fails.</p>
+ *
+ * <p>It returns a JSON response with HTTP 401 (Unauthorized) status
+ * and a standardized error body.</p>
+ */
 @Slf4j
 @Component
 public class JwtAuthEntryPoint implements AuthenticationEntryPoint {

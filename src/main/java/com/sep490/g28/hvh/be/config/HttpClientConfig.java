@@ -7,13 +7,21 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * HTTP client configuration for external service communication.
+ */
 @Configuration
 public class HttpClientConfig {
 
-    //use to send json request
+    /**
+     * RestTemplate used to send JSON requests to Supabase services.
+     *
+     * @param config Supabase configuration properties
+     * @return configured {@link RestTemplate} bean
+     */
     @Bean
     @Qualifier("supabaseRestTemplate")
-    public RestTemplate supabaseRestTemplate(SupabaseConfig config) {
+    public RestTemplate supabaseRestTemplate(SupabaseProperties config) {
         RestTemplate rt = new RestTemplate();
 
         rt.getInterceptors().add((request, body, execution) -> {

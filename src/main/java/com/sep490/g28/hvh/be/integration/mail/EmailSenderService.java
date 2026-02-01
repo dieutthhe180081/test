@@ -11,6 +11,24 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+/**
+ * Low-level email sender using SMTP.
+ * <p>
+ * This class is a technical utility, not a business service.
+ * </p>
+ *
+ * <p>Responsibilities:</p>
+ * <ul>
+ *   <li>Build MIME messages</li>
+ *   <li>Send email via {@link JavaMailSender}</li>
+ * </ul>
+ *
+ * <p>Note:</p>
+ * <ul>
+ *   <li>Does NOT contain business logic</li>
+ *   <li>Throws {@link MessagingException} on SMTP failures</li>
+ * </ul>
+ */
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor

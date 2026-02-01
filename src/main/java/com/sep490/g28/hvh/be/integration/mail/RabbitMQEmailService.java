@@ -6,6 +6,24 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
+/**
+ * EmailService implementation using RabbitMQ.
+ * <p>
+ * Emails are published to a queue for async processing.
+ * </p>
+ *
+ * <p>Responsibilities:</p>
+ * <ul>
+ *   <li>Prepare email subject and body</li>
+ *   <li>Publish email jobs to message queue</li>
+ * </ul>
+ *
+ * <p>Does NOT:</p>
+ * <ul>
+ *   <li>Send emails directly</li>
+ *   <li>Handle SMTP failures</li>
+ * </ul>
+ */
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)

@@ -5,6 +5,12 @@ import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
+/**
+ * Utility component for generating standardized storage paths.
+ * <p>
+ * Centralizes path conventions to avoid hard-coded strings.
+ * </p>
+ */
 @Component
 public class StoragePathGenerator {
 
@@ -20,6 +26,13 @@ public class StoragePathGenerator {
         return  "/volunteer-verification/" + verificationId + "/cid-holding" + extFromMime(mimeType);
     }
 
+    /**
+     * Resolve file extension from MIME type.
+     *
+     * @param mimeType MIME type (e.g. image/jpeg)
+     * @return file extension without dot
+     * @throws IllegalArgumentException if MIME type unsupported
+     */
     private static String extFromMime(String mimeType) {
         MediaType mediaType = MediaType.parseMediaType(mimeType);
 

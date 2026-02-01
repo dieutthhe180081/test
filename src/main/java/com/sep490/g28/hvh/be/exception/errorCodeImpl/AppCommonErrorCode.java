@@ -1,12 +1,17 @@
-package com.sep490.g28.hvh.be.exception;
+package com.sep490.g28.hvh.be.exception.errorCodeImpl;
 
+import com.sep490.g28.hvh.be.exception.ErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+/**
+ * Contain Error code which can be used in multiple layer, domain (auth, otp, ...)
+ * Code in format 1xxx
+ */
 @Getter
 @AllArgsConstructor
-public enum AppCommonErrorCode implements ErrorCode{
+public enum AppCommonErrorCode implements ErrorCode {
     //contain error from our be, like, cannot connect to other service, or something unexpect happen
     //start from 1000
     UNKNOWN_EXCEPTION(1000, "Lỗi chưa xác định. Hãy thử lại sau", HttpStatus.INTERNAL_SERVER_ERROR),

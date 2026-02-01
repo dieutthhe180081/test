@@ -1,11 +1,16 @@
-package com.sep490.g28.hvh.be.exception;
+package com.sep490.g28.hvh.be.exception.errorCodeImpl;
 
+import com.sep490.g28.hvh.be.exception.ErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 import java.util.Map;
 
+/**
+ * Contain Error code which relate to data validation
+ * Code in format 2xxx
+ */
 @Getter
 @AllArgsConstructor
 public enum ValidationErrorCode implements ErrorCode {

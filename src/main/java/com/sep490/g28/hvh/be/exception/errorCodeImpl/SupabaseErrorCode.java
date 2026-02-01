@@ -1,9 +1,14 @@
-package com.sep490.g28.hvh.be.exception;
+package com.sep490.g28.hvh.be.exception.errorCodeImpl;
 
+import com.sep490.g28.hvh.be.exception.ErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+/**
+ * Error code for communicating with Supabase
+ * Code format: 9xxx
+ */
 @Getter
 @AllArgsConstructor
 public enum SupabaseErrorCode implements ErrorCode {

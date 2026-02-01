@@ -2,7 +2,7 @@ package com.sep490.g28.hvh.be.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sep490.g28.hvh.be.dto.ExceptionResponse;
-import com.sep490.g28.hvh.be.exception.AppCommonErrorCode;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.AppCommonErrorCode;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,6 +16,15 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Handles access denied (authorization) errors for JWT-protected resources.
+ *
+ * <p>This handler is triggered when an authenticated user attempts to access
+ * a resource without sufficient permissions.</p>
+ *
+ * <p>It returns a JSON response with HTTP 403 (Forbidden) status
+ * and a standardized error body.</p>
+ */
 @Component
 @Slf4j
 public class JwtAccessDeniedHandler implements AccessDeniedHandler {

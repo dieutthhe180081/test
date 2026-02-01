@@ -6,8 +6,17 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+/**
+ * Redis configuration for the application.
+ */
 @Configuration
 public class RedisConfig {
+    /**
+     * RedisTemplate with {@link StringRedisSerializer} for all serializers.
+     *
+     * @param factory Redis connection factory
+     * @return configured {@link RedisTemplate}
+     */
     @Bean
     RedisTemplate<String, String> redisTemplate(RedisConnectionFactory factory) {
         RedisTemplate<String, String> template = new RedisTemplate<>();

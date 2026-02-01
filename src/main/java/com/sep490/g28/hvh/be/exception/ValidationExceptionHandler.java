@@ -1,6 +1,7 @@
 package com.sep490.g28.hvh.be.exception;
 
 import com.sep490.g28.hvh.be.dto.ExceptionResponse;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.ValidationErrorCode;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -18,11 +19,27 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Handles validation-related exceptions with highest precedence.
+ *
+ * <p>Centrally processes all validation errors coming from:
+ * <ul>
+ *   <li>DTO field validation (@Valid, @Validated)</li>
+ *   <li>Method-level validation (request params, path variables, service methods)</li>
+ *   <li>Request body parsing and type mismatches</li>
+ * </ul>
+ *
+ * <p>Returns standardized validation error responses.</p>
+ */
 @Slf4j
 @RestControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class ValidationExceptionHandler {
 
+    /**
+     * Supported validation annotation attributes
+     * used for message placeholder replacement.
+     */
     private static final Set<String> VALIDATORS_ATTRIBUTES  = Set.of(
             "fieldName",
             "max",
@@ -32,9 +49,13 @@ public class ValidationExceptionHandler {
     );
 
     /**
-     * for field validation (DTO's field), object validation (bean validation on DTO)
-     * for using @Valid @Validate before  @RequestBody
+     * Handles DTO field and object validation errors.
      *
+     * <p>Triggered when {@code @Valid} / {@code @Validated}
+     * fails on {@code @RequestBody}.</p>
+     *
+     * @param ex validation exception
+     * @return response containing field-level error messages
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ExceptionResponse<Map<String, String>>> handleValidationException(MethodArgumentNotValidException ex) {
@@ -71,8 +92,13 @@ public class ValidationExceptionHandler {
     }
 
     /**
-     * for fail validation, method-level validation
-     * validate method's parameters (request param, path variable, service layer)
+     * Handles method-level constraint violations.
+     *
+     * <p>Applies to validation on request parameters,
+     * path variables, and service-layer method parameters.</p>
+     *
+     * @param ex constraint violation exception
+     * @return response containing validation errors
      */
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ExceptionResponse<Map<String, String>>> handleConstraintViolationException(ConstraintViolationException ex) {
@@ -107,10 +133,11 @@ public class ValidationExceptionHandler {
     }
 
     /**
-     * use to replace the placeholder in error message ({})
-     * @param errorCode the ValidationErrorCode name
-     * @param attributes the attributes of the validation annotation
-     * @return a String as final message
+     * Replaces placeholders in validation messages.
+     *
+     * @param errorCode validation error code
+     * @param attributes validation annotation attributes
+     * @return formatted error message
      */
     private String formatMessage(
             ValidationErrorCode errorCode,
@@ -130,7 +157,12 @@ public class ValidationExceptionHandler {
         return message;
     }
 
-    //  for query param, path variable
+    /**
+     * Handles type mismatch errors for request parameters and path variables.
+     *
+     * @param e type mismatch exception
+     * @return standardized error response
+     */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ExceptionResponse<String>> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
         log.info("Exception is caught by handleTypeMismatchException");
@@ -141,7 +173,14 @@ public class ValidationExceptionHandler {
         return ResponseEntity.status(ValidationErrorCode.INVALID_DATA_TYPE.getHttpStatus()).body(response);
     }
 
-    //    usually ussing mapping from JSON to DTO
+    /**
+     * Handles invalid or unreadable request bodies.
+     *
+     * <p>Commonly occurs during JSON-to-DTO mapping.</p>
+     *
+     * @param e message not readable exception
+     * @return standardized error response
+     */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ExceptionResponse<String>> handleHttpMessageNotReadable(HttpMessageNotReadableException e) {
         log.info("Exception is caught by handleHttpMessageNotReadableException");
@@ -152,7 +191,12 @@ public class ValidationExceptionHandler {
         return ResponseEntity.status(ValidationErrorCode.INVALID_REQUEST_FORMAT.getHttpStatus()).body(response);
     }
 
-    //missing query param/ @request param
+    /**
+     * Handles missing required query parameters.
+     *
+     * @param e missing request parameter exception
+     * @return standardized error response
+     */
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ExceptionResponse<String>> handleMissingRequestParam(
             MissingServletRequestParameterException e

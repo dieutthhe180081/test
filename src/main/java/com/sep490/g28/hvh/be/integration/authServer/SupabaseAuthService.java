@@ -1,10 +1,11 @@
 package com.sep490.g28.hvh.be.integration.authServer;
 
-import com.sep490.g28.hvh.be.config.SupabaseConfig;
+import com.sep490.g28.hvh.be.config.SupabaseProperties;
 import com.sep490.g28.hvh.be.constant.ERole;
 import com.sep490.g28.hvh.be.dto.supabase.CreateUserRequest;
 import com.sep490.g28.hvh.be.dto.supabase.UserListResponse;
 import com.sep490.g28.hvh.be.dto.supabase.UserResponse;
+import com.sep490.g28.hvh.be.exception.AppException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -16,19 +17,40 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Supabase-based implementation of {@link AuthService}.
+ *
+ * <p>Uses Supabase Admin REST API to manage user accounts.</p>
+ *
+ * <p>Notes:
+ * <ul>
+ *   <li>Requires Supabase service role key</li>
+ *   <li>Performs server-to-server calls via {@link RestTemplate}</li>
+ *   <li>Stores role and phone number in {@code app_metadata}</li>
+ * </ul>
+ * </p>
+ */
 @Service
 public class SupabaseAuthService implements AuthService {
     private final RestTemplate restTemplate;
-    private final SupabaseConfig supabaseConfig;
+    private final SupabaseProperties supabaseProperties;
 
     public SupabaseAuthService(
             @Qualifier("supabaseRestTemplate") RestTemplate restTemplate,
-            SupabaseConfig config
+            SupabaseProperties config
     ) {
         this.restTemplate = restTemplate;
-        this.supabaseConfig = config;
+        this.supabaseProperties = config;
     }
 
+    /**
+     * Creates a Supabase user using Admin API.
+     *
+     * <p>The user is created as email-verified by default
+     * and includes custom {@code app_metadata}.</p>
+     *
+     * @throws AppException if Supabase returns an error
+     */
     @Override
     public UUID createAccount(ERole role, String email, String password, String phone) {
         Map<String, Object> appMetadata = Map.of(
@@ -42,7 +64,7 @@ public class SupabaseAuthService implements AuthService {
                 appMetadata
         );
 
-        String url = supabaseConfig.getUrl() + "/auth/v1/admin/users";
+        String url = supabaseProperties.getUrl() + "/auth/v1/admin/users";
 
         HttpEntity<CreateUserRequest> httpEntity =
                 new HttpEntity<>(request);
@@ -56,9 +78,15 @@ public class SupabaseAuthService implements AuthService {
         return Objects.requireNonNull(responseEntity.getBody()).id();
     }
 
+    /**
+     * Checks email existence via Supabase Admin API.
+     *
+     * @param email email to check
+     * @return {@code true} if at least one user is found
+     */
     @Override
     public boolean checkEmailExists(String email) {
-        String url = supabaseConfig.getUrl()
+        String url = supabaseProperties.getUrl()
                 + "/auth/v1/admin/users?email=" + UriUtils.encode(email, StandardCharsets.UTF_8);
 
         ResponseEntity<UserListResponse> response =

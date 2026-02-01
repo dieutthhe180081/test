@@ -1,6 +1,6 @@
 package com.sep490.g28.hvh.be.integration.storage;
 
-import com.sep490.g28.hvh.be.config.SupabaseConfig;
+import com.sep490.g28.hvh.be.config.SupabaseProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.InputStreamResource;
@@ -14,32 +14,50 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Map;
 
+/**
+ * Supabase-based implementation of {@link StorageService}.
+ * <p>
+ * Responsibilities:
+ * <ul>
+ *   <li>Upload files directly to Supabase Storage (server-side)</li>
+ *   <li>Generate signed URLs for upload/view</li>
+ * </ul>
+ *
+ * <p>Notes:</p>
+ * <ul>
+ *   <li>Uses Supabase service role key</li>
+ *   <li>All paths are scoped to a single bucket</li>
+ * </ul>
+ */
 @Slf4j
 @Service
 public class SupabaseStorageService implements StorageService {
     private final RestTemplate restTemplate;
-    private final SupabaseConfig supabaseConfig;
+    private final SupabaseProperties supabaseProperties;
 
     public SupabaseStorageService(
             @Qualifier("supabaseRestTemplate") RestTemplate restTemplate,
-            SupabaseConfig config
+            SupabaseProperties config
     ) {
         this.restTemplate = restTemplate;
-        this.supabaseConfig = config;
+        this.supabaseProperties = config;
     }
 
-    //user
-    //user/{user-id}/{tên loại file}
-
-    //event - lưu thông tin của event
-    //{event/{event-id}/
-
-    //organization - lưu thông tin của organization
-
+    /**
+     * Upload file directly to Supabase Storage.
+     * <p>
+     * Intended for server-side upload only.
+     * </p>
+     *
+     * @param file multipart file
+     * @param path destination path in bucket
+     * @return stored path
+     * @throws IOException if file stream cannot be read
+     */
     public String upload(MultipartFile file, String path) throws IOException {
-        String url = supabaseConfig.getUrl()
+        String url = supabaseProperties.getUrl()
                 + "/storage/v1/object/"
-                + supabaseConfig.getBucket()
+                + supabaseProperties.getBucket()
                 + "/" + path;
 
         HttpHeaders headers = new HttpHeaders();
@@ -72,14 +90,15 @@ public class SupabaseStorageService implements StorageService {
     }
 
     /**
-     * get the signed url, which the client could use to view the content in the path
-     * @param path the path of the file in the bucket
-     * @return a String of signed url, expire in 1 hour
+     * Create a signed URL for viewing/downloading a file.
+     *
+     * @param path file path in bucket
+     * @return signed URL (default 1 hour expiry)
      */
     public String createSignedUrl(String path) {
-        String url = supabaseConfig.getUrl()
+        String url = supabaseProperties.getUrl()
                 + "/storage/v1/object/sign/"
-                + supabaseConfig.getBucket()
+                + supabaseProperties.getBucket()
                 + "/" + path;
         //expired in 1 hour
         Map<String, Object> body = Map.of(
@@ -112,16 +131,21 @@ public class SupabaseStorageService implements StorageService {
     }
 
     /**
-     * get upload url, clients could use the sign url to upload file from their device
-     * @param path the location of the file in the bucket
-     * @param expiresInSeconds expiration time of the upload url (in seconds)
-     * @return a String of signed upload url
+     * Generate signed upload URL for client-side upload.
+     * <p>
+     * Client uploads file directly to Supabase Storage.
+     * Backend does not handle file content.
+     * </p>
+     *
+     * @param path             file path in bucket
+     * @param expiresInSeconds expiration time in seconds
+     * @return signed upload URL
      */
     @Override
     public String getUploadUrl(String path, int expiresInSeconds) {
-        String url = supabaseConfig.getUrl()
+        String url = supabaseProperties.getUrl()
                 + "/storage/v1/object/upload/sign/"
-                + supabaseConfig.getBucket()
+                + supabaseProperties.getBucket()
                 + "/" + path;
 
         //expired in 1 hour

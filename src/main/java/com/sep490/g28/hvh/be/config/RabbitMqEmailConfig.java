@@ -5,17 +5,19 @@ import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-
+/**
+ *Configuration for Message queue related to sending mail
+ */
 @Configuration
-public class RabbitMqMailConfig {
+public class RabbitMqEmailConfig {
 
     private static final String HEADER_MESSAGE_TTL = "x-message-ttl";
     private static final String HEADER_DEAD_LETTER_EXCHANGE = "x-dead-letter-exchange";
     private static final String HEADER_DEAD_LETTER_ROUTING_KEY = "x-dead-letter-routing-key";
 
-    private final RabbitMqMailProperties properties;
+    private final RabbitMqEmailProperties properties;
 
-    public RabbitMqMailConfig(RabbitMqMailProperties properties) {
+    public RabbitMqEmailConfig(RabbitMqEmailProperties properties) {
         this.properties = properties;
     }
 

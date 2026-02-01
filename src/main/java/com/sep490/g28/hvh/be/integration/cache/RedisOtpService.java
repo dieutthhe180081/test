@@ -1,6 +1,6 @@
 package com.sep490.g28.hvh.be.integration.cache;
 
-import com.sep490.g28.hvh.be.exception.AppCommonErrorCode;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.AppCommonErrorCode;
 import com.sep490.g28.hvh.be.exception.AppException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +11,20 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import java.time.Duration;
 
+/**
+ * Redis-based implementation of {@link OtpService}.
+ *
+ * <p>Features:
+ * <ul>
+ *   <li>OTP stored in Redis with TTL</li>
+ *   <li>Cooldown between OTP generations</li>
+ *   <li>Generation rate limit within a sliding window</li>
+ *   <li>Maximum verification attempts</li>
+ * </ul>
+ *
+ * <p>OTP lifecycle is fully managed in Redis and
+ * cleaned up automatically on success or failure.</p>
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -55,6 +69,11 @@ public class RedisOtpService implements OtpService {
     }
 
 
+    /**
+     * Generates a new OTP with cooldown and rate limiting.
+     *
+     * @throws AppException if cooldown is active or generation limit exceeded
+     */
     private String generateOtp(String key) {
 
         String cooldownKey = key + ":cooldown";
@@ -91,6 +110,11 @@ public class RedisOtpService implements OtpService {
         return otp;
     }
 
+    /**
+     * Verifies OTP and enforces attempt limits.
+     *
+     * @throws AppException if OTP is expired, invalid, or attempts exceeded
+     */
     private boolean verifyOtp(String key, String inputOtp) {
         HashOperations<String, String, String> hash = redisTemplate.opsForHash();
 

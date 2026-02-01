@@ -1,10 +1,9 @@
 package com.sep490.g28.hvh.be.mapper;
 
 import com.sep490.g28.hvh.be.dto.supabase.SupabaseErrorResponse;
-import com.sep490.g28.hvh.be.exception.AppCommonErrorCode;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.AppCommonErrorCode;
 import com.sep490.g28.hvh.be.exception.ErrorCode;
-import com.sep490.g28.hvh.be.exception.SupabaseErrorCode;
-import com.sep490.g28.hvh.be.exception.ValidationErrorCode;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.SupabaseErrorCode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;

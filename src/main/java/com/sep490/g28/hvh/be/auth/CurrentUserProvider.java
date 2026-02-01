@@ -11,7 +11,13 @@ import org.springframework.web.context.annotation.RequestScope;
 import java.util.UUID;
 
 /**
- * Extract JWT claim to put it in CurrentUser, representing the user who making the current request
+ * Provides access to the {@link CurrentUser} extracted from JWT claims.
+ *
+ * <p>This component is request-scoped and represents the user
+ * who is making the current HTTP request.</p>
+ *
+ * <p>The {@link CurrentUser} object is expected to be populated
+ * during authentication and stored in {@link Authentication#getDetails()}.</p>
  */
 @Component
 @RequestScope
@@ -21,19 +27,33 @@ public class CurrentUserProvider {
     private final VolunteerRepository volunteerRepository;
     private CurrentUser currentUser;
 
+    /**
+     * Retrieves the {@link CurrentUser} from the Spring Security context.
+     *
+     * @return the current authenticated user
+     */
     private CurrentUser get() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return (CurrentUser) auth.getDetails();
     }
 
+    /**
+     * @return the unique identifier of the current user
+     */
     public UUID getId() {
         return get().id();
     }
 
+    /**
+     * @return the email of the current user
+     */
     public String getEmail() {
         return get().email();
     }
 
+    /**
+     * @return the role of the current user
+     */
     public ERole getRoleName() {
         return get().roleName();
     }

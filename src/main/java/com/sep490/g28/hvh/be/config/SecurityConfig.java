@@ -18,6 +18,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 
+/**
+ * Spring Security configuration for the application.
+ *
+ * <p>Configures JWT-based authentication using Supabase,
+ * stateless session management, CORS, and global security rules.</p>
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -28,6 +34,22 @@ public class SecurityConfig {
     private final AccessDeniedHandler accessDeniedHandler;
     private final SupabaseJwtAuthenticationConverter supabaseJwtAuthenticationConverter;
 
+    /**
+     * Defines the main security filter chain.
+     *
+     * <p>Key configurations:
+     * <ul>
+     *   <li>Disables CSRF (stateless REST API)</li>
+     *   <li>Enables CORS with custom configuration</li>
+     *   <li>Uses stateless session policy</li>
+     *   <li>Allows public access to specific endpoints</li>
+     *   <li>Protects all other endpoints with JWT authentication</li>
+     * </ul>
+     * </p>
+     *
+     * @param http {@link HttpSecurity} configuration
+     * @return configured {@link SecurityFilterChain}
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
@@ -58,6 +80,11 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Global CORS configuration.
+     *
+     * @return configured {@link CorsConfigurationSource}
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
