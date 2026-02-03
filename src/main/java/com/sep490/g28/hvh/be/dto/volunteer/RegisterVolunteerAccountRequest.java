@@ -1,4 +1,4 @@
-package com.sep490.g28.hvh.be.dto.user;
+package com.sep490.g28.hvh.be.dto.volunteer;
 
 import com.sep490.g28.hvh.be.validation.ImageMimeType;
 import jakarta.validation.constraints.Email;

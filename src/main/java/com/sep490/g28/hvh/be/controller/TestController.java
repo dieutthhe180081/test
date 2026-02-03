@@ -1,7 +1,7 @@
 package com.sep490.g28.hvh.be.controller;
 
 import com.sep490.g28.hvh.be.auth.CurrentUserProvider;
-import com.sep490.g28.hvh.be.dto.user.RegisterVolunteerAccountRequest;
+import com.sep490.g28.hvh.be.dto.volunteer.RegisterVolunteerAccountRequest;
 import com.sep490.g28.hvh.be.integration.cache.OtpService;
 import com.sep490.g28.hvh.be.integration.mail.EmailService;
 import jakarta.validation.Valid;
@@ -45,8 +45,8 @@ public class TestController {
     }
 
     private final CurrentUserProvider currentUserProvider;
-//    @PreAuthorize("hasAnyRole('SYS_ADMIN', 'VOL')")
-    @PreAuthorize("hasRole('SYS_ADMIN')")
+    @PreAuthorize("hasAnyRole('SYS_ADMIN', 'VOL')")
+//    @PreAuthorize("hasRole('SYS_ADMIN')")
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> me() {
 

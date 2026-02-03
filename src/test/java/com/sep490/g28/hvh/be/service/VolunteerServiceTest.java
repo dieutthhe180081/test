@@ -1,7 +1,7 @@
 package com.sep490.g28.hvh.be.service;
 
-import com.sep490.g28.hvh.be.dto.user.RegisterVolunteerAccountRequest;
-import com.sep490.g28.hvh.be.dto.user.RegisterVolunteerAccountResponse;
+import com.sep490.g28.hvh.be.dto.volunteer.RegisterVolunteerAccountRequest;
+import com.sep490.g28.hvh.be.dto.volunteer.RegisterVolunteerAccountResponse;
 import com.sep490.g28.hvh.be.entity.IdentityVerification;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.AppCommonErrorCode;
 import com.sep490.g28.hvh.be.exception.AppException;

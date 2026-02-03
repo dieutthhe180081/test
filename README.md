@@ -20,7 +20,7 @@ To run the application, first you have to provide following environment variable
 | SP_API_SECRET_KEY    | The API secrete key of your Supabase project                                                                        |
 | SP_BUCKET_NAME       | The name of your Supabase project bucket                                                                            |
 | SP_JWT_ISSUER_URI    | The URI represent your Supabase Authentication Server                                                               |
-| SP_URL               | The URL of your Supabase project                                                                                    | |
+| SP_URL               | The URL of your Supabase project                                                                                    | 
 
 
 After having necessary environment variable, you could open terminal and run `mvn spring-boot:run`
