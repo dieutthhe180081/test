@@ -7,6 +7,7 @@ import com.sep490.g28.hvh.be.integration.mail.EmailService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,6 +21,7 @@ import java.util.Map;
 @RequestMapping("/test")
 @Validated
 @RequiredArgsConstructor
+@Slf4j
 public class TestController {
 
     @PostMapping(
@@ -45,11 +47,12 @@ public class TestController {
     }
 
     private final CurrentUserProvider currentUserProvider;
-    @PreAuthorize("hasAnyRole('SYS_ADMIN', 'VOL')")
+//    @PreAuthorize("hasAnyRole('SYS_ADMIN', 'VOL')")
 //    @PreAuthorize("hasRole('SYS_ADMIN')")
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> me() {
 
+        log.info("test logging");
         return ResponseEntity.ok(Map.of(
                 "userId", currentUserProvider.getId(),
                 "email", currentUserProvider.getEmail(),
@@ -82,6 +85,7 @@ public class TestController {
 
     @GetMapping("/otp")
     public ResponseEntity<String> getOtp() {
+        log.info("test logging without authenticated");
 
         return ResponseEntity.ok(otpService.getVerifyRegisterOtp("huyendieu8304@gmail.com"));
     }

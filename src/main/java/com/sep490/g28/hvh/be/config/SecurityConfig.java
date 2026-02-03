@@ -1,6 +1,7 @@
 package com.sep490.g28.hvh.be.config;
 
 import com.sep490.g28.hvh.be.auth.SupabaseJwtAuthenticationConverter;
+import com.sep490.g28.hvh.be.logging.UserMdcFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +10,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
@@ -33,7 +35,7 @@ public class SecurityConfig {
     private final AuthenticationEntryPoint authenticationEntryPoint;
     private final AccessDeniedHandler accessDeniedHandler;
     private final SupabaseJwtAuthenticationConverter supabaseJwtAuthenticationConverter;
-
+    private final UserMdcFilter userMdcFilter;
     /**
      * Defines the main security filter chain.
      *
@@ -76,6 +78,7 @@ public class SecurityConfig {
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler)
                 )
+                .addFilterAfter(userMdcFilter, BearerTokenAuthenticationFilter.class)
         ;
         return http.build();
     }
