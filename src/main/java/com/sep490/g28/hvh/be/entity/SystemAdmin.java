@@ -1,9 +1,6 @@
 package com.sep490.g28.hvh.be.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,7 +20,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class SystemAdmin {
     @Id
-    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
+    @GeneratedValue
     private UUID id;
 
     @Column(unique = true, nullable = false, length = 12)
@@ -38,7 +35,7 @@ public class SystemAdmin {
     @Column(name = "full_name", length = 100)
     private String fullName;
 
-    private boolean gender; //1: male, 0: female
+    private Boolean gender; //1: male, 0: female
 
     private LocalDate dob;
 

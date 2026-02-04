@@ -22,14 +22,14 @@ import java.util.UUID;
 @AllArgsConstructor
 public class OrganizationRegistration {
     @Id
-    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
+    @GeneratedValue
     private UUID id;
 
     @Column(nullable = false)
     private String name;
 
     @Column(name = "dha_registered", nullable = false)
-    private boolean dhaRegistered;
+    private Boolean dhaRegistered;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "org_type", length = 50, nullable = false)

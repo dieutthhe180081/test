@@ -19,7 +19,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Volunteer {
     @Id
-    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
+    @GeneratedValue
     private UUID id;
 
     @Column(unique = true, nullable = false, columnDefinition = "uuid")

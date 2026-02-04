@@ -20,7 +20,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class IdentityVerification {
     @Id
-    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
+    @GeneratedValue
     private UUID id;
 
     @Column(nullable = false, length = 12)

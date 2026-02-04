@@ -21,14 +21,14 @@ CREATE TABLE org_registrations
     reviewed_by         UUID,
     organization_id     UUID,
     org_manager_id      UUID,
-    CONSTRAINT pk_organization_registrations PRIMARY KEY (id)
+    CONSTRAINT pk_org_registrations PRIMARY KEY (id)
 );
 
 ALTER TABLE org_registrations
-    ADD CONSTRAINT FK_ORGANIZATION_REGISTRATIONS_ON_ORGANIZATION FOREIGN KEY (organization_id) REFERENCES organizations (id);
+    ADD CONSTRAINT FK_ORG_REGISTRATIONS_ON_ORGANIZATION FOREIGN KEY (organization_id) REFERENCES organizations (id);
 
 ALTER TABLE org_registrations
-    ADD CONSTRAINT FK_ORGANIZATION_REGISTRATIONS_ON_ORG_MANAGER FOREIGN KEY (org_manager_id) REFERENCES org_managers (id);
+    ADD CONSTRAINT FK_ORG_REGISTRATIONS_ON_ORG_MANAGER FOREIGN KEY (org_manager_id) REFERENCES org_managers (id);
 
 ALTER TABLE org_registrations
-    ADD CONSTRAINT FK_ORGANIZATION_REGISTRATIONS_ON_REVIEWED_BY FOREIGN KEY (reviewed_by) REFERENCES sys_admins (id);
+    ADD CONSTRAINT FK_ORG_REGISTRATIONS_ON_REVIEWED_BY FOREIGN KEY (reviewed_by) REFERENCES sys_admins (id);

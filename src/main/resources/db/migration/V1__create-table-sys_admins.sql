@@ -1,11 +1,11 @@
 CREATE TABLE sys_admins
 (
-    id             UUID         NOT NULL,
-    cid            VARCHAR(12)  NOT NULL,
-    email          VARCHAR(255) NOT NULL,
-    phone          VARCHAR(10)  NOT NULL,
+    id             UUID                        NOT NULL,
+    cid            VARCHAR(12)                 NOT NULL,
+    email          VARCHAR(255)                NOT NULL,
+    phone          VARCHAR(10)                 NOT NULL,
     full_name      VARCHAR(100),
-    gender         BOOLEAN      NOT NULL,
+    gender         BOOLEAN,
     dob            date,
     avatar_url     VARCHAR(255),
     address        VARCHAR(50),

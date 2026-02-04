@@ -21,7 +21,7 @@ import java.util.UUID;
 public class Host {
 
     @Id
-    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
+    @GeneratedValue
     private UUID id;
 
     @Column(nullable = false, length = 12)
@@ -36,7 +36,7 @@ public class Host {
     @Column(name = "full_name", length = 100)
     private String fullName;
 
-    private boolean gender; //1: male, 0: female
+    private Boolean gender; //1: male, 0: female
 
     private LocalDate dob;
 
