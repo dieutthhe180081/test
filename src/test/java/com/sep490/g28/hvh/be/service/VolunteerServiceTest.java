@@ -17,6 +17,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.concurrent.CompletableFuture;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -65,9 +67,12 @@ public class VolunteerServiceTest {
         when(storagePathGenerator.cidBack(any(), any())).thenReturn("back-path");
         when(storagePathGenerator.cidHolding(any(), any())).thenReturn("holding-path");
 
-        when(storageService.getUploadUrl("front-path", 600)).thenReturn("front-url");
-        when(storageService.getUploadUrl("back-path", 600)).thenReturn("back-url");
-        when(storageService.getUploadUrl("holding-path", 600)).thenReturn("holding-url");
+        when(storageService.getUploadUrlAsync("front-path"))
+                .thenReturn(CompletableFuture.completedFuture("front-url"));
+        when(storageService.getUploadUrlAsync("back-path"))
+                .thenReturn(CompletableFuture.completedFuture("back-url"));
+        when(storageService.getUploadUrlAsync("holding-path"))
+                .thenReturn(CompletableFuture.completedFuture("holding-url"));
 
         RegisterVolunteerAccountResponse response =
                 volunteerService.registerVolAccount(request);
@@ -124,7 +129,5 @@ public class VolunteerServiceTest {
         assertThrows(AppException.class,
                 () -> volunteerService.registerVolAccount(request));
     }
-
-
 
 }

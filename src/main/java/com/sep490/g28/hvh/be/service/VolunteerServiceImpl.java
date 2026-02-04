@@ -11,12 +11,14 @@ import com.sep490.g28.hvh.be.integration.storage.StoragePathGenerator;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
 import com.sep490.g28.hvh.be.repository.VolunteerRepository;
 import com.sep490.g28.hvh.be.repository.IdentityVerificationRepository;
+import io.netty.util.concurrent.CompleteFuture;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -56,10 +58,20 @@ public class VolunteerServiceImpl implements VolunteerService {
         String cidBackPath = storagePathGenerator.cidBack(id, request.getCidBackMimeType());
         String cidHoldingPath = storagePathGenerator.cidHolding(id, request.getCidHoldingMimeType());
         //get upload url
-        //todo nen chuyen cho nay thanh chay song song dong thoi de tang performance khong nhi
-        String cidFrontUploadUrl = storageService.getUploadUrl(cidFrontPath, 600);
-        String cidBackUploadUrl = storageService.getUploadUrl(cidBackPath, 600);
-        String cidHoldingUploadUrl = storageService.getUploadUrl(cidHoldingPath, 600);
+        CompletableFuture<String> cidFrontFuture =
+                storageService.getUploadUrlAsync(cidFrontPath);
+        CompletableFuture<String> cidBackFuture =
+                storageService.getUploadUrlAsync(cidBackPath);
+        CompletableFuture<String> cidHoldingFuture =
+                storageService.getUploadUrlAsync(cidHoldingPath);
+
+        CompletableFuture.allOf(
+                cidFrontFuture, cidBackFuture, cidHoldingFuture
+        ).join();
+
+        String cidFrontUploadUrl = cidFrontFuture.join();
+        String cidBackUploadUrl = cidBackFuture.join();
+        String cidHoldingUploadUrl = cidHoldingFuture.join();
 
         //4. create volunteer verification request in db
         verification.setStatus(EVolunteerVerificationStatus.PENDING);

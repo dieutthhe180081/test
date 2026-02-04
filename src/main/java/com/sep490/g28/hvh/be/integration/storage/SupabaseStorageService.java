@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -13,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Supabase-based implementation of {@link StorageService}.
@@ -132,17 +134,17 @@ public class SupabaseStorageService implements StorageService {
 
     /**
      * Generate signed upload URL for client-side upload.
+     * By default, the url would expire in 10 minutes
      * <p>
      * Client uploads file directly to Supabase Storage.
      * Backend does not handle file content.
      * </p>
      *
      * @param path             file path in bucket
-     * @param expiresInSeconds expiration time in seconds
      * @return signed upload URL
      */
     @Override
-    public String getUploadUrl(String path, int expiresInSeconds) {
+    public String getUploadUrl(String path) {
         String url = supabaseProperties.getUrl()
                 + "/storage/v1/object/upload/sign/"
                 + supabaseProperties.getBucket()
@@ -150,7 +152,7 @@ public class SupabaseStorageService implements StorageService {
 
         //expired in 1 hour
         Map<String, Object> body = Map.of(
-                "expiresIn", expiresInSeconds
+                "expiresIn", 600
         );
 
         ResponseEntity<Map> res = restTemplate.postForEntity(url, body, Map.class);
@@ -158,5 +160,11 @@ public class SupabaseStorageService implements StorageService {
         log.info("Get upload url successfully: {}", res.getBody());
         //todo xem lai cho nay, de gay loi
         return (String) res.getBody().get("url");
+    }
+
+    @Override
+    @Async
+    public CompletableFuture<String> getUploadUrlAsync(String path) {
+        return CompletableFuture.completedFuture(getUploadUrl(path));
     }
 }

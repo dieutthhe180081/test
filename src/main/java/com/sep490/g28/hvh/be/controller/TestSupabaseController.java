@@ -1,8 +1,8 @@
 package com.sep490.g28.hvh.be.controller;
 
 import com.sep490.g28.hvh.be.constant.ERole;
-import com.sep490.g28.hvh.be.integration.authServer.SupabaseAuthService;
-import com.sep490.g28.hvh.be.integration.storage.SupabaseStorageService;
+import com.sep490.g28.hvh.be.integration.authServer.AuthService;
+import com.sep490.g28.hvh.be.integration.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +17,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class TestSupabaseController {
 
-    private final SupabaseAuthService authService;
-    private final SupabaseStorageService storageService;
+    private final AuthService authService;
+    private final StorageService storageService;
 
 //    public TestSupabaseController(SupabaseAuthService authService, SupabaseStorageService storageService) {
 //        this.authService = authService;
@@ -26,38 +26,38 @@ public class TestSupabaseController {
 //    }
 
     // test upload file
-    @PostMapping("/upload")
-    public ResponseEntity<Map<String, String>> upload(
-            @RequestPart("file") MultipartFile file
-    ) throws IOException {
-
-
-        String ext = Optional.ofNullable(file.getOriginalFilename())
-                .filter(name -> name.contains("."))
-                .map(name -> name.substring(name.lastIndexOf(".")))
-                .orElse("");
-
-        String path = "test/file" + ext;
-
-        String savedPath = storageService.upload(file, path);
-
-        return ResponseEntity.ok(
-                Map.of("path", savedPath)
-        );
-
-    }
+//    @PostMapping("/upload")
+//    public ResponseEntity<Map<String, String>> upload(
+//            @RequestPart("file") MultipartFile file
+//    ) throws IOException {
+//
+//
+//        String ext = Optional.ofNullable(file.getOriginalFilename())
+//                .filter(name -> name.contains("."))
+//                .map(name -> name.substring(name.lastIndexOf(".")))
+//                .orElse("");
+//
+//        String path = "test/file" + ext;
+//
+//        String savedPath = storageService.upload(file, path);
+//
+//        return ResponseEntity.ok(
+//                Map.of("path", savedPath)
+//        );
+//
+//    }
 
     // test create signed url
-    @GetMapping("/signed-url")
-    public ResponseEntity<Map<String, String>> getSignedUrl(
-            @RequestParam("path") String path
-    ) {
-        String signedUrl = storageService.createSignedUrl(path);
-
-        return ResponseEntity.ok(
-                Map.of("signedURL", signedUrl)
-        );
-    }
+//    @GetMapping("/signed-url")
+//    public ResponseEntity<Map<String, String>> getSignedUrl(
+//            @RequestParam("path") String path
+//    ) {
+//        String signedUrl = storageService.createSignedUrl(path);
+//
+//        return ResponseEntity.ok(
+//                Map.of("signedURL", signedUrl)
+//        );
+//    }
 
     @GetMapping("/create-account")
     public ResponseEntity<String> createVolAccount() {
