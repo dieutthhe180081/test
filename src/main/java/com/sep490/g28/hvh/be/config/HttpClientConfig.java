@@ -27,11 +27,14 @@ public class HttpClientConfig {
         rt.getInterceptors().add((request, body, execution) -> {
             request.getHeaders().setBearerAuth(config.getApiSecretKey());
             request.getHeaders().set("apikey", config.getApiSecretKey());
-            request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+
+            // ONLY set Content-Type when body exist
+            if (body != null && body.length > 0) {
+                request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+            }
             return execution.execute(request, body);
         });
 
-        //todo, xem cai handler nay co tao 1 lan duoc khong
         rt.setErrorHandler(new SupabaseResponseErrorHandler());
         return rt;
     }

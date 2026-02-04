@@ -22,7 +22,7 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 public class ActivityDomain {
     @Id
-    @Column(columnDefinition = "smallint")
+    @Column(columnDefinition = "smallint") //có the co loi voi cai nay nhung hien tai chua sua duoc (insert tay roi insert bang code)
     private Short id;
 
     @Column(length = 50, nullable = false)

@@ -6,6 +6,9 @@ import com.sep490.g28.hvh.be.dto.supabase.CreateUserRequest;
 import com.sep490.g28.hvh.be.dto.supabase.UserListResponse;
 import com.sep490.g28.hvh.be.dto.supabase.UserResponse;
 import com.sep490.g28.hvh.be.exception.AppException;
+import com.sep490.g28.hvh.be.exception.SupabaseException;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.SupabaseErrorCode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -30,6 +33,7 @@ import java.util.UUID;
  * </ul>
  * </p>
  */
+@Slf4j
 @Service
 public class SupabaseAuthService implements AuthService {
     private final RestTemplate restTemplate;
@@ -69,13 +73,20 @@ public class SupabaseAuthService implements AuthService {
         HttpEntity<CreateUserRequest> httpEntity =
                 new HttpEntity<>(request);
 
-        ResponseEntity<UserResponse> responseEntity = restTemplate.exchange(
-                url,
-                HttpMethod.POST,
-                httpEntity,
-                UserResponse.class
-        );
-        return Objects.requireNonNull(responseEntity.getBody()).id();
+        try {
+            ResponseEntity<UserResponse> responseEntity = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    httpEntity,
+                    UserResponse.class
+            );
+            UUID id = Objects.requireNonNull(responseEntity.getBody()).id();
+            log.info("Create user id={}", id);
+            return id;
+        } catch (SupabaseException e){
+            throw new AppException(SupabaseErrorCode.AUTH_CREATE_ACCOUNT_FAIL);
+        }
+
     }
 
     /**

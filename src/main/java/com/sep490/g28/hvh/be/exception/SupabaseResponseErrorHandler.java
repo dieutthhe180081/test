@@ -1,8 +1,7 @@
 package com.sep490.g28.hvh.be.exception;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sep490.g28.hvh.be.dto.supabase.SupabaseErrorResponse;
-import com.sep490.g28.hvh.be.mapper.SupabaseErrorMapper;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.SupabaseErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpResponse;
@@ -21,8 +20,6 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 public class SupabaseResponseErrorHandler implements ResponseErrorHandler {
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Checks whether the response indicates an error.
@@ -45,11 +42,32 @@ public class SupabaseResponseErrorHandler implements ResponseErrorHandler {
      */
     @Override
     public void handleError(URI url, HttpMethod method, ClientHttpResponse response) throws IOException {
-        String body = new String(response.getBody().readAllBytes(), StandardCharsets.UTF_8);
-        log.error("Supabase error raw body: {}", body);
+        int status = response.getStatusCode().value();
+        String body = new String(
+                response.getBody().readAllBytes(),
+                StandardCharsets.UTF_8
+        );
 
-        SupabaseErrorResponse errorResponse =
-                objectMapper.readValue(body, SupabaseErrorResponse.class);
-        throw new AppException(SupabaseErrorMapper.map(errorResponse));
+        log.error(
+                "Supabase error {} {} -> {} | body={}",
+                method, url, status, body
+        );
+
+        if (status == 401) {
+            throw new AppException(SupabaseErrorCode.UNAUTHENTICATED);
+        } else if (status == 403) {
+            throw new AppException(SupabaseErrorCode.UNAUTHORIZED);
+        } else if (status == 500) {
+            throw new AppException(SupabaseErrorCode.INTERNAL_SERVER_ERROR);
+        } else if (status == 509) {
+            throw new AppException(SupabaseErrorCode.RATE_LIMIT_EXCEEDED);
+        }
+
+        throw new SupabaseException(
+                status,
+                body,
+                url,
+                method
+        );
     }
 }

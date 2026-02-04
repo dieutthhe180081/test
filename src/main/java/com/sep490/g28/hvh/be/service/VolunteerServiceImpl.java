@@ -11,7 +11,6 @@ import com.sep490.g28.hvh.be.integration.storage.StoragePathGenerator;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
 import com.sep490.g28.hvh.be.repository.VolunteerRepository;
 import com.sep490.g28.hvh.be.repository.IdentityVerificationRepository;
-import io.netty.util.concurrent.CompleteFuture;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -20,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 @Slf4j
 @Service
@@ -53,6 +53,7 @@ public class VolunteerServiceImpl implements VolunteerService {
         IdentityVerification verification = new IdentityVerification();
         UUID id = UUID.randomUUID();
         verification.setId(id);
+        verification.setStatus(EVolunteerVerificationStatus.PENDING);
 
         //3. generate upload url for fe
         //get the path in storage
@@ -67,17 +68,17 @@ public class VolunteerServiceImpl implements VolunteerService {
         CompletableFuture<String> cidHoldingFuture =
                 storageService.getUploadUrlAsync(cidHoldingPath);
 
-        CompletableFuture.allOf(
-                cidFrontFuture, cidBackFuture, cidHoldingFuture
-        ).join();
+        try {
+            CompletableFuture.allOf(cidFrontFuture, cidBackFuture, cidHoldingFuture).join();
+        } catch (CompletionException e) {
+            throw (RuntimeException) e.getCause();
+        }
 
         String cidFrontUploadUrl = cidFrontFuture.join();
         String cidBackUploadUrl = cidBackFuture.join();
         String cidHoldingUploadUrl = cidHoldingFuture.join();
 
         //4. create volunteer verification request in db
-        verification.setStatus(EVolunteerVerificationStatus.PENDING);
-
         verification.setCid(request.getCid());
         verification.setEmail(request.getEmail());
         verification.setPhone(request.getPhone());
