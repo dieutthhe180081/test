@@ -9,21 +9,37 @@ package com.sep490.g28.hvh.be.integration.cache;
 public interface OtpService {
 
     /**
-     * Generates an OTP for email verification during registration.
+     * Generates an OTP for email verification during volunteer account registration.
      *
      * @param email target email
      * @return generated OTP
      */
-    String getVerifyRegisterOtp(String email);
+    String getVolAccountRegistrationOtp(String email);
 
     /**
-     * Verifies OTP for email verification during registration.
+     * Verifies OTP for email verification during volunteer account registration.
      *
      * @param email    target email
      * @param inputOtp user-provided OTP
      * @return {@code true} if OTP is valid
      */
-    boolean verifyVerifyRegisterOtp(String email, String inputOtp);
+    boolean verifyVolAccountRegistrationOtp(String email, String inputOtp);
+
+    /**
+     * Generates an OTP for email verification during organization registration.
+     *
+     * @param email target email
+     * @return generated OTP
+     */
+    String getOrgRegistrationOtp(String email);
+
+    /**
+     * Verifies OTP for email verification during organization registration.
+     *
+     * @param email target email
+     * @return generated OTP
+     */
+    boolean verifyOrgRegistrationOtp(String email, String inputOtp);
 
     /**
      * Generates an OTP for forgot-password flow.

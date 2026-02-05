@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -87,12 +86,12 @@ public class TestController {
     public ResponseEntity<String> getOtp() {
         log.info("test logging without authenticated");
 
-        return ResponseEntity.ok(otpService.getVerifyRegisterOtp("huyendieu8304@gmail.com"));
+        return ResponseEntity.ok(otpService.getVolAccountRegistrationOtp("huyendieu8304@gmail.com"));
     }
 
     @GetMapping("/otp-verify")
     public ResponseEntity<String> testOtp(@RequestParam String otp) {
-        if (otpService.verifyVerifyRegisterOtp("huyendieu8304@gmail.com", otp)){
+        if (otpService.verifyVolAccountRegistrationOtp("huyendieu8304@gmail.com", otp)){
         return ResponseEntity.ok("OK");
         }
         return ResponseEntity.ok("oh nooooo");

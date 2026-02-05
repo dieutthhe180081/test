@@ -37,7 +37,7 @@ public class VolunteerServiceImpl implements VolunteerService {
     public RegisterVolunteerAccountResponse registerVolAccount (RegisterVolunteerAccountRequest request) {
 
         //1. validate otp
-        otpService.verifyVerifyRegisterOtp(request.getEmail(), request.getOtp());
+        otpService.verifyVolAccountRegistrationOtp(request.getEmail(), request.getOtp());
 
         //2. check the unique email, cid, phone in the volunteers account
         if (volunteerRepository.existsByCid(request.getCid())) {

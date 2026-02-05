@@ -57,7 +57,7 @@ public class VolunteerServiceTest {
 
     @Test
     void register_success() {
-        when(otpService.verifyVerifyRegisterOtp("nguyenvana@gmail.com", "123456"))
+        when(otpService.verifyVolAccountRegistrationOtp("nguyenvana@gmail.com", "123456"))
                 .thenReturn(true);
         when(volunteerRepository.existsByCid(any())).thenReturn(false);
         when(volunteerRepository.existsByEmail(any())).thenReturn(false);
@@ -77,7 +77,7 @@ public class VolunteerServiceTest {
         RegisterVolunteerAccountResponse response =
                 volunteerService.registerVolAccount(request);
 
-        verify(otpService).verifyVerifyRegisterOtp("nguyenvana@gmail.com", "123456");
+        verify(otpService).verifyVolAccountRegistrationOtp("nguyenvana@gmail.com", "123456");
         verify(identityVerificationRepository).save(any(IdentityVerification.class));
 
         assertEquals("front-url", response.getCidFrontUploadUrl());
@@ -89,7 +89,7 @@ public class VolunteerServiceTest {
     void register_fail_invalid_otp() {
         doThrow(new AppException(AppCommonErrorCode.OTP_INVALID))
                 .when(otpService)
-                .verifyVerifyRegisterOtp(any(), any());
+                .verifyVolAccountRegistrationOtp(any(), any());
 
         assertThrows(AppException.class,
                 () -> volunteerService.registerVolAccount(request));
@@ -99,7 +99,7 @@ public class VolunteerServiceTest {
 
     @Test
     void register_fail_cid_used() {
-        when(otpService.verifyVerifyRegisterOtp("nguyenvana@gmail.com", "123456"))
+        when(otpService.verifyVolAccountRegistrationOtp("nguyenvana@gmail.com", "123456"))
                 .thenReturn(true);
         when(volunteerRepository.existsByCid(any())).thenReturn(true);
 
@@ -109,7 +109,7 @@ public class VolunteerServiceTest {
 
     @Test
     void register_fail_email_used() {
-        when(otpService.verifyVerifyRegisterOtp("nguyenvana@gmail.com", "123456"))
+        when(otpService.verifyVolAccountRegistrationOtp("nguyenvana@gmail.com", "123456"))
                 .thenReturn(true);
         when(volunteerRepository.existsByCid(any())).thenReturn(false);
         when(volunteerRepository.existsByEmail(any())).thenReturn(true);
@@ -120,7 +120,7 @@ public class VolunteerServiceTest {
 
     @Test
     void register_fail_phone_used() {
-        when(otpService.verifyVerifyRegisterOtp("nguyenvana@gmail.com", "123456"))
+        when(otpService.verifyVolAccountRegistrationOtp("nguyenvana@gmail.com", "123456"))
                 .thenReturn(true);
         when(volunteerRepository.existsByCid(any())).thenReturn(false);
         when(volunteerRepository.existsByEmail(any())).thenReturn(false);
