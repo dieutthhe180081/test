@@ -97,6 +97,4 @@ public class TestController {
         return ResponseEntity.ok("oh nooooo");
     }
 
-    // TODO set up docker and test redis
-
 }
