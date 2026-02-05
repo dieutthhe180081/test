@@ -63,9 +63,9 @@ public class VolunteerServiceTest {
         when(volunteerRepository.existsByEmail(any())).thenReturn(false);
         when(volunteerRepository.existsByPhone(any())).thenReturn(false);
 
-        when(storagePathGenerator.cidFront(any(), any())).thenReturn("front-path");
-        when(storagePathGenerator.cidBack(any(), any())).thenReturn("back-path");
-        when(storagePathGenerator.cidHolding(any(), any())).thenReturn("holding-path");
+        when(storagePathGenerator.identityVerificationCidFront(any(), any())).thenReturn("front-path");
+        when(storagePathGenerator.identityVerificationCidBack(any(), any())).thenReturn("back-path");
+        when(storagePathGenerator.identityVerificationCidHolding(any(), any())).thenReturn("holding-path");
 
         when(storageService.getUploadUrlAsync("front-path"))
                 .thenReturn(CompletableFuture.completedFuture("front-url"));
