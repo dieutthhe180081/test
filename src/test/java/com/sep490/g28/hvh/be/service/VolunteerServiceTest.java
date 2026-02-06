@@ -50,9 +50,9 @@ public class VolunteerServiceTest {
         request.setEmail("nguyenvana@gmail.com");
         request.setPhone("0912345678");
         request.setCid("123456789012");
-        request.setCidFrontMimeType("image/png");
-        request.setCidBackMimeType("image/png");
-        request.setCidHoldingMimeType("image/png");
+        request.setCidFrontFileExtension(".png");
+        request.setCidBackFileExtension(".png");
+        request.setCidHoldingFileExtension(".png");
     }
 
     @Test

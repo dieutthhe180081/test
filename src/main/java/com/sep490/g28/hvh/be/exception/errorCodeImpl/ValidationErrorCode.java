@@ -25,8 +25,8 @@ public enum ValidationErrorCode implements ErrorCode {
     INVALID_PHONE(2006, "Số điện thoại phải là số di động hợp lệ ở Việt Nam", HttpStatus.BAD_REQUEST),
     INVALID_CID(2007, "Số căn cước công dân không hợp lệ", HttpStatus.BAD_REQUEST),
     INVALID_FILE_SIZE_MAX(2008, "{fieldName} phải có kích thước nhỏ hơn {maxFileSizeMb}Mb.", HttpStatus.BAD_REQUEST),
-    INVALID_FILE_TYPE(2009, "{fieldName} phải là định dạng sau {allowedTypesMessage}.", HttpStatus.BAD_REQUEST),
-    INVALID_IMAGE_TYPE(2010, "{fieldName} phải là định dạng .jpg hoặc .png.", HttpStatus.BAD_REQUEST),
+    INVALID_FILE_TYPE(2009, "{fieldName} phải là định dạng .jpg/.jpeg,.png hoặc .pdf.", HttpStatus.BAD_REQUEST),
+    INVALID_IMAGE_TYPE(2010, "{fieldName} phải là định dạng .jpg/.jpeg hoặc .png.", HttpStatus.BAD_REQUEST),
     INVALID_OTP(2011, "Mã OTP là chuỗi 6 kí tự chữ số", HttpStatus.BAD_REQUEST),
     INVALID_ORG_TYPE(2011, "Loại tổ chức không hợp lệ", HttpStatus.BAD_REQUEST),
     ;

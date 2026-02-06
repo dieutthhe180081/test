@@ -24,50 +24,31 @@ public class StoragePathGenerator {
 
 
 
-    public String identityVerificationCidFront(UUID verificationId, String mimeType){
-        return  IDENTITY_VERIFICATION_FOLDER + "/" + verificationId + CID_FRONT_FILE_NAME + extFromMime(mimeType);
+    public String identityVerificationCidFront(UUID verificationId, String fileExtension){
+        return  IDENTITY_VERIFICATION_FOLDER + "/" + verificationId + CID_FRONT_FILE_NAME + fileExtension;
     }
 
-    public String identityVerificationCidBack(UUID verificationId, String mimeType){
-        return  IDENTITY_VERIFICATION_FOLDER + "/" + verificationId + CID_BACK_FILE_NAME + extFromMime(mimeType);
+    public String identityVerificationCidBack(UUID verificationId, String fileExtension){
+        return  IDENTITY_VERIFICATION_FOLDER + "/" + verificationId + CID_BACK_FILE_NAME + fileExtension;
     }
 
-    public String identityVerificationCidHolding(UUID verificationId, String mimeType){
-        return  IDENTITY_VERIFICATION_FOLDER + "/" + verificationId + CID_HOLDING_FILE_NAME + extFromMime(mimeType);
+    public String identityVerificationCidHolding(UUID verificationId, String fileExtension){
+        return  IDENTITY_VERIFICATION_FOLDER + "/" + verificationId + CID_HOLDING_FILE_NAME + fileExtension;
     }
 
-    public String orgRegistrationCidFront(UUID registrationId, String mimeType){
-        return  ORG_REGISTRATION_FOLDER+ "/" + registrationId + CID_FRONT_FILE_NAME + extFromMime(mimeType);
+    public String orgRegistrationCidFront(UUID registrationId, String fileExtension){
+        return  ORG_REGISTRATION_FOLDER+ "/" + registrationId + CID_FRONT_FILE_NAME + fileExtension;
     }
 
-    public String orgRegistrationCidBack(UUID registrationId, String mimeType) {
-        return  ORG_REGISTRATION_FOLDER+ "/" + registrationId + CID_BACK_FILE_NAME + extFromMime(mimeType);
+    public String orgRegistrationCidBack(UUID registrationId, String fileExtension) {
+        return  ORG_REGISTRATION_FOLDER+ "/" + registrationId + CID_BACK_FILE_NAME + fileExtension;
     }
 
-    public String orgRegistrationCidHolding(UUID registrationId, String mimeType) {
-        return  ORG_REGISTRATION_FOLDER+ "/" + registrationId + CID_HOLDING_FILE_NAME + extFromMime(mimeType);
+    public String orgRegistrationCidHolding(UUID registrationId, String fileExtension) {
+        return  ORG_REGISTRATION_FOLDER+ "/" + registrationId + CID_HOLDING_FILE_NAME + fileExtension;
     }
 
-    public String orgRegistrationOtherEvidences(UUID registrationId, int order, String mimeType) {
-        return  ORG_REGISTRATION_FOLDER+ "/" + registrationId + OTHER_EVIDENCES_FILE_NAME + order + extFromMime(mimeType);
-    }
-
-    /**
-     * Resolve file extension from MIME type.
-     *
-     * @param mimeType MIME type (e.g. image/jpeg)
-     * @return file extension without dot
-     * @throws IllegalArgumentException if MIME type unsupported
-     */
-    private static String extFromMime(String mimeType) {
-        MediaType mediaType = MediaType.parseMediaType(mimeType);
-
-        return switch (mediaType.getSubtype()) {
-            case "jpeg", "jpg" -> "jpg";
-            case "png" -> "png";
-            case "webp" -> "webp";
-            //todo bat exception cho cho nay
-            default -> throw new IllegalArgumentException("UNSUPPORTED_MIME");
-        };
+    public String orgRegistrationOtherEvidences(UUID registrationId, int order, String fileExtension) {
+        return  ORG_REGISTRATION_FOLDER+ "/" + registrationId + OTHER_EVIDENCES_FILE_NAME + order + fileExtension;
     }
 }

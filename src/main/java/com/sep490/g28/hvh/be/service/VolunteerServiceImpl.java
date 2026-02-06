@@ -57,9 +57,9 @@ public class VolunteerServiceImpl implements VolunteerService {
 
         //3. generate upload url for fe
         //get the path in storage
-        String cidFrontPath = storagePathGenerator.identityVerificationCidFront(id, request.getCidFrontMimeType());
-        String cidBackPath = storagePathGenerator.identityVerificationCidBack(id, request.getCidBackMimeType());
-        String cidHoldingPath = storagePathGenerator.identityVerificationCidHolding(id, request.getCidHoldingMimeType());
+        String cidFrontPath = storagePathGenerator.identityVerificationCidFront(id, request.getCidFrontFileExtension());
+        String cidBackPath = storagePathGenerator.identityVerificationCidBack(id, request.getCidBackFileExtension());
+        String cidHoldingPath = storagePathGenerator.identityVerificationCidHolding(id, request.getCidHoldingFileExtension());
         //get upload url
         CompletableFuture<String> cidFrontFuture =
                 storageService.getUploadUrlAsync(cidFrontPath);

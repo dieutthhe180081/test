@@ -1,20 +1,19 @@
 package com.sep490.g28.hvh.be.validation;
 
-import com.sep490.g28.hvh.be.validation.validator.ImageMimeTypeValidator;
+import com.sep490.g28.hvh.be.validation.validator.ImageFileExtensionValidator;
+import com.sep490.g28.hvh.be.validation.validator.OrgTypeValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
 import java.lang.annotation.*;
 
 @Documented
+@Constraint(validatedBy = ImageFileExtensionValidator.class)
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = {ImageMimeTypeValidator.class})
-public @interface ImageMimeType {
+public @interface ImageFileExtension {
     String message() default "INVALID_IMAGE_TYPE";
-
-    String fieldName() default "This field";
-
     Class<?>[] groups() default {};
+    String fieldName() default "This field";
     Class<? extends Payload>[] payload() default {};
 }
