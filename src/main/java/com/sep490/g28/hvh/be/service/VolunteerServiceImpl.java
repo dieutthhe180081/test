@@ -37,7 +37,7 @@ public class VolunteerServiceImpl implements VolunteerService {
     public RegisterVolunteerAccountResponse registerVolAccount (RegisterVolunteerAccountRequest request) {
 
         //1. validate otp
-        otpService.verifyVerifyRegisterOtp(request.getEmail(), request.getOtp());
+        otpService.verifyVolAccountRegistrationOtp(request.getEmail(), request.getOtp());
 
         //2. check the unique email, cid, phone in the volunteers account
         if (volunteerRepository.existsByCid(request.getCid())) {
@@ -57,9 +57,9 @@ public class VolunteerServiceImpl implements VolunteerService {
 
         //3. generate upload url for fe
         //get the path in storage
-        String cidFrontPath = storagePathGenerator.cidFront(id, request.getCidFrontMimeType());
-        String cidBackPath = storagePathGenerator.cidBack(id, request.getCidBackMimeType());
-        String cidHoldingPath = storagePathGenerator.cidHolding(id, request.getCidHoldingMimeType());
+        String cidFrontPath = storagePathGenerator.identityVerificationCidFront(id, request.getCidFrontFileExtension());
+        String cidBackPath = storagePathGenerator.identityVerificationCidBack(id, request.getCidBackFileExtension());
+        String cidHoldingPath = storagePathGenerator.identityVerificationCidHolding(id, request.getCidHoldingFileExtension());
         //get upload url
         CompletableFuture<String> cidFrontFuture =
                 storageService.getUploadUrlAsync(cidFrontPath);

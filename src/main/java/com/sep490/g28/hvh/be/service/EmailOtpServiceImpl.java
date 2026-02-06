@@ -16,10 +16,17 @@ public class EmailOtpServiceImpl implements EmailOtpService {
     EmailService emailService;
 
     @Override
-    public void sendVerifyRegisterOtp(String email){
-        String otp = otpService.getVerifyRegisterOtp(email);
-        emailService.sendVerifyRegisterOtp(email, otp);
+    public void sendVerifyVolAccountRegistrationOtp(String email){
+        String otp = otpService.getVolAccountRegistrationOtp(email);
+        emailService.sendVolAccountRegistrationOtp(email, otp);
     }
+
+    @Override
+    public void sendVerifyOrganizationRegistrationOtp(String email){
+        String otp = otpService.getOrgRegistrationOtp(email);
+        emailService.sendOrgRegistrationOtp(email, otp);
+    }
+
 
 //    @Override
 //    public void sendVerifyForgotPasswordOtp(String email) {

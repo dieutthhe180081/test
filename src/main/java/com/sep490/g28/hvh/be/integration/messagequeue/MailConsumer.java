@@ -91,7 +91,6 @@ public class MailConsumer {
                 props.getHeaders().get("x-first-death-reason")
         );
         log.error("DLQ MESSAGE: {}", msg);
-        // TODO: save DB / alert / manual requeue/ log or do st else
     }
 }
 

@@ -53,10 +53,14 @@ public class SupabaseResponseErrorHandler implements ResponseErrorHandler {
                 method, url, status, body
         );
 
-        if (status == 401) {
+        if (status == 400) {
+            throw new AppException(SupabaseErrorCode.VALIDATION_FAIL);
+        }else if (status == 401) {
             throw new AppException(SupabaseErrorCode.UNAUTHENTICATED);
         } else if (status == 403) {
             throw new AppException(SupabaseErrorCode.UNAUTHORIZED);
+        }else if (status == 405) {
+            throw new AppException(SupabaseErrorCode.METHOD_NOT_ALLOWED);
         } else if (status == 500) {
             throw new AppException(SupabaseErrorCode.INTERNAL_SERVER_ERROR);
         } else if (status == 509) {

@@ -5,9 +5,11 @@ import com.sep490.g28.hvh.be.constant.ERole;
 import com.sep490.g28.hvh.be.dto.supabase.CreateUserRequest;
 import com.sep490.g28.hvh.be.dto.supabase.UserListResponse;
 import com.sep490.g28.hvh.be.dto.supabase.UserResponse;
+import com.sep490.g28.hvh.be.entity.User;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.SupabaseException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.SupabaseErrorCode;
+import com.sep490.g28.hvh.be.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.*;
@@ -38,13 +40,16 @@ import java.util.UUID;
 public class SupabaseAuthService implements AuthService {
     private final RestTemplate restTemplate;
     private final SupabaseProperties supabaseProperties;
+    private final UserRepository userRepository;
 
     public SupabaseAuthService(
             @Qualifier("supabaseRestTemplate") RestTemplate restTemplate,
-            SupabaseProperties config
+            SupabaseProperties config,
+            UserRepository userRepository
     ) {
         this.restTemplate = restTemplate;
         this.supabaseProperties = config;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -82,34 +87,16 @@ public class SupabaseAuthService implements AuthService {
             );
             UUID id = Objects.requireNonNull(responseEntity.getBody()).id();
             log.info("Create user id={}", id);
+            //save email to table user in db
+            User user = new User();
+            user.setId(id);
+            user.setEmail(email);
+            userRepository.save(user);
             return id;
         } catch (SupabaseException e){
             throw new AppException(SupabaseErrorCode.AUTH_CREATE_ACCOUNT_FAIL);
         }
 
-    }
-
-    /**
-     * Checks email existence via Supabase Admin API.
-     *
-     * @param email email to check
-     * @return {@code true} if at least one user is found
-     */
-    @Override
-    public boolean checkEmailExists(String email) {
-        String url = supabaseProperties.getUrl()
-                + "/auth/v1/admin/users?email=" + UriUtils.encode(email, StandardCharsets.UTF_8);
-
-        ResponseEntity<UserListResponse> response =
-                restTemplate.exchange(
-                        url,
-                        HttpMethod.GET,
-                        null,
-                        UserListResponse.class
-                );
-
-        return response.getBody() != null
-                && !response.getBody().users().isEmpty();
     }
 
 }

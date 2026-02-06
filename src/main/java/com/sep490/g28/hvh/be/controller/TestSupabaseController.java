@@ -3,6 +3,7 @@ package com.sep490.g28.hvh.be.controller;
 import com.sep490.g28.hvh.be.constant.ERole;
 import com.sep490.g28.hvh.be.integration.authServer.AuthService;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
+import com.sep490.g28.hvh.be.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -95,9 +96,14 @@ public class TestSupabaseController {
 //        );
 //    }
 
+    private final UserRepository userRepository;
     @GetMapping("/create-account")
-    public ResponseEntity<String> createVolAccount() {
-        authService.createAccount(ERole.VOL, "abc1@gmail.com", "12345678", "0123456789");
+    public ResponseEntity<String> testCreateVolAccount(@RequestParam String email) {
+        if (userRepository.existsByEmail(email)){
+        return ResponseEntity.ok("oh oh emddaxd dc su dung");
+
+        }
+        authService.createAccount(ERole.VOL, email, "12345678", "0123456789");
         return ResponseEntity.ok("OK");
     }
 

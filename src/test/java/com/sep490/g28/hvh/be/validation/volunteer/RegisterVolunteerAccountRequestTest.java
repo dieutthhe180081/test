@@ -29,9 +29,9 @@ public class RegisterVolunteerAccountRequestTest {
         req.setEmail("nguyenvanA@gmail.com");
         req.setPhone("0912345678");
         req.setCid("123456789012");
-        req.setCidFrontMimeType("image/jpeg");
-        req.setCidBackMimeType("image/png");
-        req.setCidHoldingMimeType("image/jpg");
+        req.setCidFrontFileExtension(".jpeg");
+        req.setCidBackFileExtension(".png");
+        req.setCidHoldingFileExtension(".jpg");
         return req;
     }
 
@@ -127,16 +127,16 @@ public class RegisterVolunteerAccountRequestTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-            "application/pdf",
-            "text/html",
+            ".pdf",
+            ".html",
             "   ",
             "",
-            "image/gif",
-            "image/sdf",
+            ".gif",
+            ".sdf",
     })
     void should_fail_when_image_mime_type_invalid(String mimeType) {
         RegisterVolunteerAccountRequest req = validRequest();
-        req.setCidFrontMimeType(mimeType);
+        req.setCidFrontFileExtension(mimeType);
 
         Set<ConstraintViolation<RegisterVolunteerAccountRequest>> violations =
                 validator.validate(req);
@@ -151,7 +151,7 @@ public class RegisterVolunteerAccountRequestTest {
         RegisterVolunteerAccountRequest req = validRequest();
         req.setOtp("12");
         req.setEmail("abc");
-        req.setCidFrontMimeType("text/plain");
+        req.setCidFrontFileExtension(".txt");
 
         Set<ConstraintViolation<RegisterVolunteerAccountRequest>> violations =
                 validator.validate(req);

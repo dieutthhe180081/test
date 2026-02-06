@@ -20,15 +20,23 @@ public interface EmailService {
      *
      * @param userEmail recipient email
      */
-    void sendApproveRegisterVolAccountEmail(String userEmail);
+    void sendApproveRegisterVolAccountEmail(String userEmail, String password);
 
     /**
-     * Send OTP email for registration email verification.
+     * Send OTP email for volunteer account registration verification.
      *
      * @param email recipient email
      * @param otp   verification OTP
      */
-    void sendVerifyRegisterOtp(String email, String otp);
+    void sendVolAccountRegistrationOtp(String email, String otp);
+
+    /**
+     * Send OTP email for organization registration verification.
+     *
+     * @param email recipient email
+     * @param otp   verification OTP
+     */
+    void sendOrgRegistrationOtp(String email, String otp);
 
     /**
      * Send OTP email for forgot-password flow.

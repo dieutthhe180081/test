@@ -50,22 +50,22 @@ public class VolunteerServiceTest {
         request.setEmail("nguyenvana@gmail.com");
         request.setPhone("0912345678");
         request.setCid("123456789012");
-        request.setCidFrontMimeType("image/png");
-        request.setCidBackMimeType("image/png");
-        request.setCidHoldingMimeType("image/png");
+        request.setCidFrontFileExtension(".png");
+        request.setCidBackFileExtension(".png");
+        request.setCidHoldingFileExtension(".png");
     }
 
     @Test
     void register_success() {
-        when(otpService.verifyVerifyRegisterOtp("nguyenvana@gmail.com", "123456"))
+        when(otpService.verifyVolAccountRegistrationOtp("nguyenvana@gmail.com", "123456"))
                 .thenReturn(true);
         when(volunteerRepository.existsByCid(any())).thenReturn(false);
         when(volunteerRepository.existsByEmail(any())).thenReturn(false);
         when(volunteerRepository.existsByPhone(any())).thenReturn(false);
 
-        when(storagePathGenerator.cidFront(any(), any())).thenReturn("front-path");
-        when(storagePathGenerator.cidBack(any(), any())).thenReturn("back-path");
-        when(storagePathGenerator.cidHolding(any(), any())).thenReturn("holding-path");
+        when(storagePathGenerator.identityVerificationCidFront(any(), any())).thenReturn("front-path");
+        when(storagePathGenerator.identityVerificationCidBack(any(), any())).thenReturn("back-path");
+        when(storagePathGenerator.identityVerificationCidHolding(any(), any())).thenReturn("holding-path");
 
         when(storageService.getUploadUrlAsync("front-path"))
                 .thenReturn(CompletableFuture.completedFuture("front-url"));
@@ -77,7 +77,7 @@ public class VolunteerServiceTest {
         RegisterVolunteerAccountResponse response =
                 volunteerService.registerVolAccount(request);
 
-        verify(otpService).verifyVerifyRegisterOtp("nguyenvana@gmail.com", "123456");
+        verify(otpService).verifyVolAccountRegistrationOtp("nguyenvana@gmail.com", "123456");
         verify(identityVerificationRepository).save(any(IdentityVerification.class));
 
         assertEquals("front-url", response.getCidFrontUploadUrl());
@@ -89,7 +89,7 @@ public class VolunteerServiceTest {
     void register_fail_invalid_otp() {
         doThrow(new AppException(AppCommonErrorCode.OTP_INVALID))
                 .when(otpService)
-                .verifyVerifyRegisterOtp(any(), any());
+                .verifyVolAccountRegistrationOtp(any(), any());
 
         assertThrows(AppException.class,
                 () -> volunteerService.registerVolAccount(request));
@@ -99,7 +99,7 @@ public class VolunteerServiceTest {
 
     @Test
     void register_fail_cid_used() {
-        when(otpService.verifyVerifyRegisterOtp("nguyenvana@gmail.com", "123456"))
+        when(otpService.verifyVolAccountRegistrationOtp("nguyenvana@gmail.com", "123456"))
                 .thenReturn(true);
         when(volunteerRepository.existsByCid(any())).thenReturn(true);
 
@@ -109,7 +109,7 @@ public class VolunteerServiceTest {
 
     @Test
     void register_fail_email_used() {
-        when(otpService.verifyVerifyRegisterOtp("nguyenvana@gmail.com", "123456"))
+        when(otpService.verifyVolAccountRegistrationOtp("nguyenvana@gmail.com", "123456"))
                 .thenReturn(true);
         when(volunteerRepository.existsByCid(any())).thenReturn(false);
         when(volunteerRepository.existsByEmail(any())).thenReturn(true);
@@ -120,7 +120,7 @@ public class VolunteerServiceTest {
 
     @Test
     void register_fail_phone_used() {
-        when(otpService.verifyVerifyRegisterOtp("nguyenvana@gmail.com", "123456"))
+        when(otpService.verifyVolAccountRegistrationOtp("nguyenvana@gmail.com", "123456"))
                 .thenReturn(true);
         when(volunteerRepository.existsByCid(any())).thenReturn(false);
         when(volunteerRepository.existsByEmail(any())).thenReturn(false);

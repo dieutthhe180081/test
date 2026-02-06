@@ -25,7 +25,8 @@ public enum SupabaseErrorCode implements ErrorCode {
     STORAGE_GET_UPLOAD_URL_FAIL(9010, "Có lỗi xảy ra khi lấy URL upload file", HttpStatus.INTERNAL_SERVER_ERROR),
     STORAGE_DELETE_FILE_FAIL(9011, "Có lỗi xảy ra khi xóa file", HttpStatus.INTERNAL_SERVER_ERROR),
     AUTH_CREATE_ACCOUNT_FAIL(9012, "Có lỗi xảy ra khi tạo tài khoản", HttpStatus.INTERNAL_SERVER_ERROR),
-
+    METHOD_NOT_ALLOWED(9013, "Sai method gửi request tới Supabase", HttpStatus.METHOD_NOT_ALLOWED),
+    AUTH_CHECK_EMAIL_EXIST_FAIL(9014, "Có lỗi xảy ra khi kiểm tra email đã tồn tại hay chưa", HttpStatus.INTERNAL_SERVER_ERROR),
     ;
     private final int code;
     private final String message;
