@@ -71,14 +71,14 @@ public class TestController {
 //        return ResponseEntity.ok("OK");
 //    }
 
-    private final EmailService emailService;
-    @GetMapping("/mail")
-    public ResponseEntity<String> testMail(@RequestParam String email) {
-
-        emailService.sendApproveRegisterVolAccountEmail(email);
-        return ResponseEntity.ok("OK");
-
-    }
+//    private final EmailService emailService;
+//    @GetMapping("/mail")
+//    public ResponseEntity<String> testMail(@RequestParam String email) {
+//
+//        emailService.sendApproveRegisterVolAccountEmail(email);
+//        return ResponseEntity.ok("OK");
+//
+//    }
 
     private final OtpService otpService;
 

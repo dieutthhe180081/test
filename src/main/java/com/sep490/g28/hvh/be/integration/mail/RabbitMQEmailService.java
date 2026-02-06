@@ -32,9 +32,13 @@ public class RabbitMQEmailService implements EmailService {
     MailPublisher mailPublisher;
 
     @Override
-    public void sendApproveRegisterVolAccountEmail(String userEmail) {
+    public void sendApproveRegisterVolAccountEmail(String userEmail, String password) {
         String subject = "HVH - Chào mừng bạn";
-        String body = "test gửi mail ";
+        String body = String.format("""
+                Chúc mừng bạn đã đăng kí tài khoản thành tình nguyện viên thành công trên app Hà Nội Volunteer Hub!
+                Hãy sử dụng email này cùng với mật khẩu dưới đây để đăng nhập vào hệ thống.
+                Mật khẩu mặc định: %s
+                """, password);
         mailPublisher.enqueue(userEmail, subject, body);
     }
 

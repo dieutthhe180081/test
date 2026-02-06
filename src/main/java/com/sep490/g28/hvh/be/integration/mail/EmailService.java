@@ -20,7 +20,7 @@ public interface EmailService {
      *
      * @param userEmail recipient email
      */
-    void sendApproveRegisterVolAccountEmail(String userEmail);
+    void sendApproveRegisterVolAccountEmail(String userEmail, String password);
 
     /**
      * Send OTP email for volunteer account registration verification.
