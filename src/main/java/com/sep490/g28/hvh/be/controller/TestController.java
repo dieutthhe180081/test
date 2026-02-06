@@ -23,15 +23,15 @@ import java.util.Map;
 @Slf4j
 public class TestController {
 
-    @PostMapping(
-            value = "/register",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
-    public ResponseEntity<String> registerVolunteer(
-            @Valid @ModelAttribute RegisterVolunteerAccountRequest request
-    ) {
-        return ResponseEntity.ok("OK");
-    }
+//    @PostMapping(
+//            value = "/register",
+//            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+//    )
+//    public ResponseEntity<String> registerVolunteer(
+//            @Valid @ModelAttribute RegisterVolunteerAccountRequest request
+//    ) {
+//        return ResponseEntity.ok("OK");
+//    }
 
     // test ConstraintViolationException (method-level)
     @GetMapping("/phone")
@@ -96,5 +96,7 @@ public class TestController {
         }
         return ResponseEntity.ok("oh nooooo");
     }
+
+
 
 }
