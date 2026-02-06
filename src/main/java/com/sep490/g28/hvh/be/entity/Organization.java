@@ -48,8 +48,8 @@ public class Organization {
     @Column(name = "manager_email", nullable = false)
     private String managerEmail;
 
-    @Column(name = "other_images", length = 500)
-    private String otherImages;
+    @Column(name = "other_evidences", length = 500)
+    private String otherEvidences;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

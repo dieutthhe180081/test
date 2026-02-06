@@ -60,7 +60,7 @@ public class OrganizationRegistration {
     private String managerCidHolding;
 
     @Column(name = "other_evidences", length = 500)
-    private String other_evidences;
+    private String otherEvidences;
 
     @Column(name = "application_reason")
     private String applicationReason;
