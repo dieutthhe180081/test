@@ -7,6 +7,30 @@ import jakarta.validation.Payload;
 
 import java.lang.annotation.*;
 
+/**
+ * Validation annotation used to verify that a field contains
+ * a valid **file extension**.
+ *
+ * <p>This annotation validates that the value represents an allowed
+ * image file extension such as {@code .jpg}, {@code .jpeg}, {@code .png} or  {@code .pdf}.</p>
+ *
+ * <p>It is intended for fields that store only the file extension,
+ * not the full filename or MIME type.</p>
+ *
+ * <p>Example usage:</p>
+ * <pre>
+ * {@code
+ * @AllowedFileExtension(fieldName = "Other evidences")
+ * String otherEvidence1;
+ * }
+ * </pre>
+ *
+ * <p>The {@code fieldName} attribute is used to customize validation
+ * error messages, making them more user-friendly.</p>
+ *
+ * <p>This annotation is part of the public API contract and will be
+ * included in generated Javadoc.</p>
+ */
 @Documented
 @Constraint(validatedBy = AllowedFileExtensionValidator.class)
 @Target({ElementType.FIELD})
