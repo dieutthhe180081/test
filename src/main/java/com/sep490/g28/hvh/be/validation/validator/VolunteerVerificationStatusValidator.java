@@ -1,22 +1,19 @@
 package com.sep490.g28.hvh.be.validation.validator;
 
-import com.sep490.g28.hvh.be.constant.EOrgType;
-import com.sep490.g28.hvh.be.validation.OrgType;
+import com.sep490.g28.hvh.be.constant.EVolunteerVerificationStatus;
+import com.sep490.g28.hvh.be.validation.VolunteerVerificationStatus;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 
-public class OrgTypeValidator implements ConstraintValidator<OrgType, String> {
+public class VolunteerVerificationStatusValidator implements ConstraintValidator<VolunteerVerificationStatus, String> {
     @Override
     public boolean isValid(String s, ConstraintValidatorContext constraintValidatorContext) {
-        //allow null
         if (s == null || s.isBlank()) return true;
 
         // Ensure the payment type exists within the enum
         try {
-            if(s != null) {
-                EOrgType.valueOf(s);
-            }
+            EVolunteerVerificationStatus.valueOf(s);
         } catch (IllegalArgumentException e) {
             return false;
         }

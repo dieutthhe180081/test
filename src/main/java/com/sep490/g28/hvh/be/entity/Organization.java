@@ -61,5 +61,5 @@ public class Organization {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", referencedColumnName = "id")
-    private SystemAdmin created_by;
+    private SystemAdmin createBy;
 }

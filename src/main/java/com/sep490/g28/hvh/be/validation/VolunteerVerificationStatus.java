@@ -1,7 +1,7 @@
 package com.sep490.g28.hvh.be.validation;
 
-import com.sep490.g28.hvh.be.validation.validator.AllowedFileExtensionValidator;
-import com.sep490.g28.hvh.be.validation.validator.ImageFileExtensionValidator;
+import com.sep490.g28.hvh.be.constant.EVolunteerVerificationStatus;
+import com.sep490.g28.hvh.be.validation.validator.VolunteerVerificationStatusValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -9,13 +9,9 @@ import java.lang.annotation.*;
 
 /**
  * Validation annotation used to verify that a field contains
- * a valid **file extension**.
+ * a valid **VolunteerVerificationStatus type**.
  *
- * <p>This annotation validates that the value represents an allowed
- * image file extension such as {@code .jpg}, {@code .jpeg}, {@code .png} or  {@code .pdf}.</p>
- *
- * <p>It is intended for fields that store only the file extension,
- * not the full filename or MIME type.</p>
+ * <p>This annotation validates that the value is same as one of value in {@link EVolunteerVerificationStatus}.</p>
  *
  * <p><b>Null handling:</b><br>
  * This annotation <b>allows {@code null}</b> values by design.
@@ -26,21 +22,23 @@ import java.lang.annotation.*;
  * <p>Example usage:</p>
  * <pre>
  * {@code
- * @AllowedFileExtension(fieldName = "Other evidences")
- * String otherEvidence1;
+ * @VolunteerVerificationStatus
+ * String status;
  * }
  * </pre>
  *
  * <p>The {@code fieldName} attribute is used to customize validation
  * error messages, making them more user-friendly.</p>
+ *
+ * <p>This annotation is part of the public API contract and will be
+ * included in generated Javadoc.</p>
  */
 @Documented
-@Constraint(validatedBy = AllowedFileExtensionValidator.class)
-@Target({ElementType.FIELD})
+@Constraint(validatedBy = VolunteerVerificationStatusValidator.class)
+@Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface AllowedFileExtension {
-    String message() default "INVALID_FILE_TYPE";
+public @interface VolunteerVerificationStatus {
+    String message() default "INVALID_VOLUNTEER_VERIFICATION_STATUS";
     Class<?>[] groups() default {};
-    String fieldName() default "This field";
     Class<? extends Payload>[] payload() default {};
 }
