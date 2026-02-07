@@ -10,4 +10,5 @@ public class RegisterOrganizationResponse {
     private String managerCidFrontUploadUrl;
     private String managerCidBackUploadUrl;
     private String managerCidHoldingUploadUr;
+    private String otherEvidences;
 }

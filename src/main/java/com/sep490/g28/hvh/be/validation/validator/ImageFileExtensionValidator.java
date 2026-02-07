@@ -8,6 +8,9 @@ public class ImageFileExtensionValidator implements ConstraintValidator<ImageFil
 
     @Override
     public boolean isValid(String s, ConstraintValidatorContext constraintValidatorContext) {
-        return s.equals(".jpeg") || s.equals(".jpg") || s.equals(".png");
+        if(s != null) {
+            return s.equals(".jpeg") || s.equals(".jpg") || s.equals(".png");
+        }
+        return false;
     }
 }

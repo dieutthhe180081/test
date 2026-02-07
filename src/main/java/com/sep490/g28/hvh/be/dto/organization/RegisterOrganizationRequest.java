@@ -1,9 +1,9 @@
 package com.sep490.g28.hvh.be.dto.organization;
 
-import com.sep490.g28.hvh.be.validation.ImageMimeType;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
+import com.sep490.g28.hvh.be.validation.AllowedFileExtension;
+import com.sep490.g28.hvh.be.validation.ImageFileExtension;
+import com.sep490.g28.hvh.be.validation.OrgType;
+import jakarta.validation.constraints.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,19 +15,18 @@ import org.hibernate.validator.constraints.Length;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class RegisterOrganizationRequest {
 
-    @NotBlank (message = "INVALID_OTP")
+    @NotBlank(message = "INVALID_OTP")
     @Pattern(regexp = "^\\d{6}$", message = "INVALID_OTP")
     String otp;
 
     @NotBlank(message = "INVALID_ORG_NAME")
     String name;
 
-    @NotBlank(message = "INVALID_DHA_REGISTERED_STATUS")
+    @NotNull(message = "INVALID_DHA_REGISTERED")
     Boolean dhaRegistered;
 
     @NotBlank(message = "INVALID_ORG_TYPE")
-    @Pattern(regexp = "^[A-Z_]+$",
-            message = "Organization type string format must be full uppercase and split by underscores")
+    @OrgType(message = "Organization type string format must be full uppercase and split by underscores")
     String orgType;
 
     @NotBlank(message = "INVALID_ORG_INTRODUCTION")
@@ -50,25 +49,22 @@ public class RegisterOrganizationRequest {
     @Email(message = "INVALID_EMAIL")
     String managerEmail;
 
-    @NotBlank(message = "INVALID_IMAGE_TYPE")
-    @ImageMimeType(fieldName = "Ảnh mặt trước căn cước công dân")
-    String managerCidFront;
+    @NotBlank(message = "INVALID_IMAGE")
+    @ImageFileExtension(fieldName = "Ảnh mặt trước căn cước công dân")
+    String managerCidFrontExtension;
 
-    @NotBlank(message = "INVALID_IMAGE_TYPE")
-    @ImageMimeType(fieldName = "Ảnh mặt sau căn cước công dân")
-    String managerCidBack;
+    @NotBlank(message = "INVALID_IMAGE")
+    @ImageFileExtension(fieldName = "Ảnh mặt sau căn cước công dân")
+    String managerCidBackExtension;
 
-    @NotBlank(message = "INVALID_IMAGE_TYPE")
-    @ImageMimeType(fieldName = "Ảnh cầm căn cước công dân")
-    String managerCidHolding;
+    @NotBlank(message = "INVALID_IMAGE")
+    @ImageFileExtension(fieldName = "Ảnh cầm căn cước công dân")
+    String managerCidHoldingExtension;
 
-    @NotBlank(message = "INVALID_IMAGE_TYPE")
-    @ImageMimeType(fieldName = "Những ảnh tài liệu liên quan khác")
-    String otherImages;
+    @NotBlank(message = "INVALID_FILES")
+    @AllowedFileExtension(fieldName = "Những tài liệu liên quan khác")
+    String otherEvidencesExtensions;
 
     @NotBlank(message = "INVALID_APPLICATION_REASON")
     String applicationReason;
-
-    @NotBlank(message = "INVALID_REJECTION_REASON")
-    String rejectionReason;
 }
