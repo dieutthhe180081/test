@@ -22,7 +22,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class OrganizationRegistration {
     @Id
-    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
+    @Column(updatable = false)
     private UUID id;
 
     @Column(nullable = false)

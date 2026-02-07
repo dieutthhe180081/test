@@ -19,10 +19,10 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Volunteer {
     @Id
-    @GeneratedValue
+    @Column(updatable = false)
     private UUID id;
 
-    @Column(unique = true, nullable = false, columnDefinition = "uuid")
+    @Column(unique = true, updatable = false, nullable = false)
     private UUID vid; //volunteer id
 
     @Column(unique = true, nullable = false, length = 12)
@@ -50,7 +50,7 @@ public class Volunteer {
 
     private LocalDate dob;
 
-    private Short level;
+    private Short level = 0;
 
     @Column(name = "avatar_url")
     private String avatarUrl;
@@ -85,5 +85,5 @@ public class Volunteer {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", referencedColumnName = "id")
-    private SystemAdmin created_by;
+    private SystemAdmin createdBy;
 }
