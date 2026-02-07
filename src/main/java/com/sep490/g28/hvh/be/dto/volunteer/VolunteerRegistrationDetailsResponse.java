@@ -2,6 +2,8 @@ package com.sep490.g28.hvh.be.dto.volunteer;
 
 import com.sep490.g28.hvh.be.constant.EVolunteerVerificationStatus;
 import com.sep490.g28.hvh.be.entity.IdentityVerification;
+import com.sep490.g28.hvh.be.entity.SystemAdmin;
+import com.sep490.g28.hvh.be.entity.Volunteer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,7 +26,8 @@ public class VolunteerRegistrationDetailsResponse {
     private String rejectionReason;
     private OffsetDateTime createdAt;
     private OffsetDateTime reviewAt;
-    //todo lieu admin can xem reviewBy và volunteerId khong
+    private SystemAdmin reviewBy;
+    private Volunteer volunteer;
     private String note;
 
 }

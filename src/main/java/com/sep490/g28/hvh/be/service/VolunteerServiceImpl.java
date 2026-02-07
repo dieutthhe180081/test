@@ -3,6 +3,8 @@ package com.sep490.g28.hvh.be.service;
 import com.sep490.g28.hvh.be.constant.EVolunteerVerificationStatus;
 import com.sep490.g28.hvh.be.dto.volunteer.*;
 import com.sep490.g28.hvh.be.entity.IdentityVerification;
+import com.sep490.g28.hvh.be.entity.SystemAdmin;
+import com.sep490.g28.hvh.be.entity.Volunteer;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.VolunteerErrorCode;
 import com.sep490.g28.hvh.be.integration.cache.OtpService;
@@ -180,22 +182,45 @@ public class VolunteerServiceImpl implements VolunteerService {
                 .rejectionReason(identityVerification.getRejectionReason())
                 .createdAt(identityVerification.getCreatedAt())
                 .reviewAt(identityVerification.getReviewedAt())
+                .reviewBy(identityVerification.getReviewedBy())
+                .volunteer(identityVerification.getVolunteer())
                 .note(note)
                 .build();
     }
 
     @Override
     public VolunteerRegistrationVerifyResponse verifyRegistration(UUID id, VolunteerRegistrationVerifyRequest request) {
+        //get the registration from db
+        IdentityVerification identityVerification = identityVerificationRepository.findById(id).orElseThrow(
+                () -> new AppException(VolunteerErrorCode.REGISTRATION_NOT_EXISTED)
+        );
 
-        //APPROVE
-        //get email ra, kiểm tra email, cid, phone cacs thuws xem unique khoong
+        if (request.getApprove()){
+            //APPROVE
+            //check the unique of email, cid, phone
+            if (userRepository.existsByEmail(identityVerification.getEmail())) {
+                throw new AppException(VolunteerErrorCode.EMAIL_USED);
+            }
+            if (volunteerRepository.existsByCid(identityVerification.getCid())) {
+                throw new AppException(VolunteerErrorCode.CID_USED);
+            }
+            if (volunteerRepository.existsByPhone(identityVerification.getPhone())) {
+                throw new AppException(VolunteerErrorCode.PHONE_USED);
+            }
 
-        //xoas cid images
+            //delete cid images
+            storageService.deleteFile(identityVerification.getCidFront());
+            storageService.deleteFile(identityVerification.getCidBack());
+            storageService.deleteFile(identityVerification.getCidHolding());
+//todo dang lam do
 
-        //tao account
+            //tao account
 
-        //thay doi status
-        //tao volunteer trong db
+            //thay doi status
+            //tao volunteer trong db
+        }
+
+
 
         //REJECT
         //thay doi status
