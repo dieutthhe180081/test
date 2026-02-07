@@ -22,14 +22,14 @@ public class RegisterOrganizationRequest {
     @NotBlank(message = "INVALID_ORG_NAME")
     String name;
 
-    @NotNull(message = "INVALID_DHA_REGISTERED")
+    @NotNull(message = "REQUIRED_FIELD")
     Boolean dhaRegistered;
 
     @NotBlank(message = "INVALID_ORG_TYPE")
     @OrgType(message = "Organization type string format must be full uppercase and split by underscores")
     String orgType;
 
-    @NotBlank(message = "INVALID_ORG_INTRODUCTION")
+    @NotBlank(message = "REQUIRED_FIELD")
     @Length(max = 500)
     String orgIntroduction;
 
@@ -49,22 +49,22 @@ public class RegisterOrganizationRequest {
     @Email(message = "INVALID_EMAIL")
     String managerEmail;
 
-    @NotBlank(message = "INVALID_IMAGE")
+    @NotBlank(message = "INVALID_IMAGE_TYPE")
     @ImageFileExtension(fieldName = "Ảnh mặt trước căn cước công dân")
     String managerCidFrontExtension;
 
-    @NotBlank(message = "INVALID_IMAGE")
+    @NotBlank(message = "INVALID_IMAGE_TYPE")
     @ImageFileExtension(fieldName = "Ảnh mặt sau căn cước công dân")
     String managerCidBackExtension;
 
-    @NotBlank(message = "INVALID_IMAGE")
+    @NotBlank(message = "INVALID_IMAGE_TYPE")
     @ImageFileExtension(fieldName = "Ảnh cầm căn cước công dân")
     String managerCidHoldingExtension;
 
-    @NotBlank(message = "INVALID_FILES")
+    @NotBlank(message = "INVALID_FILES_TYPE")
     @AllowedFileExtension(fieldName = "Những tài liệu liên quan khác")
     String otherEvidencesExtensions;
 
-    @NotBlank(message = "INVALID_APPLICATION_REASON")
+    @NotBlank(message = "REQUIRED_FIELD")
     String applicationReason;
 }
