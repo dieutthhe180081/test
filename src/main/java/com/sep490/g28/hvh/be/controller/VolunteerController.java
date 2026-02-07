@@ -1,9 +1,6 @@
 package com.sep490.g28.hvh.be.controller;
 
-import com.sep490.g28.hvh.be.dto.volunteer.RegisterVolunteerAccountRequest;
-import com.sep490.g28.hvh.be.dto.volunteer.RegisterVolunteerAccountResponse;
-import com.sep490.g28.hvh.be.dto.volunteer.VolunteerRegistrationDetailsResponse;
-import com.sep490.g28.hvh.be.dto.volunteer.VolunteerRegistrationSimpleResponse;
+import com.sep490.g28.hvh.be.dto.volunteer.*;
 import com.sep490.g28.hvh.be.service.VolunteerService;
 import com.sep490.g28.hvh.be.validation.VolunteerVerificationStatus;
 import jakarta.validation.Valid;
@@ -57,9 +54,19 @@ public class VolunteerController {
     }
 
     @PreAuthorize("hasRole('SYS_ADMIN')")
-    @GetMapping("/registrations/details")
-    public ResponseEntity<VolunteerRegistrationDetailsResponse> getRegistrationsDetails(@RequestParam(name = "id") @UUID(message = "INVALID_UUID") String inputId) {
+    @GetMapping("/registrations/{id}")
+    public ResponseEntity<VolunteerRegistrationDetailsResponse> getRegistrationsDetails(@PathVariable(name = "id") @UUID(message = "INVALID_UUID") String inputId) {
         java.util.UUID id = java.util.UUID.fromString(inputId);
         return ResponseEntity.ok(volunteerService.getRegistrationDetails(id));
+    }
+
+    @PreAuthorize("hasRole('SYS_ADMIN')")
+    @PostMapping("/registrations/{id}/verify")
+    public ResponseEntity<VolunteerRegistrationVerifyResponse> verifyRegistration(
+            @PathVariable(name = "id") @UUID(message = "INVALID_UUID") String inputId,
+            @RequestBody @Valid VolunteerRegistrationVerifyRequest request
+    ) {
+        java.util.UUID id = java.util.UUID.fromString(inputId);
+        return ResponseEntity.ok(volunteerService.verifyRegistration(id, request));
     }
 }

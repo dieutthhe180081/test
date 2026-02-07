@@ -1,10 +1,7 @@
 package com.sep490.g28.hvh.be.service;
 
 import com.sep490.g28.hvh.be.constant.EVolunteerVerificationStatus;
-import com.sep490.g28.hvh.be.dto.volunteer.RegisterVolunteerAccountRequest;
-import com.sep490.g28.hvh.be.dto.volunteer.RegisterVolunteerAccountResponse;
-import com.sep490.g28.hvh.be.dto.volunteer.VolunteerRegistrationDetailsResponse;
-import com.sep490.g28.hvh.be.dto.volunteer.VolunteerRegistrationSimpleResponse;
+import com.sep490.g28.hvh.be.dto.volunteer.*;
 import com.sep490.g28.hvh.be.entity.IdentityVerification;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.VolunteerErrorCode;
@@ -159,7 +156,15 @@ public class VolunteerServiceImpl implements VolunteerService {
         //check email exist in any account
         if (userRepository.existsByEmail(identityVerification.getEmail())) {
             //add to the note to announce sys_admin
-            note = note + VolunteerErrorCode.EMAIL_USED.getMessage();
+            note = note + VolunteerErrorCode.EMAIL_USED.getMessage() + "\n";
+        }
+        //check cid used by any volunteer
+        if (volunteerRepository.existsByCid(identityVerification.getCid())) {
+            note = note + VolunteerErrorCode.CID_USED.getMessage() + "\n";
+        }
+        //check phone used by any volunteer
+        if (volunteerRepository.existsByPhone(identityVerification.getPhone())) {
+            note = note + VolunteerErrorCode.PHONE_USED.getMessage() + "\n";
         }
 
         //build response
@@ -177,6 +182,26 @@ public class VolunteerServiceImpl implements VolunteerService {
                 .reviewAt(identityVerification.getReviewedAt())
                 .note(note)
                 .build();
+    }
+
+    @Override
+    public VolunteerRegistrationVerifyResponse verifyRegistration(UUID id, VolunteerRegistrationVerifyRequest request) {
+
+        //APPROVE
+        //get email ra, kiểm tra email, cid, phone cacs thuws xem unique khoong
+
+        //xoas cid images
+
+        //tao account
+
+        //thay doi status
+        //tao volunteer trong db
+
+        //REJECT
+        //thay doi status
+        //gui mail
+
+        return null;
     }
 
 }
