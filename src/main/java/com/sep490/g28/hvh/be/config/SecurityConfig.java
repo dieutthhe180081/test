@@ -72,7 +72,7 @@ public class SecurityConfig {
                         )
                 .oauth2ResourceServer(oauth -> oauth
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(supabaseJwtAuthenticationConverter))
-//                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .authenticationEntryPoint(authenticationEntryPoint)
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(authenticationEntryPoint)

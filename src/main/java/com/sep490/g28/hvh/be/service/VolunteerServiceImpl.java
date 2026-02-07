@@ -19,7 +19,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -104,12 +106,18 @@ public class VolunteerServiceImpl implements VolunteerService {
     }
 
     @Override
-    public Page<VolunteerRegistrationSimpleResponse> getRegistrations(String inputStatus, String email, Pageable pageable) {
+    public Page<VolunteerRegistrationSimpleResponse> getRegistrations(int pageNumber, int pageSize, String inputStatus, String email) {
         //parse status
         EVolunteerVerificationStatus status =
                 (inputStatus == null || inputStatus.isBlank())
                         ? null
                         : EVolunteerVerificationStatus.valueOf(inputStatus);
+
+        Pageable pageable = PageRequest.of(
+                pageNumber,
+                pageSize,
+                Sort.by(Sort.Direction.ASC, "createdAt")
+        );
 
         //search
         return identityVerificationRepository.search(status, email, pageable)

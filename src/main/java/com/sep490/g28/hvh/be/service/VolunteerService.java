@@ -13,7 +13,7 @@ import java.util.UUID;
 public interface VolunteerService {
     RegisterVolunteerAccountResponse registerVolAccount (RegisterVolunteerAccountRequest registerVolunteerAccountRequest);
 
-    Page<VolunteerRegistrationSimpleResponse> getRegistrations(String inputStatus, @Email String email, Pageable pageable);
+    Page<VolunteerRegistrationSimpleResponse> getRegistrations(int pageNumber, int pageSize, String inputStatus, @Email String email);
 
 //    VolunteerRegistrationDetailsResponse getRegistrationDetails(UUID id);
 }
