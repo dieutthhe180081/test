@@ -92,11 +92,10 @@ public class OrganizationServiceImpl implements OrganizationService {
         String managerCidFrontUploadUrl = managerCidFrontFuture.join();
         String managerCidBackUploadUrl = managerCidBackFuture.join();
         String managerCidHoldingUploadUrl = managerCidHoldingFuture.join();
-        StringBuilder otherEvidencesUploadUrlSB = new StringBuilder();
+        List<String> otherEvidencesUploadUrl = new ArrayList<>();
         for (CompletableFuture<String> otherEvidenceFuture : otherEvidencesFutures) {
-            otherEvidencesUploadUrlSB.append(otherEvidenceFuture.join()).append(" ");
+            otherEvidencesUploadUrl.add(otherEvidenceFuture.join());
         }
-        String otherEvidencesUploadUrl = otherEvidencesUploadUrlSB.toString().trim();
 
         //4. create organization registration in db
         org_registration.setName(request.getName());
@@ -120,8 +119,8 @@ public class OrganizationServiceImpl implements OrganizationService {
         return RegisterOrganizationResponse.builder()
                 .managerCidFrontUploadUrl(managerCidFrontUploadUrl)
                 .managerCidBackUploadUrl(managerCidBackUploadUrl)
-                .managerCidHoldingUploadUr(managerCidHoldingUploadUrl)
-                .otherEvidences(otherEvidencesUploadUrl)
+                .managerCidHoldingUploadUrl(managerCidHoldingUploadUrl)
+                .otherEvidencesUploadUrls(otherEvidencesUploadUrl)
                 .build();
     }
 }

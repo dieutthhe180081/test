@@ -4,15 +4,15 @@ import com.sep490.g28.hvh.be.validation.AllowedFileExtension;
 import com.sep490.g28.hvh.be.validation.ImageFileExtension;
 import com.sep490.g28.hvh.be.validation.OrgType;
 import jakarta.validation.constraints.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.validator.constraints.Length;
 
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@NoArgsConstructor
+@AllArgsConstructor
 public class RegisterOrganizationRequest {
 
     @NotBlank(message = "INVALID_OTP")
@@ -33,7 +33,7 @@ public class RegisterOrganizationRequest {
     @Length(max = 500)
     String orgIntroduction;
 
-    @NotBlank(message = "INVALID_MANAGER_FULL_NAME")
+    @NotBlank(message = "INVALID_FULL_NAME")
     @Length(max = 100)
     String managerFullName;
 
@@ -45,7 +45,7 @@ public class RegisterOrganizationRequest {
     @Pattern(regexp = "^(0|\\+84)(3|5|7|8|9)\\d{8}$", message = "INVALID_PHONE")
     String managerPhone;
 
-    @NotBlank(message = "INVALID_MANAGER_EMAIL")
+    @NotBlank(message = "INVALID_EMAIL")
     @Email(message = "INVALID_EMAIL")
     String managerEmail;
 
