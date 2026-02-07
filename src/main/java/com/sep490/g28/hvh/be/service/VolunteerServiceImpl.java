@@ -3,18 +3,23 @@ package com.sep490.g28.hvh.be.service;
 import com.sep490.g28.hvh.be.constant.EVolunteerVerificationStatus;
 import com.sep490.g28.hvh.be.dto.volunteer.RegisterVolunteerAccountRequest;
 import com.sep490.g28.hvh.be.dto.volunteer.RegisterVolunteerAccountResponse;
+import com.sep490.g28.hvh.be.dto.volunteer.VolunteerRegistrationDetailsResponse;
+import com.sep490.g28.hvh.be.dto.volunteer.VolunteerRegistrationSimpleResponse;
 import com.sep490.g28.hvh.be.entity.IdentityVerification;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.VolunteerErrorCode;
 import com.sep490.g28.hvh.be.integration.cache.OtpService;
 import com.sep490.g28.hvh.be.integration.storage.StoragePathGenerator;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
+import com.sep490.g28.hvh.be.repository.UserRepository;
 import com.sep490.g28.hvh.be.repository.VolunteerRepository;
 import com.sep490.g28.hvh.be.repository.IdentityVerificationRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -28,6 +33,7 @@ import java.util.concurrent.CompletionException;
 public class VolunteerServiceImpl implements VolunteerService {
 
     VolunteerRepository volunteerRepository;
+    UserRepository userRepository;
     IdentityVerificationRepository identityVerificationRepository;
     StorageService storageService;
     StoragePathGenerator storagePathGenerator;
@@ -43,7 +49,7 @@ public class VolunteerServiceImpl implements VolunteerService {
         if (volunteerRepository.existsByCid(request.getCid())) {
             throw new AppException(VolunteerErrorCode.CID_USED);
         }
-        if (volunteerRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new AppException(VolunteerErrorCode.EMAIL_USED);
         }
         if (volunteerRepository.existsByPhone(request.getPhone())) {
@@ -96,5 +102,72 @@ public class VolunteerServiceImpl implements VolunteerService {
                 .cidHoldingUploadUr(cidHoldingUploadUrl)
                 .build();
     }
+
+    @Override
+    public Page<VolunteerRegistrationSimpleResponse> getRegistrations(String inputStatus, String email, Pageable pageable) {
+        //parse status
+        EVolunteerVerificationStatus status =
+                (inputStatus == null || inputStatus.isBlank())
+                        ? null
+                        : EVolunteerVerificationStatus.valueOf(inputStatus);
+
+        //search
+        return identityVerificationRepository.search(status, email, pageable)
+                .map(VolunteerRegistrationSimpleResponse::from);
+    }
+
+//    @Override
+//    public VolunteerRegistrationDetailsResponse getRegistrationDetails(UUID id) {
+//        //check id exist
+//        IdentityVerification identityVerification = identityVerificationRepository.findById(id).orElseThrow(
+//                () -> new AppException(VolunteerErrorCode.REGISTRATION_NOT_EXISTED)
+//        );
+//
+//        String note = null;
+//
+//        //get signed URL of file
+//        CompletableFuture<String> cidFrontFuture = storageService.getSignedUrlAsync(identityVerification.getCidFront());
+//        CompletableFuture<String>  cidBackFuture = storageService.getSignedUrlAsync(identityVerification.getCidBack());
+//        CompletableFuture<String>  cidHoldingFuture = storageService.getSignedUrlAsync(identityVerification.getCidHolding());
+//
+//        String cidFrontUrl = null;
+//        String cidBackUrl = null;
+//        String cidHoldingUrl = null;
+//
+//        try {
+//            CompletableFuture.allOf(cidFrontFuture, cidBackFuture, cidHoldingFuture).join();
+//            cidFrontUrl = cidFrontFuture.join();
+//            cidBackUrl = cidBackFuture.join();
+//            cidHoldingUrl = cidHoldingFuture.join();
+//        } catch (CompletionException e) {
+//            throw (RuntimeException) e.getCause();
+//        } catch (AppException e){
+//            if (e.getHttpStatus().value() == 400 ){
+//                note = e.getMessage() + "\n";
+//            }
+//        }
+//
+//        //check email exist in any account
+//        if (userRepository.existsByEmail(identityVerification.getEmail())) {
+//            //add to the note to announce sys_admin
+//            note = note + VolunteerErrorCode.EMAIL_USED.getMessage();
+//        }
+//
+//        //build response
+//        return VolunteerRegistrationDetailsResponse.builder()
+//                .id(identityVerification.getId())
+//                .cid(identityVerification.getCid())
+//                .email(identityVerification.getEmail())
+//                .phone(identityVerification.getPhone())
+//                .cidFrontUrl(cidFrontUrl)
+//                .cidBackUrl(cidBackUrl)
+//                .cidHoldingUrl(cidHoldingUrl)
+//                .status(identityVerification.getStatus())
+//                .rejectionReason(identityVerification.getRejectionReason())
+//                .createdAt(identityVerification.getCreatedAt())
+//                .reviewAt(identityVerification.getReviewedAt())
+//                .note(note)
+//                .build();
+//    }
 
 }

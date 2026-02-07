@@ -28,7 +28,11 @@ public enum ValidationErrorCode implements ErrorCode {
     INVALID_FILE_TYPE(2009, "{fieldName} phải là định dạng .jpg/.jpeg,.png hoặc .pdf.", HttpStatus.BAD_REQUEST),
     INVALID_IMAGE_TYPE(2010, "{fieldName} phải là định dạng .jpg/.jpeg hoặc .png.", HttpStatus.BAD_REQUEST),
     INVALID_OTP(2011, "Mã OTP là chuỗi 6 kí tự chữ số", HttpStatus.BAD_REQUEST),
-    INVALID_ORG_TYPE(2011, "Loại tổ chức không hợp lệ", HttpStatus.BAD_REQUEST),
+    INVALID_ORG_TYPE(2012, "Loại tổ chức không hợp lệ", HttpStatus.BAD_REQUEST),
+    INVALID_VOLUNTEER_VERIFICATION_STATUS(2013, "Trạng thái truyền vào không hợp lệ", HttpStatus.BAD_REQUEST),
+    INVALID_PAGE_NUMBER(2014, "Số trang phải là số nguyên >=0", HttpStatus.BAD_REQUEST),
+    INVALID_PAGE_SIZE(2015, "Số lượng bản ghi trong một trang là số nguyên và giới hạn từ 1 tới 100", HttpStatus.BAD_REQUEST),
+    INVALID_UUID(2016, "Định dạng ID không đúng", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;
