@@ -11,6 +11,6 @@ public class ImageFileExtensionValidator implements ConstraintValidator<ImageFil
         if(s != null) {
             return s.equals(".jpeg") || s.equals(".jpg") || s.equals(".png");
         }
-        return false;
+        return true;
     }
 }
