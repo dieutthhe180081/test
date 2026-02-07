@@ -17,6 +17,12 @@ import java.lang.annotation.*;
  * <p>It is intended for fields that store only the file extension,
  * not the full filename or MIME type.</p>
  *
+ * <p><b>Null handling:</b><br>
+ * This annotation <b>allows {@code null}</b> values by design.
+ * If the field is required and must not be {@code null} or blank,
+ * it must be combined with {@link jakarta.validation.constraints.NotBlank}
+ * or {@link jakarta.validation.constraints.NotNull}.</p>
+ *
  * <p>Example usage:</p>
  * <pre>
  * {@code
@@ -33,7 +39,7 @@ import java.lang.annotation.*;
  */
 @Documented
 @Constraint(validatedBy = ImageFileExtensionValidator.class)
-@Target({ElementType.FIELD})
+@Target({ElementType.FIELD, ElementType.TYPE_USE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ImageFileExtension {
     String message() default "INVALID_IMAGE_TYPE";

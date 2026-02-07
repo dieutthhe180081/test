@@ -15,5 +15,5 @@ public interface VolunteerService {
 
     Page<VolunteerRegistrationSimpleResponse> getRegistrations(int pageNumber, int pageSize, String inputStatus, @Email String email);
 
-//    VolunteerRegistrationDetailsResponse getRegistrationDetails(UUID id);
+    VolunteerRegistrationDetailsResponse getRegistrationDetails(UUID id);
 }

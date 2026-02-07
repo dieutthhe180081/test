@@ -9,6 +9,9 @@ public class AllowedFileExtensionValidator implements ConstraintValidator<Allowe
 
     @Override
     public boolean isValid(String s, ConstraintValidatorContext constraintValidatorContext) {
-        return s.equals(".jpeg") || s.equals(".jpg") || s.equals(".png") || s.equals(".pdf");
+        if (s != null){
+            return s.equals(".jpeg") || s.equals(".jpg") || s.equals(".png") || s.equals(".pdf");
+        }
+        return true;
     }
 }

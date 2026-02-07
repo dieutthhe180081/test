@@ -124,58 +124,59 @@ public class VolunteerServiceImpl implements VolunteerService {
                 .map(VolunteerRegistrationSimpleResponse::from);
     }
 
-//    @Override
-//    public VolunteerRegistrationDetailsResponse getRegistrationDetails(UUID id) {
-//        //check id exist
-//        IdentityVerification identityVerification = identityVerificationRepository.findById(id).orElseThrow(
-//                () -> new AppException(VolunteerErrorCode.REGISTRATION_NOT_EXISTED)
-//        );
-//
-//        String note = null;
-//
-//        //get signed URL of file
-//        CompletableFuture<String> cidFrontFuture = storageService.getSignedUrlAsync(identityVerification.getCidFront());
-//        CompletableFuture<String>  cidBackFuture = storageService.getSignedUrlAsync(identityVerification.getCidBack());
-//        CompletableFuture<String>  cidHoldingFuture = storageService.getSignedUrlAsync(identityVerification.getCidHolding());
-//
-//        String cidFrontUrl = null;
-//        String cidBackUrl = null;
-//        String cidHoldingUrl = null;
-//
-//        try {
-//            CompletableFuture.allOf(cidFrontFuture, cidBackFuture, cidHoldingFuture).join();
-//            cidFrontUrl = cidFrontFuture.join();
-//            cidBackUrl = cidBackFuture.join();
-//            cidHoldingUrl = cidHoldingFuture.join();
-//        } catch (CompletionException e) {
-//            throw (RuntimeException) e.getCause();
-//        } catch (AppException e){
-//            if (e.getHttpStatus().value() == 400 ){
-//                note = e.getMessage() + "\n";
-//            }
-//        }
-//
-//        //check email exist in any account
-//        if (userRepository.existsByEmail(identityVerification.getEmail())) {
-//            //add to the note to announce sys_admin
-//            note = note + VolunteerErrorCode.EMAIL_USED.getMessage();
-//        }
-//
-//        //build response
-//        return VolunteerRegistrationDetailsResponse.builder()
-//                .id(identityVerification.getId())
-//                .cid(identityVerification.getCid())
-//                .email(identityVerification.getEmail())
-//                .phone(identityVerification.getPhone())
-//                .cidFrontUrl(cidFrontUrl)
-//                .cidBackUrl(cidBackUrl)
-//                .cidHoldingUrl(cidHoldingUrl)
-//                .status(identityVerification.getStatus())
-//                .rejectionReason(identityVerification.getRejectionReason())
-//                .createdAt(identityVerification.getCreatedAt())
-//                .reviewAt(identityVerification.getReviewedAt())
-//                .note(note)
-//                .build();
-//    }
+    @Override
+    public VolunteerRegistrationDetailsResponse getRegistrationDetails(UUID id) {
+        //check id exist
+        IdentityVerification identityVerification = identityVerificationRepository.findById(id).orElseThrow(
+                () -> new AppException(VolunteerErrorCode.REGISTRATION_NOT_EXISTED)
+        );
+
+        String note = null;
+
+        //get signed URL of file
+        CompletableFuture<String> cidFrontFuture = storageService.getSignedUrlAsync(identityVerification.getCidFront());
+        CompletableFuture<String>  cidBackFuture = storageService.getSignedUrlAsync(identityVerification.getCidBack());
+        CompletableFuture<String>  cidHoldingFuture = storageService.getSignedUrlAsync(identityVerification.getCidHolding());
+
+        String cidFrontUrl = null;
+        String cidBackUrl = null;
+        String cidHoldingUrl = null;
+
+        try {
+            CompletableFuture.allOf(cidFrontFuture, cidBackFuture, cidHoldingFuture).join();
+            cidFrontUrl = cidFrontFuture.join();
+            cidBackUrl = cidBackFuture.join();
+            cidHoldingUrl = cidHoldingFuture.join();
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof AppException ae && ae.getHttpStatus().value() == 400) {
+                note = ae.getMessage();
+            } else {
+                throw cause instanceof RuntimeException re ? re : e;
+            }
+        }
+
+        //check email exist in any account
+        if (userRepository.existsByEmail(identityVerification.getEmail())) {
+            //add to the note to announce sys_admin
+            note = note + VolunteerErrorCode.EMAIL_USED.getMessage();
+        }
+
+        //build response
+        return VolunteerRegistrationDetailsResponse.builder()
+                .id(identityVerification.getId())
+                .cid(identityVerification.getCid())
+                .email(identityVerification.getEmail())
+                .phone(identityVerification.getPhone())
+                .cidFrontUrl(cidFrontUrl)
+                .cidBackUrl(cidBackUrl)
+                .cidHoldingUrl(cidHoldingUrl)
+                .status(identityVerification.getStatus())
+                .rejectionReason(identityVerification.getRejectionReason())
+                .createdAt(identityVerification.getCreatedAt())
+                .reviewAt(identityVerification.getReviewedAt())
+                .note(note)
+                .build();
+    }
 
 }

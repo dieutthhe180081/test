@@ -56,11 +56,10 @@ public class VolunteerController {
         );
     }
 
-    //todo test this
-//    @PreAuthorize("hasRole('SYS_ADMIN')")
-//    @GetMapping("/registrations/details")
-//    public ResponseEntity<VolunteerRegistrationDetailsResponse> getRegistrationsDetails(@RequestParam(name = "id") @UUID(message = "INVALID_UUID") String inputId) {
-//        java.util.UUID id = java.util.UUID.fromString(inputId);
-//        return ResponseEntity.ok(volunteerService.getRegistrationDetails(id));
-//    }
+    @PreAuthorize("hasRole('SYS_ADMIN')")
+    @GetMapping("/registrations/details")
+    public ResponseEntity<VolunteerRegistrationDetailsResponse> getRegistrationsDetails(@RequestParam(name = "id") @UUID(message = "INVALID_UUID") String inputId) {
+        java.util.UUID id = java.util.UUID.fromString(inputId);
+        return ResponseEntity.ok(volunteerService.getRegistrationDetails(id));
+    }
 }
