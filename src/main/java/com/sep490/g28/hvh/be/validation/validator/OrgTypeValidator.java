@@ -9,6 +9,9 @@ import jakarta.validation.ConstraintValidatorContext;
 public class OrgTypeValidator implements ConstraintValidator<OrgType, String> {
     @Override
     public boolean isValid(String s, ConstraintValidatorContext constraintValidatorContext) {
+        //allow null
+        if (s == null || s.isBlank()) return true;
+
         // Ensure the payment type exists within the enum
         try {
             EOrgType.valueOf(s);

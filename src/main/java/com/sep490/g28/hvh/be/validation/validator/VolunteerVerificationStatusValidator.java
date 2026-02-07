@@ -9,6 +9,8 @@ import jakarta.validation.ConstraintValidatorContext;
 public class VolunteerVerificationStatusValidator implements ConstraintValidator<VolunteerVerificationStatus, String> {
     @Override
     public boolean isValid(String s, ConstraintValidatorContext constraintValidatorContext) {
+        if (s == null || s.isBlank()) return true;
+
         // Ensure the payment type exists within the enum
         try {
             EVolunteerVerificationStatus.valueOf(s);
