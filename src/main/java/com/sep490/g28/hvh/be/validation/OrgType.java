@@ -26,12 +26,6 @@ import java.lang.annotation.*;
  * String orgType;
  * }
  * </pre>
- *
- * <p>The {@code fieldName} attribute is used to customize validation
- * error messages, making them more user-friendly.</p>
- *
- * <p>This annotation is part of the public API contract and will be
- * included in generated Javadoc.</p>
  */
 @Documented
 @Constraint(validatedBy = OrgTypeValidator.class)
