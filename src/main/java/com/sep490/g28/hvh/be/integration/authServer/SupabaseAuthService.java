@@ -93,7 +93,13 @@ public class SupabaseAuthService implements AuthService {
             user.setEmail(email);
             userRepository.save(user);
             return id;
-        } catch (SupabaseException e){
+        } catch (Exception e) {
+            if (e instanceof SupabaseException se){
+                int status = se.getStatus();
+                if (status == 500) {
+                    throw new AppException(SupabaseErrorCode.INTERNAL_SERVER_ERROR);
+                }
+            }
             throw new AppException(SupabaseErrorCode.AUTH_CREATE_ACCOUNT_FAIL);
         }
 
