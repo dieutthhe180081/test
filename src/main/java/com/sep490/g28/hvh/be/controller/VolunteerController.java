@@ -62,11 +62,12 @@ public class VolunteerController {
 
     @PreAuthorize("hasRole('SYS_ADMIN')")
     @PostMapping("/registrations/{id}/verify")
-    public ResponseEntity<VolunteerRegistrationVerifyResponse> verifyRegistration(
+    public ResponseEntity<String> verifyRegistration(
             @PathVariable(name = "id") @UUID(message = "INVALID_UUID") String inputId,
             @RequestBody @Valid VolunteerRegistrationVerifyRequest request
     ) {
         java.util.UUID id = java.util.UUID.fromString(inputId);
-        return ResponseEntity.ok(volunteerService.verifyRegistration(id, request));
+        volunteerService.verifyRegistration(id, request);
+        return ResponseEntity.ok("OK");
     }
 }

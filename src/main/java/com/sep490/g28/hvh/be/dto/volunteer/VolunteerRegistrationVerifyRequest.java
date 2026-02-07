@@ -12,7 +12,7 @@ public class VolunteerRegistrationVerifyRequest {
     @RequiredField(fieldName = "Hành động phê duyệt")
     Boolean approve;
 
-    @Pattern(regexp = "^(?!\\s*$).+", message = "REJECTION_REASON_EMPTY")
+    @Pattern(regexp = "^(?!\\s*$).+", message = "INVALID_REJECTION_REASON")
     String rejectionReason;
 
 }

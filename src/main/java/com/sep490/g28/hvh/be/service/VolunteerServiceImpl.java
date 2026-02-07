@@ -1,5 +1,7 @@
 package com.sep490.g28.hvh.be.service;
 
+import com.sep490.g28.hvh.be.auth.CurrentUserProvider;
+import com.sep490.g28.hvh.be.constant.ERole;
 import com.sep490.g28.hvh.be.constant.EVolunteerVerificationStatus;
 import com.sep490.g28.hvh.be.dto.volunteer.*;
 import com.sep490.g28.hvh.be.entity.IdentityVerification;
@@ -7,12 +9,16 @@ import com.sep490.g28.hvh.be.entity.SystemAdmin;
 import com.sep490.g28.hvh.be.entity.Volunteer;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.VolunteerErrorCode;
+import com.sep490.g28.hvh.be.integration.authServer.AuthService;
 import com.sep490.g28.hvh.be.integration.cache.OtpService;
+import com.sep490.g28.hvh.be.integration.mail.EmailService;
 import com.sep490.g28.hvh.be.integration.storage.StoragePathGenerator;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
+import com.sep490.g28.hvh.be.repository.SystemAdminRepository;
 import com.sep490.g28.hvh.be.repository.UserRepository;
 import com.sep490.g28.hvh.be.repository.VolunteerRepository;
 import com.sep490.g28.hvh.be.repository.IdentityVerificationRepository;
+import com.sep490.g28.hvh.be.util.RandomStringUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -39,6 +45,10 @@ public class VolunteerServiceImpl implements VolunteerService {
     StorageService storageService;
     StoragePathGenerator storagePathGenerator;
     OtpService otpService;
+    AuthService authService;
+    SystemAdminRepository systemAdminRepository;
+    CurrentUserProvider currentUserProvider;
+    EmailService emailService;
 
     @Override
     public RegisterVolunteerAccountResponse registerVolAccount (RegisterVolunteerAccountRequest request) {
@@ -148,8 +158,8 @@ public class VolunteerServiceImpl implements VolunteerService {
             cidHoldingUrl = cidHoldingFuture.join();
         } catch (CompletionException e) {
             Throwable cause = e.getCause();
-            if (cause instanceof AppException ae && ae.getHttpStatus().value() == 400) {
-                note = ae.getMessage();
+            if (cause instanceof AppException ae) {
+                note = ae.getMessage() + "\n";
             } else {
                 throw cause instanceof RuntimeException re ? re : e;
             }
@@ -189,13 +199,42 @@ public class VolunteerServiceImpl implements VolunteerService {
     }
 
     @Override
-    public VolunteerRegistrationVerifyResponse verifyRegistration(UUID id, VolunteerRegistrationVerifyRequest request) {
+    public void verifyRegistration(UUID id, VolunteerRegistrationVerifyRequest request) {
         //get the registration from db
         IdentityVerification identityVerification = identityVerificationRepository.findById(id).orElseThrow(
                 () -> new AppException(VolunteerErrorCode.REGISTRATION_NOT_EXISTED)
         );
 
-        if (request.getApprove()){
+        if (!identityVerification.getStatus().equals(EVolunteerVerificationStatus.PENDING)){
+            throw new AppException(VolunteerErrorCode.REGISTRATION_VERIFIED);
+        }
+
+        SystemAdmin currentAdmin = systemAdminRepository.getReferenceById(currentUserProvider.getId());
+        identityVerification.setReviewedBy(currentAdmin);
+
+        //delete cid images
+        CompletableFuture<Void> f1 =
+                storageService.deleteFileAsync(identityVerification.getCidFront());
+        CompletableFuture<Void> f2 =
+                storageService.deleteFileAsync(identityVerification.getCidBack());
+        CompletableFuture<Void> f3 =
+                storageService.deleteFileAsync(identityVerification.getCidHolding());
+
+        try {
+            CompletableFuture.allOf(f1, f2, f3).join();
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof AppException ae && ae.getHttpStatus().value() == 400) {
+                //todo: this case is the file not exist in sb (only for test) change later, need to have picture to approve
+            } else {
+                throw (RuntimeException) e.getCause(); // propagate, transaction fail
+            }
+        }
+        identityVerification.setCidFront("");
+        identityVerification.setCidBack("");
+        identityVerification.setCidHolding("");
+
+        if (Boolean.TRUE.equals(request.getApprove())){
             //APPROVE
             //check the unique of email, cid, phone
             if (userRepository.existsByEmail(identityVerification.getEmail())) {
@@ -208,25 +247,47 @@ public class VolunteerServiceImpl implements VolunteerService {
                 throw new AppException(VolunteerErrorCode.PHONE_USED);
             }
 
-            //delete cid images
-            storageService.deleteFile(identityVerification.getCidFront());
-            storageService.deleteFile(identityVerification.getCidBack());
-            storageService.deleteFile(identityVerification.getCidHolding());
-//todo dang lam do
+            //Create account in auth server
+            String defaultPassword = RandomStringUtil.random8AlphaNumeric();
+            UUID volunteerId = authService.createAccount(
+                    ERole.VOL,
+                    identityVerification.getEmail(),
+                    defaultPassword,
+                    identityVerification.getPhone()
+            );
 
-            //tao account
+            //create volunteer in the db
+            Volunteer volunteer = new Volunteer();
+            volunteer.setId(volunteerId);
+            volunteer.setVid(UUID.randomUUID());
+            volunteer.setCid(identityVerification.getCid());
+            volunteer.setEmail(identityVerification.getEmail());
+            volunteer.setPhone(identityVerification.getPhone());
+            volunteer.setCreatedBy(currentAdmin);
 
-            //thay doi status
-            //tao volunteer trong db
+            volunteerRepository.save(volunteer);
+
+            //update the identity verification record
+            identityVerification.setStatus(EVolunteerVerificationStatus.APPROVED);
+            identityVerification.setReviewedBy(currentAdmin);
+            identityVerification.setVolunteer(volunteer);
+
+            identityVerificationRepository.save(identityVerification);
+
+            //send mail to the volunteer
+            emailService.sendApproveRegisterVolAccountEmail(identityVerification.getEmail(), defaultPassword);
+
+            log.info("Verify identity id={}, create volunteer account id={}", id, volunteerId);
+            return;
         }
-
-
-
         //REJECT
-        //thay doi status
-        //gui mail
-
-        return null;
+        //update the identity verification record
+        identityVerification.setStatus(EVolunteerVerificationStatus.REJECTED);
+        identityVerification.setRejectionReason(request.getRejectionReason());
+        identityVerificationRepository.save(identityVerification);
+        //send mail
+        emailService.sendRejectRegisterVolAccountEmail(identityVerification.getEmail(), request.getRejectionReason());
+        log.info("Verify identity id={}, rejected", id);
     }
 
 }
