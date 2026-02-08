@@ -98,6 +98,8 @@ public class SupabaseAuthService implements AuthService {
                 int status = se.getStatus();
                 if (status == 500) {
                     throw new AppException(SupabaseErrorCode.INTERNAL_SERVER_ERROR);
+                } else if (status == 422) {
+                    throw new AppException(SupabaseErrorCode.AUTH_EMAIL_USED);
                 }
             }
             throw new AppException(SupabaseErrorCode.AUTH_CREATE_ACCOUNT_FAIL);
