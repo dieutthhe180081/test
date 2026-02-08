@@ -35,6 +35,7 @@ public enum ValidationErrorCode implements ErrorCode {
     INVALID_UUID(2016, "Định dạng ID không đúng", HttpStatus.BAD_REQUEST),
     MISSING_REQUIRED_FIELD(2017, "{fieldName} không được để trống", HttpStatus.BAD_REQUEST),
     INVALID_REJECTION_REASON(2018, "Lí do từ chối không được để trống", HttpStatus.BAD_REQUEST),
+    INVALID_ORGANIZATION_REGISTRATION_STATUS(2019, "Trạng thái đơn đăng ký tổ chức truyền vào không hợp lệ", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;
