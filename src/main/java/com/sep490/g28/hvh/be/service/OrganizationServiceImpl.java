@@ -63,10 +63,10 @@ public class OrganizationServiceImpl implements OrganizationService {
 
         //2. check the unique email in the all system's account
 
-        OrganizationRegistration org_registration = new OrganizationRegistration();
+        OrganizationRegistration orgRegistration = new OrganizationRegistration();
         UUID id = UUID.randomUUID();
-        org_registration.setId(id);
-        org_registration.setStatus(EOrgRegistrationStatus.PENDING);
+        orgRegistration.setId(id);
+        orgRegistration.setStatus(EOrgRegistrationStatus.PENDING);
 
         //3. generate upload url for fe
         //get the path in storage
@@ -121,23 +121,23 @@ public class OrganizationServiceImpl implements OrganizationService {
         }
 
         //4. create organization registration in db
-        org_registration.setName(request.getName());
-        org_registration.setDhaRegistered(request.getDhaRegistered());
-        org_registration.setOrgType(EOrgType.valueOf(request.getOrgType()));
-        org_registration.setOrgIntroduction(request.getOrgIntroduction());
-        org_registration.setManagerFullName(request.getManagerFullName());
-        org_registration.setManagerCid(request.getManagerCid());
-        org_registration.setManagerPhone(request.getManagerPhone());
-        org_registration.setManagerEmail(request.getManagerEmail());
-        org_registration.setApplicationReason(request.getApplicationReason());
+        orgRegistration.setName(request.getName());
+        orgRegistration.setDhaRegistered(request.getDhaRegistered());
+        orgRegistration.setOrgType(EOrgType.valueOf(request.getOrgType()));
+        orgRegistration.setOrgIntroduction(request.getOrgIntroduction());
+        orgRegistration.setManagerFullName(request.getManagerFullName());
+        orgRegistration.setManagerCid(request.getManagerCid());
+        orgRegistration.setManagerPhone(request.getManagerPhone());
+        orgRegistration.setManagerEmail(request.getManagerEmail());
+        orgRegistration.setApplicationReason(request.getApplicationReason());
 
-        org_registration.setManagerCidFront(managerCidFrontPath);
-        org_registration.setManagerCidBack(managerCidBackPath);
-        org_registration.setManagerCidHolding(managerCidHoldingPath);
-        org_registration.setOtherEvidences(otherEvidencesPaths);
+        orgRegistration.setManagerCidFront(managerCidFrontPath);
+        orgRegistration.setManagerCidBack(managerCidBackPath);
+        orgRegistration.setManagerCidHolding(managerCidHoldingPath);
+        orgRegistration.setOtherEvidences(otherEvidencesPaths);
 
-        organizationRegistrationRepository.save(org_registration);
-        log.info("Create new organization registration: {}", org_registration.getId());
+        organizationRegistrationRepository.save(orgRegistration);
+        log.info("Create new organization registration: {}", orgRegistration.getId());
 
         return RegisterOrganizationResponse.builder()
                 .managerCidFrontUploadUrl(managerCidFrontUploadUrl)
