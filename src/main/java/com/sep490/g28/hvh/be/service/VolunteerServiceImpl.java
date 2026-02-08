@@ -33,6 +33,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
+import static com.sep490.g28.hvh.be.util.StringNormalizeUtil.normalizeVietnameseName;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -263,6 +265,7 @@ public class VolunteerServiceImpl implements VolunteerService {
             volunteer.setCid(identityVerification.getCid());
             volunteer.setEmail(identityVerification.getEmail());
             volunteer.setPhone(identityVerification.getPhone());
+            volunteer.setFullName(normalizeVietnameseName(request.getFullName()));
             volunteer.setCreatedBy(currentAdmin);
 
             volunteerRepository.save(volunteer);
