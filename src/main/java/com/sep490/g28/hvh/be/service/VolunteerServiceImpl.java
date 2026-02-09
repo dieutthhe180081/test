@@ -9,7 +9,7 @@ import com.sep490.g28.hvh.be.entity.SystemAdmin;
 import com.sep490.g28.hvh.be.entity.Volunteer;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.VolunteerErrorCode;
-import com.sep490.g28.hvh.be.integration.authServer.AuthService;
+import com.sep490.g28.hvh.be.integration.authServer.AuthClient;
 import com.sep490.g28.hvh.be.integration.cache.OtpService;
 import com.sep490.g28.hvh.be.integration.mail.EmailService;
 import com.sep490.g28.hvh.be.integration.storage.StoragePathGenerator;
@@ -47,7 +47,7 @@ public class VolunteerServiceImpl implements VolunteerService {
     StorageService storageService;
     StoragePathGenerator storagePathGenerator;
     OtpService otpService;
-    AuthService authService;
+    AuthClient authClient;
     SystemAdminRepository systemAdminRepository;
     CurrentUserProvider currentUserProvider;
     EmailService emailService;
@@ -251,7 +251,7 @@ public class VolunteerServiceImpl implements VolunteerService {
 
             //Create account in auth server
             String defaultPassword = RandomStringUtil.random8AlphaNumeric();
-            UUID volunteerId = authService.createAccount(
+            UUID volunteerId = authClient.createAccount(
                     ERole.VOL,
                     identityVerification.getEmail(),
                     defaultPassword,

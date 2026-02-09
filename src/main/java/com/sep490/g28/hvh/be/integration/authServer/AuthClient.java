@@ -9,7 +9,7 @@ import java.util.UUID;
  *
  * <p>Defines operations for communication with authentication server</p>
  */
-public interface AuthService {
+public interface AuthClient {
     /**
      * Creates a new user account with the given role and credentials.
      *
