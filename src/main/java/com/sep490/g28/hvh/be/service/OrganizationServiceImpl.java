@@ -169,7 +169,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Override
     public OrganizationRegistrationDetailsResponse getOrgRegistrationDetails(UUID id) {
         //check id exist
-        OrganizationRegistration organizationRegistration = organizationRegistrationRepository.findById(id).orElseThrow(
+        OrganizationRegistration organizationRegistration = organizationRegistrationRepository.findOrganizationRegistrationsByIdWithLazyLoad(id).orElseThrow(
                 () -> new AppException(OrganizationErrorCode.REGISTRATION_NOT_EXISTED)
         );
 

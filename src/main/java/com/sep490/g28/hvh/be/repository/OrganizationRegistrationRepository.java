@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public interface OrganizationRegistrationRepository extends JpaRepository<OrganizationRegistration, UUID> {
@@ -23,4 +24,14 @@ public interface OrganizationRegistrationRepository extends JpaRepository<Organi
             @Param("managerEmail") String managerEmail,
             Pageable pageable
     );
+
+    @Query("""
+            SELECT or
+            FROM OrganizationRegistration or
+            LEFT JOIN FETCH or.reviewedBy sa
+            LEFT JOIN FETCH or.organization o
+            LEFT JOIN FETCH or.orgManager om
+            WHERE or.id = :id
+            """)
+    Optional<OrganizationRegistration> findOrganizationRegistrationsByIdWithLazyLoad(UUID id);
 }
