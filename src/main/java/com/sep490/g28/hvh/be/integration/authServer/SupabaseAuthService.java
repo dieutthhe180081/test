@@ -3,7 +3,6 @@ package com.sep490.g28.hvh.be.integration.authServer;
 import com.sep490.g28.hvh.be.config.SupabaseProperties;
 import com.sep490.g28.hvh.be.constant.ERole;
 import com.sep490.g28.hvh.be.dto.supabase.CreateUserRequest;
-import com.sep490.g28.hvh.be.dto.supabase.UserListResponse;
 import com.sep490.g28.hvh.be.dto.supabase.UserResponse;
 import com.sep490.g28.hvh.be.entity.User;
 import com.sep490.g28.hvh.be.exception.AppException;
@@ -15,9 +14,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -105,6 +102,38 @@ public class SupabaseAuthService implements AuthService {
             throw new AppException(SupabaseErrorCode.AUTH_CREATE_ACCOUNT_FAIL);
         }
 
+    }
+
+    @Override
+    public void changePassword(UUID accountId, String newPassword) {
+        String url = supabaseProperties.getUrl()
+                + "/auth/v1/admin/users/" + accountId;
+
+        Map<String, Object> body = Map.of(
+                "password", newPassword
+        );
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body);
+
+        try {
+            ResponseEntity<UserResponse> responseEntity = restTemplate.exchange(
+                    url,
+                    HttpMethod.PUT,
+                    entity,
+                    UserResponse.class // THIS COULD BE VOID
+            );
+            log.info(Objects.requireNonNull(responseEntity.getBody()).toString());
+        } catch (Exception e) {
+            if (e instanceof SupabaseException se){
+                int status = se.getStatus();
+                if (status == 500) {
+                    throw new AppException(SupabaseErrorCode.INTERNAL_SERVER_ERROR);
+                } else if (status == 404) {
+                    throw new AppException(SupabaseErrorCode.AUTH_ACCOUNT_NOT_EXISTED);
+                }
+            }
+            throw new AppException(SupabaseErrorCode.AUTH_CHANGE_PASSWORD_FAIL);
+        }
     }
 
 }

@@ -27,6 +27,8 @@ public enum SupabaseErrorCode implements ErrorCode {
     AUTH_CREATE_ACCOUNT_FAIL(9012, "Có lỗi xảy ra khi tạo tài khoản", HttpStatus.INTERNAL_SERVER_ERROR),
     METHOD_NOT_ALLOWED(9013, "Sai method gửi request tới Supabase", HttpStatus.METHOD_NOT_ALLOWED),
     AUTH_EMAIL_USED(9014, "Email đã được sử dụng bởi một người khác", HttpStatus.INTERNAL_SERVER_ERROR),
+    AUTH_CHANGE_PASSWORD_FAIL(9015, "Có lỗi xảy ra khi thay đổi mật khẩu tài khoản", HttpStatus.INTERNAL_SERVER_ERROR),
+    AUTH_ACCOUNT_NOT_EXISTED(9016, "Tài khoản không tồn tại", HttpStatus.BAD_REQUEST),
     ;
     private final int code;
     private final String message;

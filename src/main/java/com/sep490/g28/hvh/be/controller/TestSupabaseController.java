@@ -4,6 +4,7 @@ import com.sep490.g28.hvh.be.constant.ERole;
 import com.sep490.g28.hvh.be.integration.authServer.AuthService;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
 import com.sep490.g28.hvh.be.repository.UserRepository;
+import com.sep490.g28.hvh.be.util.RandomStringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -13,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
@@ -108,5 +110,16 @@ public class TestSupabaseController {
         authService.createAccount(role, email, "12345678", "0123456789");
         return ResponseEntity.ok("OK");
     }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<Void> changePassword(
+            @RequestParam UUID accountId,
+            @RequestParam String newPassword
+    ) {
+//        String newPassword = RandomStringUtil.random8AlphaNumeric();
+        authService.changePassword(accountId, newPassword);
+        return ResponseEntity.ok().build();
+    }
+
 
 }

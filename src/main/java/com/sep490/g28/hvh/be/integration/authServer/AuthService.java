@@ -21,4 +21,6 @@ public interface AuthService {
      */
     UUID createAccount(ERole role, String email, String password, String phone);
 
+
+    void changePassword(UUID accountId, String newPassword);
 }
