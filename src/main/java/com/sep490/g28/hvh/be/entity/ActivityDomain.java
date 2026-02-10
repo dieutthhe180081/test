@@ -1,9 +1,6 @@
 package com.sep490.g28.hvh.be.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,6 +19,7 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 public class ActivityDomain {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(columnDefinition = "smallint") //có the co loi voi cai nay nhung hien tai chua sua duoc (insert tay roi insert bang code)
     private Short id;
 
