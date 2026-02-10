@@ -11,8 +11,6 @@ import org.hibernate.validator.constraints.Length;
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@NoArgsConstructor
-@AllArgsConstructor
 public class RegisterOrganizationRequest {
 
     @NotBlank(message = "INVALID_OTP")
