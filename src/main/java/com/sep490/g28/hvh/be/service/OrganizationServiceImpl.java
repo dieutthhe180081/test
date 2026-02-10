@@ -11,7 +11,7 @@ import com.sep490.g28.hvh.be.entity.OrganizationRegistration;
 import com.sep490.g28.hvh.be.entity.SystemAdmin;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.OrganizationErrorCode;
-import com.sep490.g28.hvh.be.integration.authServer.AuthService;
+import com.sep490.g28.hvh.be.integration.authServer.AuthClient;
 import com.sep490.g28.hvh.be.integration.cache.OtpService;
 import com.sep490.g28.hvh.be.integration.mail.EmailService;
 import com.sep490.g28.hvh.be.integration.storage.StoragePathGenerator;
@@ -52,7 +52,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     OtpService otpService;
     SystemAdminRepository systemAdminRepository;
     CurrentUserProvider currentUserProvider;
-    AuthService authService;
+    AuthClient authClient;
     EmailService emailService;
 
     @Override
@@ -297,7 +297,7 @@ public class OrganizationServiceImpl implements OrganizationService {
 
             //Create account in auth server
             String defaultPassword = RandomStringUtil.random8AlphaNumeric();
-            UUID orgManagerId = authService.createAccount(
+            UUID orgManagerId = authClient.createAccount(
                     ERole.ORG_MANAGER,
                     organizationRegistration.getManagerEmail(),
                     defaultPassword,

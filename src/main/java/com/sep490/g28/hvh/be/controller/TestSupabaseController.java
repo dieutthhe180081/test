@@ -1,7 +1,7 @@
 package com.sep490.g28.hvh.be.controller;
 
 import com.sep490.g28.hvh.be.constant.ERole;
-import com.sep490.g28.hvh.be.integration.authServer.AuthService;
+import com.sep490.g28.hvh.be.integration.authServer.AuthClient;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
 import com.sep490.g28.hvh.be.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,11 +22,11 @@ import java.util.concurrent.CompletionException;
 @RequiredArgsConstructor
 public class TestSupabaseController {
 
-    private final AuthService authService;
+    private final AuthClient authClient;
     private final StorageService storageService;
 
-//    public TestSupabaseController(SupabaseAuthService authService, SupabaseStorageService storageService) {
-//        this.authService = authService;
+//    public TestSupabaseController(SupabaseAuthClient authClient, SupabaseStorageService storageService) {
+//        this.authClient = authClient;
 //        this.storageService = storageService;
 //    }
 
@@ -105,7 +105,7 @@ public class TestSupabaseController {
         if (userRepository.existsByEmail(email)){
             return ResponseEntity.ok("oh oh emddaxd dc su dung");
         }
-        authService.createAccount(role, email, "12345678", "0123456789");
+        authClient.createAccount(role, email, "12345678", "0123456789");
         return ResponseEntity.ok("OK");
     }
 
