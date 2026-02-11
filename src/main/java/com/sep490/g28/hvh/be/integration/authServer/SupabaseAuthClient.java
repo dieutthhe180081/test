@@ -166,9 +166,9 @@ public class SupabaseAuthClient implements AuthClient {
     @Override
     public boolean isAccountActive(UUID accountId) {
         UserResponse user = getAccountInfo(accountId);
-
-        return user.banned_until() != null
-                && user.banned_until().isAfter(OffsetDateTime.now());
+        //not been banned or already end banned
+        return user.banned_until() == null
+                || user.banned_until().isBefore(OffsetDateTime.now());
     }
 
 
