@@ -65,10 +65,10 @@ public class SecurityConfig {
                                         "/v3/api-docs/**",
                                         "/swagger-ui/**",
                                         "/swagger-ui.html",
+                                        "/api/v1/auth/forgot-password",
                                         "/api/v1/volunteer/register-vol-acc",
                                         "/api/v1/organization/register-org",
-                                        "/api/v1/email-otp/verify-register-vol-acc",
-                                        "/api/v1/email-otp/verify-register-organization"
+                                        "/api/v1/email-otp/**"
                                 ).permitAll() //public endpoint
                                 .anyRequest().authenticated() //all other request require authentication
                         )

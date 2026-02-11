@@ -1,7 +1,12 @@
 package com.sep490.g28.hvh.be.service;
 
+import com.sep490.g28.hvh.be.entity.User;
+import com.sep490.g28.hvh.be.exception.AppException;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.AppCommonErrorCode;
+import com.sep490.g28.hvh.be.integration.authServer.AuthClient;
 import com.sep490.g28.hvh.be.integration.cache.OtpService;
 import com.sep490.g28.hvh.be.integration.mail.EmailService;
+import com.sep490.g28.hvh.be.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -11,6 +16,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EmailOtpServiceImpl implements EmailOtpService {
+    UserRepository userRepository;
+    AuthClient authClient;
 
     OtpService otpService;
     EmailService emailService;
@@ -28,9 +35,19 @@ public class EmailOtpServiceImpl implements EmailOtpService {
     }
 
 
-//    @Override
-//    public void sendVerifyForgotPasswordOtp(String email) {
-//        String otp = otpService.getVerifyForgotPasswordOtp(email);
-//        emailService.sendVerifyForgotPasswordOtp(email, otp);
-//    }
+    @Override
+    public void sendVerifyForgotPasswordOtp(String email) {
+
+        //check whether the email is used for a account?
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new AppException(AppCommonErrorCode.EMAIL_NOT_USED)
+        );
+        //check active account
+        if (!authClient.isAccountActive(user.getId())){
+            throw new AppException(AppCommonErrorCode.ACCOUNT_INACTIVE);
+        }
+
+        String otp = otpService.getVerifyForgotPasswordOtp(email);
+        emailService.sendVerifyForgotPasswordOtp(email, otp);
+    }
 }
