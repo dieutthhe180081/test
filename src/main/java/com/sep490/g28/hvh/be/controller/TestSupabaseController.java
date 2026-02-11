@@ -1,6 +1,7 @@
 package com.sep490.g28.hvh.be.controller;
 
 import com.sep490.g28.hvh.be.constant.ERole;
+import com.sep490.g28.hvh.be.dto.supabase.UserResponse;
 import com.sep490.g28.hvh.be.integration.authServer.AuthClient;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
 import com.sep490.g28.hvh.be.repository.UserRepository;
@@ -120,5 +121,11 @@ public class TestSupabaseController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/acount-info")
+    public ResponseEntity<UserResponse> getAccountInfo(
+            @RequestParam UUID accountId
+    ){
+        return ResponseEntity.ok(authClient.getAccountInfo(accountId));
+    }
 
 }

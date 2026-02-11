@@ -1,6 +1,7 @@
 package com.sep490.g28.hvh.be.integration.authServer;
 
 import com.sep490.g28.hvh.be.constant.ERole;
+import com.sep490.g28.hvh.be.dto.supabase.UserResponse;
 
 import java.util.UUID;
 
@@ -23,4 +24,8 @@ public interface AuthClient {
 
 
     void changePassword(UUID accountId, String newPassword);
+
+    UserResponse   getAccountInfo(UUID accountId);
+
+    boolean isAccountActive(UUID accountId);
 }
