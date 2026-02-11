@@ -11,6 +11,8 @@ public enum ActivityDomainErrorCode implements ErrorCode {
 
     SESSION_TIME_OVERLAP(6001, "Thời gian kết thúc muộn nhất phải muộn hơn thời gian bắt đầu sớm nhất.", HttpStatus.BAD_REQUEST),
     SPECIAL_SESSION_EXCEEDS_DEFAULT(6002, "Thời gian tổ chức tối đa với lý do phải lớn hơn thời gian tổ chức tối đa mặc định.", HttpStatus.BAD_REQUEST),
+    DOMAIN_NOT_EXISTED(6003, "Lĩnh vực tình nguyện không tồn tại", HttpStatus.BAD_REQUEST),
+    SUBDOMAIN_NOT_EXISTED(6004, "Lĩnh vực tình nguyện con không tồn tại", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;
