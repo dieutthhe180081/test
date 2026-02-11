@@ -21,7 +21,7 @@ import java.util.UUID;
 public class OrganizationManager {
 
     @Id
-    @GeneratedValue
+    @Column(updatable = false)
     private UUID id;
 
     @Column(nullable = false, length = 12)

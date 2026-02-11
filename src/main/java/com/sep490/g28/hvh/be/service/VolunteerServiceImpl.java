@@ -51,7 +51,7 @@ public class VolunteerServiceImpl implements VolunteerService {
     EmailService emailService;
 
     @Override
-    public RegisterVolunteerAccountResponse registerVolAccount (RegisterVolunteerAccountRequest request) {
+    public RegisterVolunteerAccountResponse registerVolAccount(RegisterVolunteerAccountRequest request) {
 
         //1. validate otp
         otpService.verifyVolAccountRegistrationOtp(request.getEmail(), request.getOtp());
@@ -144,8 +144,8 @@ public class VolunteerServiceImpl implements VolunteerService {
 
         //get signed URL of file
         CompletableFuture<String> cidFrontFuture = storageService.getSignedUrlAsync(identityVerification.getCidFront());
-        CompletableFuture<String>  cidBackFuture = storageService.getSignedUrlAsync(identityVerification.getCidBack());
-        CompletableFuture<String>  cidHoldingFuture = storageService.getSignedUrlAsync(identityVerification.getCidHolding());
+        CompletableFuture<String> cidBackFuture = storageService.getSignedUrlAsync(identityVerification.getCidBack());
+        CompletableFuture<String> cidHoldingFuture = storageService.getSignedUrlAsync(identityVerification.getCidHolding());
 
         String cidFrontUrl = null;
         String cidBackUrl = null;
@@ -180,7 +180,7 @@ public class VolunteerServiceImpl implements VolunteerService {
         }
 
         //build response
-        return VolunteerRegistrationDetailsResponse.builder()
+        VolunteerRegistrationDetailsResponse response = VolunteerRegistrationDetailsResponse.builder()
                 .id(identityVerification.getId())
                 .cid(identityVerification.getCid())
                 .email(identityVerification.getEmail())
@@ -192,10 +192,15 @@ public class VolunteerServiceImpl implements VolunteerService {
                 .rejectionReason(identityVerification.getRejectionReason())
                 .createdAt(identityVerification.getCreatedAt())
                 .reviewAt(identityVerification.getReviewedAt())
-                .reviewBy(identityVerification.getReviewedBy())
-                .volunteer(identityVerification.getVolunteer())
                 .note(note)
                 .build();
+        if (identityVerification.getStatus() != EVolunteerVerificationStatus.PENDING) {
+            response.setAdminId(identityVerification.getReviewedBy().getId().toString());
+            response.setAdminEmail(identityVerification.getReviewedBy().getEmail());
+            response.setVolunteerId(identityVerification.getVolunteer().getVid().toString());
+            response.setVolunteerEmail(identityVerification.getVolunteer().getEmail());
+        }
+        return response;
     }
 
     @Override
@@ -205,7 +210,7 @@ public class VolunteerServiceImpl implements VolunteerService {
                 () -> new AppException(VolunteerErrorCode.REGISTRATION_NOT_EXISTED)
         );
 
-        if (!identityVerification.getStatus().equals(EVolunteerVerificationStatus.PENDING)){
+        if (!identityVerification.getStatus().equals(EVolunteerVerificationStatus.PENDING)) {
             throw new AppException(VolunteerErrorCode.REGISTRATION_VERIFIED);
         }
 
@@ -234,7 +239,7 @@ public class VolunteerServiceImpl implements VolunteerService {
         identityVerification.setCidBack("");
         identityVerification.setCidHolding("");
 
-        if (Boolean.TRUE.equals(request.getApprove())){
+        if (Boolean.TRUE.equals(request.getApprove())) {
             //APPROVE
             //check the unique of email, cid, phone
             if (userRepository.existsByEmail(identityVerification.getEmail())) {
