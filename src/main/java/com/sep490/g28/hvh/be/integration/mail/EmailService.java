@@ -71,4 +71,13 @@ public interface EmailService {
      * @param rejectionReason rejection reason
      */
     void sendRejectRegisterOrganizationEmail(String userEmail, String rejectionReason);
+
+    /**
+     * Send approval email after organization registration is accepted.
+     *
+     * @param orgName organization name
+     * @param hostEmail recipient email
+     * @param password default password of the account
+     */
+    void sendCreateHostAccountEmail(String orgName, String hostEmail, String password);
 }

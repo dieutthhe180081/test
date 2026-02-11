@@ -111,4 +111,17 @@ public class RabbitMQEmailService implements EmailService {
                 """, rejectionReason);
         mailPublisher.enqueue(userEmail, subject, body);
     }
+
+    @Override
+    public void sendCreateHostAccountEmail(String orgName, String hostEmail, String password) {
+        String subject = "HVH - Chào mừng bạn" ;
+        String body = String.format("""
+                Chào bạn, bạn đã được quản lí của tổ chức %s mời vào tổ chức trên hệ thống Hà Nội Volunteer Hub.
+                Hãy sử dụng email này cùng với mật khẩu dưới đây để đăng nhập vào hệ thống. Và để an toàn, hay đổi mật khẩu sau khi đăng nhập thành công!
+                Mật khẩu mặc định: %s
+                Xin trân trong cảm ơn!
+                """, orgName, password);
+        mailPublisher.enqueue(hostEmail, subject, body);
+
+    }
 }

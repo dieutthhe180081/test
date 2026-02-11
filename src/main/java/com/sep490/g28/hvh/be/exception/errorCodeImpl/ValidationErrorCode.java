@@ -36,6 +36,11 @@ public enum ValidationErrorCode implements ErrorCode {
     MISSING_REQUIRED_FIELD(2017, "{fieldName} không được để trống", HttpStatus.BAD_REQUEST),
     INVALID_REJECTION_REASON(2018, "Lí do từ chối không được để trống", HttpStatus.BAD_REQUEST),
     INVALID_ORGANIZATION_REGISTRATION_STATUS(2019, "Trạng thái đơn đăng ký tổ chức truyền vào không hợp lệ", HttpStatus.BAD_REQUEST),
+    INVALID_FULL_NAME(2020, "Họ tên đầy đủ không hợp lệ (Viết hoa chữ cái đầu, không được chứa số hay kí tự đặc biệt, chỉ được 1 dấu cách giữa các từ).", HttpStatus.BAD_REQUEST),
+    INVALID_DATE_OF_BIRTH(2021, "Tuổi của bạn phải từ {min} tới {max} tuổi.", HttpStatus.BAD_REQUEST),
+    INVALID_ADDRESS(2022, "Địa chỉ không hợp lệ", HttpStatus.BAD_REQUEST),
+    INVALID_DETAIL_ADDRESS(2023, "Địa chỉ chi tiết không hợp lệ", HttpStatus.BAD_REQUEST),
+    
     ;
 
     private final int code;

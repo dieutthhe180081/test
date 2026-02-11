@@ -95,6 +95,8 @@ public class SupabaseAuthClient implements AuthClient {
                 int status = se.getStatus();
                 if (status == 500) {
                     throw new AppException(SupabaseErrorCode.INTERNAL_SERVER_ERROR);
+                } else if (status == 422) {
+                    throw new AppException(SupabaseErrorCode.AUTH_EMAIL_USED);
                 }
             }
             throw new AppException(SupabaseErrorCode.AUTH_CREATE_ACCOUNT_FAIL);
