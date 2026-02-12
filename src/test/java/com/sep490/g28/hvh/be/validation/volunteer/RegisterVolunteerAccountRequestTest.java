@@ -27,8 +27,8 @@ public class RegisterVolunteerAccountRequestTest {
         RegisterVolunteerAccountRequest req = new RegisterVolunteerAccountRequest();
         req.setOtp("123456");
         req.setEmail("nguyenvanA@gmail.com");
-        req.setPhone("0912345678");
-        req.setCid("123456789012");
+        req.setPhone("0916234940");
+        req.setCid("034309880903");
         req.setCidFrontFileExtension(".jpeg");
         req.setCidBackFileExtension(".png");
         req.setCidHoldingFileExtension(".jpg");
