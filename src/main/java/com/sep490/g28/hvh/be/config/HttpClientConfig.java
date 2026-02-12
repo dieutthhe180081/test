@@ -29,7 +29,7 @@ public class HttpClientConfig {
             request.getHeaders().set("apikey", config.getApiSecretKey());
 
             // ONLY set Content-Type when body exist
-            if (body != null && body.length > 0) {
+            if (body.length > 0) {
                 request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
             }
             return execution.execute(request, body);
