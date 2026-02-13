@@ -29,15 +29,6 @@ public class ActivityDomain {
     @Column(nullable = false)
     private Boolean active = true;
 
-    @Column(name = "earliest_start_time", nullable = false)
-    private LocalTime earliestStartTime; //HH:mm:ss
-
-    @Column(name = "latest_end_time", nullable = false)
-    private LocalTime latestEndTime;
-
-    @Column(name = "default_session_max_time", nullable = false)
-    private Short defaultSessionMaxTime;
-
     @Column(name = "special_session_max_time")
     private Short specialSessionMaxTime;
 
