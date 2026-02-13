@@ -31,22 +31,9 @@ public class ActivityDomainServiceImpl implements ActivityDomainService{
     @Override
     public void createActivityDomain(CreateActivityDomainRequest request) {
 
-        //check if the latest end time > the earliest start time
-        if(request.getLatestEndTime().isBefore(request.getEarliestStartTime())) {
-            throw new AppException(ActivityDomainErrorCode.SESSION_TIME_OVERLAP);
-        }
-
-        //check if special session max time > default session max time
-        if (request.getSpecialSessionMaxTime() < request.getDefaultSessionMaxTime()) {
-            throw new AppException(ActivityDomainErrorCode.SPECIAL_SESSION_EXCEEDS_DEFAULT);
-        }
-
         //Create activity domain in the db
         ActivityDomain activityDomain = new ActivityDomain();
         activityDomain.setName(request.getName());
-        activityDomain.setEarliestStartTime(request.getEarliestStartTime());
-        activityDomain.setLatestEndTime(request.getLatestEndTime());
-        activityDomain.setDefaultSessionMaxTime(request.getDefaultSessionMaxTime());
         activityDomain.setSpecialSessionMaxTime(request.getSpecialSessionMaxTime());
         activityDomain.setActive(true);
 
@@ -66,28 +53,17 @@ public class ActivityDomainServiceImpl implements ActivityDomainService{
     @Override
     public String updateActivityDomain(Short id, UpdateActivityDomainRequest request) {
 
-        //check if the latest end time > the earliest start time
-        if(request.getLatestEndTime().isBefore(request.getEarliestStartTime())) {
-            throw new AppException(ActivityDomainErrorCode.SESSION_TIME_OVERLAP);
-        }
-
-        //check if special session max time > default session max time
-        if (request.getSpecialSessionMaxTime() < request.getDefaultSessionMaxTime()) {
-            throw new AppException(ActivityDomainErrorCode.SPECIAL_SESSION_EXCEEDS_DEFAULT);
-        }
-
+        //update for activity domain
         ActivityDomain activityDomain = activityDomainRepository.findById(id).orElseThrow(
                 () -> new AppException(ActivityDomainErrorCode.DOMAIN_NOT_EXISTED)
         );
 
         activityDomain.setName(request.getName());
-        activityDomain.setEarliestStartTime(request.getEarliestStartTime());
-        activityDomain.setLatestEndTime(request.getLatestEndTime());
-        activityDomain.setDefaultSessionMaxTime(request.getDefaultSessionMaxTime());
         activityDomain.setSpecialSessionMaxTime(request.getSpecialSessionMaxTime());
 
         activityDomainRepository.save(activityDomain);
 
+        //update for activity sub domain
         for(UpdateActivitySubDomainRequest ur : request.getActivitySubDomainUpdateRequests()) {
 
             switch(ur.getAction()) {
@@ -97,22 +73,24 @@ public class ActivityDomainServiceImpl implements ActivityDomainService{
                     );
                     activitySubDomainEdit.setName(ur.getName());
                     activitySubDomainRepository.save(activitySubDomainEdit);
+                    break;
 
                 case "DELETE":
                     ActivitySubDomain activitySubDomainDelete = activitySubDomainRepository.findById(ur.getId()).orElseThrow(
                             () -> new AppException(ActivityDomainErrorCode.SUBDOMAIN_NOT_EXISTED)
                     );
                     activitySubDomainRepository.delete(activitySubDomainDelete);
+                    break;
 
                 case "ADD":
                     ActivitySubDomain activitySubDomainNew = new ActivitySubDomain();
                     activitySubDomainNew.setName(ur.getName());
+                    activitySubDomainNew.setActivityDomain(activityDomain);
                     activitySubDomainRepository.save(activitySubDomainNew);
+                    break;
 
             }
         }
-
-
 
         return "";
     }
