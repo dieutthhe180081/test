@@ -1,5 +1,6 @@
 package com.sep490.g28.hvh.be.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,6 +11,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "activity_domains")
@@ -39,4 +41,8 @@ public class ActivityDomain {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "activityDomain")
+    private List<ActivitySubDomain> activitySubDomains;
 }
