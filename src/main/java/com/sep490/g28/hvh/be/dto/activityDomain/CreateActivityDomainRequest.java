@@ -31,7 +31,6 @@ public class CreateActivityDomainRequest {
     Short specialSessionMaxTime;
 
     @Valid
-    @RequiredField(fieldName = "Lĩnh vực tình nguyện con")
     List<String> activitySubDomain;
 
 }
