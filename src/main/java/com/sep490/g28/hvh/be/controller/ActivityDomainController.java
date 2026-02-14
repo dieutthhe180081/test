@@ -1,12 +1,16 @@
 package com.sep490.g28.hvh.be.controller;
 
+import com.sep490.g28.hvh.be.dto.activityDomain.ActivityDomainDetailsResponse;
 import com.sep490.g28.hvh.be.dto.activityDomain.CreateActivityDomainRequest;
 import com.sep490.g28.hvh.be.dto.activityDomain.UpdateActivityDomainRequest;
 import com.sep490.g28.hvh.be.service.ActivityDomainService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -34,5 +38,19 @@ public class ActivityDomainController {
             , @RequestBody @Valid UpdateActivityDomainRequest request) {
         activityDomainService.updateActivityDomain(inputId, request);
         return ResponseEntity.ok("OK");
+    }
+
+    @PreAuthorize("hasRole('SYS_ADMIN')")
+    @GetMapping("/activity-domains")
+    public ResponseEntity<Page<ActivityDomainDetailsResponse>> getActivityDomains(
+            @RequestParam(defaultValue = "0")
+            @Min(value = 0, message = "INVALID_PAGE_NUMBER") int pageNumber,
+            @RequestParam(defaultValue = "10")
+            @Min(value = 1, message = "INVALID_PAGE_SIZE")
+            @Max(value = 100, message = "INVALID_PAGE_SIZE") int pageSize,
+            @RequestParam(required = false) String inputActive,
+            @RequestParam(required = false) String name
+    ) {
+        return ResponseEntity.ok(activityDomainService.getActivityDomains(pageNumber, pageSize, inputActive, name));
     }
 }
