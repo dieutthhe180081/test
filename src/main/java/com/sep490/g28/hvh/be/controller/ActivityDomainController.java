@@ -29,7 +29,7 @@ public class ActivityDomainController {
     @PostMapping("/create")
     public ResponseEntity<String> createActivityDomain(@RequestBody @Valid CreateActivityDomainRequest request) {
         activityDomainService.createActivityDomain(request);
-        return ResponseEntity.ok("OK");
+        return ResponseEntity.ok("");
     }
 
     @PreAuthorize("hasRole('SYS_ADMIN')")
@@ -37,7 +37,7 @@ public class ActivityDomainController {
     public ResponseEntity<String> updateActivityDomain(@PathVariable(name = "id") Short inputId
             , @RequestBody @Valid UpdateActivityDomainRequest request) {
         activityDomainService.updateActivityDomain(inputId, request);
-        return ResponseEntity.ok("OK");
+        return ResponseEntity.ok("");
     }
 
     @PreAuthorize("hasRole('SYS_ADMIN')")
