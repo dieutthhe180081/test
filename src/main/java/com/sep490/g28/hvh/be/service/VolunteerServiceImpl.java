@@ -216,34 +216,14 @@ public class VolunteerServiceImpl implements VolunteerService {
                 () -> new AppException(VolunteerErrorCode.REGISTRATION_NOT_EXISTED)
         );
 
+        //the registration is already verified
         if (!identityVerification.getStatus().equals(EVolunteerVerificationStatus.PENDING)){
             throw new AppException(VolunteerErrorCode.REGISTRATION_VERIFIED);
         }
 
+        //get the current admin who make the request
         SystemAdmin currentAdmin = systemAdminRepository.getReferenceById(currentUserProvider.getId());
         identityVerification.setReviewedBy(currentAdmin);
-
-        //delete cid images
-        CompletableFuture<Void> f1 =
-                storageService.deleteFileAsync(identityVerification.getCidFront());
-        CompletableFuture<Void> f2 =
-                storageService.deleteFileAsync(identityVerification.getCidBack());
-        CompletableFuture<Void> f3 =
-                storageService.deleteFileAsync(identityVerification.getCidHolding());
-
-        try {
-            CompletableFuture.allOf(f1, f2, f3).join();
-        } catch (CompletionException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof AppException ae && ae.getHttpStatus().value() == 400) {
-                //todo: this case is the file not exist in sb (only for test) change later, need to have picture to approve
-            } else {
-                throw (RuntimeException) e.getCause(); // propagate, transaction fail
-            }
-        }
-        identityVerification.setCidFront("");
-        identityVerification.setCidBack("");
-        identityVerification.setCidHolding("");
 
         if (Boolean.TRUE.equals(request.getApprove())){
             //APPROVE
@@ -276,22 +256,42 @@ public class VolunteerServiceImpl implements VolunteerService {
             identityVerification.setReviewedBy(currentAdmin);
             identityVerification.setVolunteer(volunteer);
 
-            identityVerificationRepository.save(identityVerification);
-
             //send mail to the volunteer
             emailService.sendApproveRegisterVolAccountEmail(identityVerification.getEmail(), defaultPassword);
-
             log.info("Verify identity id={}, create volunteer account id={}", id, volunteerId);
-            return;
+        } else {
+            //REJECT
+            //update the identity verification record
+            identityVerification.setStatus(EVolunteerVerificationStatus.REJECTED);
+            identityVerification.setRejectionReason(request.getRejectionReason());
+            //send mail
+            emailService.sendRejectRegisterVolAccountEmail(identityVerification.getEmail(), request.getRejectionReason());
+            log.info("Verify identity id={}, rejected", id);
         }
-        //REJECT
-        //update the identity verification record
-        identityVerification.setStatus(EVolunteerVerificationStatus.REJECTED);
-        identityVerification.setRejectionReason(request.getRejectionReason());
+
+        //delete cid images
+        CompletableFuture<Void> f1 =
+                storageService.deleteFileAsync(identityVerification.getCidFront());
+        CompletableFuture<Void> f2 =
+                storageService.deleteFileAsync(identityVerification.getCidBack());
+        CompletableFuture<Void> f3 =
+                storageService.deleteFileAsync(identityVerification.getCidHolding());
+        try {
+            CompletableFuture.allOf(f1, f2, f3).join();
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof AppException ae && ae.getHttpStatus().value() == 400) {
+                //todo: this case is the file not exist in sb (only for test) change later, need to have picture to approve
+            } else {
+                throw (RuntimeException) e.getCause(); // propagate, transaction fail
+            }
+        }
+        identityVerification.setCidFront("");
+        identityVerification.setCidBack("");
+        identityVerification.setCidHolding("");
+
+        //update identity verification request
         identityVerificationRepository.save(identityVerification);
-        //send mail
-        emailService.sendRejectRegisterVolAccountEmail(identityVerification.getEmail(), request.getRejectionReason());
-        log.info("Verify identity id={}, rejected", id);
     }
 
 }
