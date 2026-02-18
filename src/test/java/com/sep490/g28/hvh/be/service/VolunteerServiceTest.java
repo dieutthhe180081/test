@@ -1,7 +1,9 @@
 package com.sep490.g28.hvh.be.service;
 
+import com.sep490.g28.hvh.be.constant.EVolunteerVerificationStatus;
 import com.sep490.g28.hvh.be.dto.volunteer.RegisterVolunteerAccountRequest;
 import com.sep490.g28.hvh.be.dto.volunteer.RegisterVolunteerAccountResponse;
+import com.sep490.g28.hvh.be.dto.volunteer.VolunteerRegistrationSimpleResponse;
 import com.sep490.g28.hvh.be.entity.IdentityVerification;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.AppCommonErrorCode;
 import com.sep490.g28.hvh.be.exception.AppException;
@@ -15,14 +17,22 @@ import com.sep490.g28.hvh.be.repository.VolunteerRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -45,23 +55,22 @@ public class VolunteerServiceTest {
     @InjectMocks
     VolunteerServiceImpl volunteerService;
 
-    RegisterVolunteerAccountRequest request;
-
-    @BeforeEach
-    void setup() {
-        request = new RegisterVolunteerAccountRequest();
-        request.setOtp("123456");
-        request.setEmail("nguyenvana@gmail.com");
-        request.setPhone("0912345678");
-        request.setCid("123456789012");
-        request.setCidFrontFileExtension(".png");
-        request.setCidBackFileExtension(".png");
-        request.setCidHoldingFileExtension(".png");
+    private RegisterVolunteerAccountRequest validRegisterVolunteerAccountRequest() {
+        RegisterVolunteerAccountRequest req = new RegisterVolunteerAccountRequest();
+        req.setOtp("123456");
+        req.setEmail("nguyenvanA@gmail.com");
+        req.setPhone("0916234940");
+        req.setCid("034309880903");
+        req.setCidFrontFileExtension(".jpeg");
+        req.setCidBackFileExtension(".png");
+        req.setCidHoldingFileExtension(".jpg");
+        return req;
     }
 
     @Test
     void register_success() {
-        when(otpService.verifyVolAccountRegistrationOtp("nguyenvana@gmail.com", "123456"))
+        RegisterVolunteerAccountRequest request = validRegisterVolunteerAccountRequest();
+        when(otpService.verifyVolAccountRegistrationOtp(request.getEmail(), request.getOtp()))
                 .thenReturn(true);
         when(userRepository.existsByEmail(any())).thenReturn(false);
         when(volunteerRepository.existsByCid(any())).thenReturn(false);
@@ -81,7 +90,6 @@ public class VolunteerServiceTest {
         RegisterVolunteerAccountResponse response =
                 volunteerService.registerVolAccount(request);
 
-        verify(otpService).verifyVolAccountRegistrationOtp("nguyenvana@gmail.com", "123456");
         verify(identityVerificationRepository).save(any(IdentityVerification.class));
 
         assertEquals("front-url", response.getCidFrontUploadUrl());
@@ -97,7 +105,7 @@ public class VolunteerServiceTest {
 
         AppException ex = assertThrows(
                 AppException.class,
-                () -> volunteerService.registerVolAccount(request)
+                () -> volunteerService.registerVolAccount(validRegisterVolunteerAccountRequest())
         );
         assertEquals(AppCommonErrorCode.OTP_INVALID.getCode(), ex.getCode());
 
@@ -106,7 +114,8 @@ public class VolunteerServiceTest {
 
     @Test
     void register_fail_cid_used() {
-        when(otpService.verifyVolAccountRegistrationOtp("nguyenvana@gmail.com", "123456"))
+        RegisterVolunteerAccountRequest request = validRegisterVolunteerAccountRequest();
+        when(otpService.verifyVolAccountRegistrationOtp(request.getEmail(), request.getOtp()))
                 .thenReturn(true);
         when(userRepository.existsByEmail(any())).thenReturn(false);
         when(volunteerRepository.existsByCid(any())).thenReturn(true);
@@ -122,7 +131,8 @@ public class VolunteerServiceTest {
 
     @Test
     void register_fail_email_used() {
-        when(otpService.verifyVolAccountRegistrationOtp("nguyenvana@gmail.com", "123456"))
+        RegisterVolunteerAccountRequest request = validRegisterVolunteerAccountRequest();
+        when(otpService.verifyVolAccountRegistrationOtp(request.getEmail(), request.getOtp()))
                 .thenReturn(true);
         when(userRepository.existsByEmail(any())).thenReturn(true);
 
@@ -137,7 +147,8 @@ public class VolunteerServiceTest {
 
     @Test
     void register_fail_phone_used() {
-        when(otpService.verifyVolAccountRegistrationOtp("nguyenvana@gmail.com", "123456"))
+        RegisterVolunteerAccountRequest request = validRegisterVolunteerAccountRequest();
+        when(otpService.verifyVolAccountRegistrationOtp(request.getEmail(), request.getOtp()))
                 .thenReturn(true);
         when(userRepository.existsByEmail(any())).thenReturn(false);
         when(volunteerRepository.existsByCid(any())).thenReturn(false);
@@ -149,6 +160,59 @@ public class VolunteerServiceTest {
         );
         assertEquals(VolunteerErrorCode.PHONE_USED.getCode(), ex.getCode());
         verify(identityVerificationRepository, never()).save(any());
+    }
+
+    @Test
+    void getRegistrations_should_return_page_with_status_and_email() {
+        int pageNumber = 0;
+        int pageSize = 10;
+        String statusInput = "PENDING";
+        String email = "nguyenvanA@gmail.com";
+
+        IdentityVerification iv = new IdentityVerification();
+        iv.setStatus(EVolunteerVerificationStatus.PENDING);
+
+        Page<IdentityVerification> mockPage =
+                new PageImpl<>(List.of(iv));
+
+        when(identityVerificationRepository.search(
+                eq(EVolunteerVerificationStatus.PENDING),
+                eq(email),
+                any(Pageable.class)
+        )).thenReturn(mockPage);
+
+        Page<VolunteerRegistrationSimpleResponse> result =
+                volunteerService.getRegistrations(pageNumber, pageSize, statusInput, email);
+
+        assertEquals(1, result.getTotalElements());
+
+        verify(identityVerificationRepository)
+                .search(eq(EVolunteerVerificationStatus.PENDING),
+                        eq(email),
+                        any(Pageable.class));
+    }
+
+    @Test
+    void getRegistrations_should_pass_null_status_when_input_blank() {
+        int pageNumber = 0;
+        int pageSize = 10;
+
+        Page<IdentityVerification> mockPage =
+                new PageImpl<>(List.of(new IdentityVerification()));
+
+        when(identityVerificationRepository.search(
+                isNull(),
+                isNull(),
+                any(Pageable.class)
+        )).thenReturn(mockPage);
+
+        Page<VolunteerRegistrationSimpleResponse> result =
+                volunteerService.getRegistrations(pageNumber, pageSize, "   ", null);
+
+        assertEquals(1, result.getTotalElements());
+
+        verify(identityVerificationRepository)
+                .search(isNull(), isNull(), any(Pageable.class));
     }
 
 }
