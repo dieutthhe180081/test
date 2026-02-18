@@ -3,10 +3,14 @@ package com.sep490.g28.hvh.be.service;
 import com.sep490.g28.hvh.be.constant.EVolunteerVerificationStatus;
 import com.sep490.g28.hvh.be.dto.volunteer.RegisterVolunteerAccountRequest;
 import com.sep490.g28.hvh.be.dto.volunteer.RegisterVolunteerAccountResponse;
+import com.sep490.g28.hvh.be.dto.volunteer.VolunteerRegistrationDetailsResponse;
 import com.sep490.g28.hvh.be.dto.volunteer.VolunteerRegistrationSimpleResponse;
 import com.sep490.g28.hvh.be.entity.IdentityVerification;
+import com.sep490.g28.hvh.be.entity.SystemAdmin;
+import com.sep490.g28.hvh.be.entity.Volunteer;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.AppCommonErrorCode;
 import com.sep490.g28.hvh.be.exception.AppException;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.SupabaseErrorCode;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.VolunteerErrorCode;
 import com.sep490.g28.hvh.be.integration.cache.OtpService;
 import com.sep490.g28.hvh.be.integration.storage.StoragePathGenerator;
@@ -30,6 +34,8 @@ import org.springframework.data.domain.Sort;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -65,6 +71,19 @@ public class VolunteerServiceTest {
         req.setCidBackFileExtension(".png");
         req.setCidHoldingFileExtension(".jpg");
         return req;
+    }
+
+    private IdentityVerification validIdentityVerification() {
+        IdentityVerification identityVerification = new IdentityVerification();
+        identityVerification.setId(UUID.randomUUID());
+        identityVerification.setEmail("vol@mail.com");
+        identityVerification.setCid("123456");
+        identityVerification.setPhone("0909");
+        identityVerification.setStatus(EVolunteerVerificationStatus.PENDING);
+        identityVerification.setCidFront("f1");
+        identityVerification.setCidBack("f2");
+        identityVerification.setCidHolding("f3");
+        return identityVerification;
     }
 
     @Test
@@ -215,4 +234,134 @@ public class VolunteerServiceTest {
                 .search(isNull(), isNull(), any(Pageable.class));
     }
 
+
+    @Test
+    void getRegistrationDetails_success() {
+        UUID id = UUID.randomUUID();
+
+        IdentityVerification iv = new IdentityVerification();
+        iv.setId(id);
+        iv.setEmail("nguyenvanA@gmail.com");
+        iv.setCid("034309880903");
+        iv.setPhone("0916234940");
+        iv.setStatus(EVolunteerVerificationStatus.PENDING);
+
+        when(identityVerificationRepository.findById(id))
+                .thenReturn(Optional.of(iv));
+
+        when(storageService.getSignedUrlAsync(any()))
+                .thenReturn(CompletableFuture.completedFuture("url"));
+
+        when(userRepository.existsByEmail(any())).thenReturn(false);
+        when(volunteerRepository.existsByCid(any())).thenReturn(false);
+        when(volunteerRepository.existsByPhone(any())).thenReturn(false);
+
+        VolunteerRegistrationDetailsResponse res =
+                volunteerService.getRegistrationDetails(id);
+
+        assertEquals("url", res.getCidFrontUrl());
+        assertNull(res.getNote());
+    }
+
+    @Test
+    void getRegistrationDetails_idNotExist_shouldThrowException() {
+        UUID invalidId = UUID.randomUUID();
+        when(identityVerificationRepository.findById(any())).thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(AppException.class,
+                () -> volunteerService.getRegistrationDetails(invalidId));
+
+        assertEquals(VolunteerErrorCode.REGISTRATION_NOT_EXISTED.getCode(), ex.getCode());
+    }
+
+    @Test
+    void getRegistrationDetails_pending_signedUrlSuccess() {
+
+        IdentityVerification identityVerification = validIdentityVerification();
+        when(identityVerificationRepository.findById(any()))
+                .thenReturn(Optional.of(identityVerification));
+
+        when(storageService.getSignedUrlAsync(any()))
+                .thenReturn(CompletableFuture.completedFuture("signed-url"));
+
+        VolunteerRegistrationDetailsResponse res =
+                volunteerService.getRegistrationDetails(identityVerification.getId());
+
+        assertEquals("signed-url", res.getCidFrontUrl());
+        assertNull(res.getAdminEmail());
+    }
+
+    @Test
+    void getRegistrationDetails_statusNotPending_shouldReturnAdminVolunteerInfo() {
+
+        IdentityVerification identityVerification = new IdentityVerification();
+        identityVerification.setStatus(EVolunteerVerificationStatus.APPROVED);
+
+        SystemAdmin admin = new SystemAdmin();
+        admin.setId(UUID.randomUUID());
+        admin.setEmail("admin@mail.com");
+
+        Volunteer volunteer = new Volunteer();
+        volunteer.setVid(UUID.randomUUID());
+        volunteer.setEmail("vol@mail.com");
+
+        identityVerification.setReviewedBy(admin);
+        identityVerification.setVolunteer(volunteer);
+
+        when(identityVerificationRepository.findById(any()))
+                .thenReturn(Optional.of(identityVerification));
+
+        VolunteerRegistrationDetailsResponse res =
+                volunteerService.getRegistrationDetails(identityVerification.getId());
+
+        assertEquals("admin@mail.com", res.getAdminEmail());
+        assertEquals("vol@mail.com", res.getVolunteerEmail());
+    }
+
+    @Test
+    void getRegistrationDetails_signedUrlFail_shouldSetNote() {
+
+        IdentityVerification identityVerification = validIdentityVerification();
+        when(identityVerificationRepository.findById(any()))
+                .thenReturn(Optional.of(identityVerification));
+
+        CompletableFuture<String> failedFuture = new CompletableFuture<>();
+        failedFuture.completeExceptionally(
+                new AppException(SupabaseErrorCode.STORAGE_FILE_NOT_EXISTED)
+        );
+
+        when(storageService.getSignedUrlAsync(any()))
+                .thenReturn(failedFuture);
+
+        VolunteerRegistrationDetailsResponse res =
+                volunteerService.getRegistrationDetails(identityVerification.getId());
+
+        assertTrue(res.getNote().contains(
+                SupabaseErrorCode.STORAGE_FILE_NOT_EXISTED.getMessage()));
+    }
+
+    @Test
+    void getRegistrationDetails_emailCidPhoneUsed_shouldAppendNote() {
+
+        IdentityVerification identityVerification = validIdentityVerification();
+        when(identityVerificationRepository.findById(any()))
+                .thenReturn(Optional.of(identityVerification));
+
+        when(userRepository.existsByEmail(any())).thenReturn(true);
+        when(volunteerRepository.existsByCid(any())).thenReturn(true);
+        when(volunteerRepository.existsByPhone(any())).thenReturn(true);
+
+        when(storageService.getSignedUrlAsync(any()))
+                .thenReturn(CompletableFuture.completedFuture("url"));
+
+        VolunteerRegistrationDetailsResponse res =
+                volunteerService.getRegistrationDetails(identityVerification.getId());
+
+        assertTrue(res.getNote().contains(
+                VolunteerErrorCode.EMAIL_USED.getMessage()));
+        assertTrue(res.getNote().contains(
+                VolunteerErrorCode.CID_USED.getMessage()));
+        assertTrue(res.getNote().contains(
+                VolunteerErrorCode.PHONE_USED.getMessage()));
+    }
 }
