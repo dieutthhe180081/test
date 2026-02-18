@@ -59,11 +59,11 @@ public class VolunteerServiceImpl implements VolunteerService {
         otpService.verifyVolAccountRegistrationOtp(request.getEmail(), request.getOtp());
 
         //2. check the unique email, cid, phone in the volunteers account
-        if (volunteerRepository.existsByCid(request.getCid())) {
-            throw new AppException(VolunteerErrorCode.CID_USED);
-        }
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new AppException(VolunteerErrorCode.EMAIL_USED);
+        }
+        if (volunteerRepository.existsByCid(request.getCid())) {
+            throw new AppException(VolunteerErrorCode.CID_USED);
         }
         if (volunteerRepository.existsByPhone(request.getPhone())) {
             throw new AppException(VolunteerErrorCode.PHONE_USED);
@@ -167,7 +167,7 @@ public class VolunteerServiceImpl implements VolunteerService {
             }
         }
 
-        //check email exist in any account
+        //check email used by any account
         if (userRepository.existsByEmail(identityVerification.getEmail())) {
             //add to the note to announce sys_admin
             note = note + VolunteerErrorCode.EMAIL_USED.getMessage() + "\n";

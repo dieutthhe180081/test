@@ -5,10 +5,12 @@ import com.sep490.g28.hvh.be.dto.volunteer.RegisterVolunteerAccountResponse;
 import com.sep490.g28.hvh.be.entity.IdentityVerification;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.AppCommonErrorCode;
 import com.sep490.g28.hvh.be.exception.AppException;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.VolunteerErrorCode;
 import com.sep490.g28.hvh.be.integration.cache.OtpService;
 import com.sep490.g28.hvh.be.integration.storage.StoragePathGenerator;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
 import com.sep490.g28.hvh.be.repository.IdentityVerificationRepository;
+import com.sep490.g28.hvh.be.repository.UserRepository;
 import com.sep490.g28.hvh.be.repository.VolunteerRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,6 +31,8 @@ public class VolunteerServiceTest {
 
     @Mock
     VolunteerRepository volunteerRepository;
+    @Mock
+    UserRepository userRepository;
     @Mock
     IdentityVerificationRepository identityVerificationRepository;
     @Mock
@@ -59,8 +63,8 @@ public class VolunteerServiceTest {
     void register_success() {
         when(otpService.verifyVolAccountRegistrationOtp("nguyenvana@gmail.com", "123456"))
                 .thenReturn(true);
+        when(userRepository.existsByEmail(any())).thenReturn(false);
         when(volunteerRepository.existsByCid(any())).thenReturn(false);
-        when(volunteerRepository.existsByEmail(any())).thenReturn(false);
         when(volunteerRepository.existsByPhone(any())).thenReturn(false);
 
         when(storagePathGenerator.identityVerificationCidFront(any(), any())).thenReturn("front-path");
@@ -91,8 +95,11 @@ public class VolunteerServiceTest {
                 .when(otpService)
                 .verifyVolAccountRegistrationOtp(any(), any());
 
-        assertThrows(AppException.class,
-                () -> volunteerService.registerVolAccount(request));
+        AppException ex = assertThrows(
+                AppException.class,
+                () -> volunteerService.registerVolAccount(request)
+        );
+        assertEquals(AppCommonErrorCode.OTP_INVALID.getCode(), ex.getCode());
 
         verify(identityVerificationRepository, never()).save(any());
     }
@@ -101,33 +108,47 @@ public class VolunteerServiceTest {
     void register_fail_cid_used() {
         when(otpService.verifyVolAccountRegistrationOtp("nguyenvana@gmail.com", "123456"))
                 .thenReturn(true);
+        when(userRepository.existsByEmail(any())).thenReturn(false);
         when(volunteerRepository.existsByCid(any())).thenReturn(true);
 
-        assertThrows(AppException.class,
-                () -> volunteerService.registerVolAccount(request));
+        AppException ex = assertThrows(
+                AppException.class,
+                () -> volunteerService.registerVolAccount(request)
+        );
+        assertEquals(VolunteerErrorCode.CID_USED.getCode(), ex.getCode());
+        verify(identityVerificationRepository, never()).save(any());
+
     }
 
     @Test
     void register_fail_email_used() {
         when(otpService.verifyVolAccountRegistrationOtp("nguyenvana@gmail.com", "123456"))
                 .thenReturn(true);
-        when(volunteerRepository.existsByCid(any())).thenReturn(false);
-        when(volunteerRepository.existsByEmail(any())).thenReturn(true);
+        when(userRepository.existsByEmail(any())).thenReturn(true);
 
-        assertThrows(AppException.class,
-                () -> volunteerService.registerVolAccount(request));
+        AppException ex = assertThrows(
+                AppException.class,
+                () -> volunteerService.registerVolAccount(request)
+        );
+        assertEquals(VolunteerErrorCode.EMAIL_USED.getCode(), ex.getCode());
+        verify(identityVerificationRepository, never()).save(any());
+
     }
 
     @Test
     void register_fail_phone_used() {
         when(otpService.verifyVolAccountRegistrationOtp("nguyenvana@gmail.com", "123456"))
                 .thenReturn(true);
+        when(userRepository.existsByEmail(any())).thenReturn(false);
         when(volunteerRepository.existsByCid(any())).thenReturn(false);
-        when(volunteerRepository.existsByEmail(any())).thenReturn(false);
         when(volunteerRepository.existsByPhone(any())).thenReturn(true);
 
-        assertThrows(AppException.class,
-                () -> volunteerService.registerVolAccount(request));
+        AppException ex = assertThrows(
+                AppException.class,
+                () -> volunteerService.registerVolAccount(request)
+        );
+        assertEquals(VolunteerErrorCode.PHONE_USED.getCode(), ex.getCode());
+        verify(identityVerificationRepository, never()).save(any());
     }
 
 }
