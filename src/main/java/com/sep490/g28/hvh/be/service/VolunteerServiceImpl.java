@@ -9,7 +9,7 @@ import com.sep490.g28.hvh.be.entity.SystemAdmin;
 import com.sep490.g28.hvh.be.entity.Volunteer;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.VolunteerErrorCode;
-import com.sep490.g28.hvh.be.integration.authServer.AuthService;
+import com.sep490.g28.hvh.be.integration.authServer.AuthClient;
 import com.sep490.g28.hvh.be.integration.cache.OtpService;
 import com.sep490.g28.hvh.be.integration.mail.EmailService;
 import com.sep490.g28.hvh.be.integration.storage.StoragePathGenerator;
@@ -47,13 +47,13 @@ public class VolunteerServiceImpl implements VolunteerService {
     StorageService storageService;
     StoragePathGenerator storagePathGenerator;
     OtpService otpService;
-    AuthService authService;
+    AuthClient authClient;
     SystemAdminRepository systemAdminRepository;
     CurrentUserProvider currentUserProvider;
     EmailService emailService;
 
     @Override
-    public RegisterVolunteerAccountResponse registerVolAccount(RegisterVolunteerAccountRequest request) {
+    public RegisterVolunteerAccountResponse registerVolAccount (RegisterVolunteerAccountRequest request) {
 
         //1. validate otp
         otpService.verifyVolAccountRegistrationOtp(request.getEmail(), request.getOtp());
@@ -212,7 +212,7 @@ public class VolunteerServiceImpl implements VolunteerService {
                 () -> new AppException(VolunteerErrorCode.REGISTRATION_NOT_EXISTED)
         );
 
-        if (!identityVerification.getStatus().equals(EVolunteerVerificationStatus.PENDING)) {
+        if (!identityVerification.getStatus().equals(EVolunteerVerificationStatus.PENDING)){
             throw new AppException(VolunteerErrorCode.REGISTRATION_VERIFIED);
         }
 
@@ -241,7 +241,7 @@ public class VolunteerServiceImpl implements VolunteerService {
         identityVerification.setCidBack("");
         identityVerification.setCidHolding("");
 
-        if (Boolean.TRUE.equals(request.getApprove())) {
+        if (Boolean.TRUE.equals(request.getApprove())){
             //APPROVE
             //check the unique of email, cid, phone
             if (userRepository.existsByEmail(identityVerification.getEmail())) {
@@ -256,7 +256,7 @@ public class VolunteerServiceImpl implements VolunteerService {
 
             //Create account in auth server
             String defaultPassword = RandomStringUtil.random8AlphaNumeric();
-            UUID volunteerId = authService.createAccount(
+            UUID volunteerId = authClient.createAccount(
                     ERole.VOL,
                     identityVerification.getEmail(),
                     defaultPassword,

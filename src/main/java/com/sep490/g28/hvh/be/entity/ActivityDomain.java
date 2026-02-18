@@ -1,9 +1,7 @@
 package com.sep490.g28.hvh.be.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +11,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "activity_domains")
@@ -22,6 +21,7 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 public class ActivityDomain {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(columnDefinition = "smallint") //có the co loi voi cai nay nhung hien tai chua sua duoc (insert tay roi insert bang code)
     private Short id;
 
@@ -30,15 +30,6 @@ public class ActivityDomain {
 
     @Column(nullable = false)
     private Boolean active = true;
-
-    @Column(name = "earliest_start_time", nullable = false)
-    private LocalTime earliestStartTime; //HH:mm:ss
-
-    @Column(name = "latest_end_time", nullable = false)
-    private LocalTime latestEndTime;
-
-    @Column(name = "default_session_max_time", nullable = false)
-    private Short defaultSessionMaxTime;
 
     @Column(name = "special_session_max_time")
     private Short specialSessionMaxTime;
@@ -50,4 +41,8 @@ public class ActivityDomain {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "activityDomain")
+    private List<ActivitySubDomain> activitySubDomains;
 }
