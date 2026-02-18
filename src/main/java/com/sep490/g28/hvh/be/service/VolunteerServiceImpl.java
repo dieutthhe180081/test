@@ -146,43 +146,20 @@ public class VolunteerServiceImpl implements VolunteerService {
                 () -> new AppException(VolunteerErrorCode.REGISTRATION_NOT_EXISTED)
         );
 
-        String note = null;
-
-        //get signed URL of file
-        CompletableFuture<String> cidFrontFuture = storageService.getSignedUrlAsync(identityVerification.getCidFront());
-        CompletableFuture<String> cidBackFuture = storageService.getSignedUrlAsync(identityVerification.getCidBack());
-        CompletableFuture<String> cidHoldingFuture = storageService.getSignedUrlAsync(identityVerification.getCidHolding());
-
-        String cidFrontUrl = null;
-        String cidBackUrl = null;
-        String cidHoldingUrl = null;
-
-        try {
-            CompletableFuture.allOf(cidFrontFuture, cidBackFuture, cidHoldingFuture).join();
-            cidFrontUrl = cidFrontFuture.join();
-            cidBackUrl = cidBackFuture.join();
-            cidHoldingUrl = cidHoldingFuture.join();
-        } catch (CompletionException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof AppException ae) {
-                note = ae.getMessage() + "\n";
-            } else {
-                throw cause instanceof RuntimeException re ? re : e;
-            }
-        }
+        StringBuilder note = new StringBuilder();
 
         //check whether email used by any account
         if (userRepository.existsByEmail(identityVerification.getEmail())) {
             //add to the note to announce sys_admin
-            note = note + VolunteerErrorCode.EMAIL_USED.getMessage() + "\n";
+            note.append(VolunteerErrorCode.EMAIL_USED.getMessage()).append("\n");
         }
         //check whether cid used by any volunteer
         if (volunteerRepository.existsByCid(identityVerification.getCid())) {
-            note = note + VolunteerErrorCode.CID_USED.getMessage() + "\n";
+            note.append(VolunteerErrorCode.CID_USED.getMessage()).append("\n");
         }
         //check whether phone used by any volunteer
         if (volunteerRepository.existsByPhone(identityVerification.getPhone())) {
-            note = note + VolunteerErrorCode.PHONE_USED.getMessage() + "\n";
+            note.append(VolunteerErrorCode.PHONE_USED.getMessage()).append("\n");
         }
 
         //build response
@@ -191,21 +168,37 @@ public class VolunteerServiceImpl implements VolunteerService {
                 .cid(identityVerification.getCid())
                 .email(identityVerification.getEmail())
                 .phone(identityVerification.getPhone())
-                .cidFrontUrl(cidFrontUrl)
-                .cidBackUrl(cidBackUrl)
-                .cidHoldingUrl(cidHoldingUrl)
                 .status(identityVerification.getStatus())
                 .rejectionReason(identityVerification.getRejectionReason())
                 .createdAt(identityVerification.getCreatedAt())
                 .reviewAt(identityVerification.getReviewedAt())
-                .note(note)
                 .build();
         if (identityVerification.getStatus() != EVolunteerVerificationStatus.PENDING) {
             response.setAdminId(identityVerification.getReviewedBy().getId().toString());
             response.setAdminEmail(identityVerification.getReviewedBy().getEmail());
             response.setVolunteerId(identityVerification.getVolunteer().getVid().toString());
             response.setVolunteerEmail(identityVerification.getVolunteer().getEmail());
+        } else {
+            //get signed URL of file
+            CompletableFuture<String> cidFrontFuture = storageService.getSignedUrlAsync(identityVerification.getCidFront());
+            CompletableFuture<String> cidBackFuture = storageService.getSignedUrlAsync(identityVerification.getCidBack());
+            CompletableFuture<String> cidHoldingFuture = storageService.getSignedUrlAsync(identityVerification.getCidHolding());
+
+            try {
+                CompletableFuture.allOf(cidFrontFuture, cidBackFuture, cidHoldingFuture).join();
+                response.setCidFrontUrl(cidFrontFuture.join());
+                response.setCidBackUrl(cidBackFuture.join());
+                response.setCidHoldingUrl(cidHoldingFuture.join());
+            } catch (CompletionException e) {
+                Throwable cause = e.getCause();
+                if (cause instanceof AppException ae) {
+                    note.append(ae.getMessage()).append("\n");
+                } else {
+                    throw cause instanceof RuntimeException re ? re : e;
+                }
+            }
         }
+        response.setNote(note.isEmpty() ? null : note.toString());
         return response;
     }
 
