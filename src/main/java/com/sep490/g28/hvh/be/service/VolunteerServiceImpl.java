@@ -59,15 +59,7 @@ public class VolunteerServiceImpl implements VolunteerService {
         otpService.verifyVolAccountRegistrationOtp(request.getEmail(), request.getOtp());
 
         //2. check the unique email, cid, phone in the volunteers account
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new AppException(VolunteerErrorCode.EMAIL_USED);
-        }
-        if (volunteerRepository.existsByCid(request.getCid())) {
-            throw new AppException(VolunteerErrorCode.CID_USED);
-        }
-        if (volunteerRepository.existsByPhone(request.getPhone())) {
-            throw new AppException(VolunteerErrorCode.PHONE_USED);
-        }
+        checkUniqueEmailCidPhone(request.getEmail(), request.getCid(), request.getPhone());
 
         IdentityVerification verification = new IdentityVerification();
         UUID id = UUID.randomUUID();
@@ -114,6 +106,18 @@ public class VolunteerServiceImpl implements VolunteerService {
                 .cidFrontUploadUrl(cidFrontUploadUrl)
                 .cidHoldingUploadUr(cidHoldingUploadUrl)
                 .build();
+    }
+
+    private void checkUniqueEmailCidPhone(String email, String cid, String phone) {
+        if (userRepository.existsByEmail(email)) {
+            throw new AppException(VolunteerErrorCode.EMAIL_USED);
+        }
+        if (volunteerRepository.existsByCid(cid)) {
+            throw new AppException(VolunteerErrorCode.CID_USED);
+        }
+        if (volunteerRepository.existsByPhone(phone)) {
+            throw new AppException(VolunteerErrorCode.PHONE_USED);
+        }
     }
 
     @Override
@@ -167,16 +171,16 @@ public class VolunteerServiceImpl implements VolunteerService {
             }
         }
 
-        //check email used by any account
+        //check whether email used by any account
         if (userRepository.existsByEmail(identityVerification.getEmail())) {
             //add to the note to announce sys_admin
             note = note + VolunteerErrorCode.EMAIL_USED.getMessage() + "\n";
         }
-        //check cid used by any volunteer
+        //check whether cid used by any volunteer
         if (volunteerRepository.existsByCid(identityVerification.getCid())) {
             note = note + VolunteerErrorCode.CID_USED.getMessage() + "\n";
         }
-        //check phone used by any volunteer
+        //check whether phone used by any volunteer
         if (volunteerRepository.existsByPhone(identityVerification.getPhone())) {
             note = note + VolunteerErrorCode.PHONE_USED.getMessage() + "\n";
         }
@@ -244,15 +248,7 @@ public class VolunteerServiceImpl implements VolunteerService {
         if (Boolean.TRUE.equals(request.getApprove())){
             //APPROVE
             //check the unique of email, cid, phone
-            if (userRepository.existsByEmail(identityVerification.getEmail())) {
-                throw new AppException(VolunteerErrorCode.EMAIL_USED);
-            }
-            if (volunteerRepository.existsByCid(identityVerification.getCid())) {
-                throw new AppException(VolunteerErrorCode.CID_USED);
-            }
-            if (volunteerRepository.existsByPhone(identityVerification.getPhone())) {
-                throw new AppException(VolunteerErrorCode.PHONE_USED);
-            }
+            checkUniqueEmailCidPhone(identityVerification.getEmail(), identityVerification.getCid(), identityVerification.getPhone());
 
             //Create account in auth server
             String defaultPassword = RandomStringUtil.random8AlphaNumeric();
