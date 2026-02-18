@@ -1,10 +1,8 @@
 package com.sep490.g28.hvh.be.service;
 
+import com.sep490.g28.hvh.be.auth.CurrentUserProvider;
 import com.sep490.g28.hvh.be.constant.EVolunteerVerificationStatus;
-import com.sep490.g28.hvh.be.dto.volunteer.RegisterVolunteerAccountRequest;
-import com.sep490.g28.hvh.be.dto.volunteer.RegisterVolunteerAccountResponse;
-import com.sep490.g28.hvh.be.dto.volunteer.VolunteerRegistrationDetailsResponse;
-import com.sep490.g28.hvh.be.dto.volunteer.VolunteerRegistrationSimpleResponse;
+import com.sep490.g28.hvh.be.dto.volunteer.*;
 import com.sep490.g28.hvh.be.entity.IdentityVerification;
 import com.sep490.g28.hvh.be.entity.SystemAdmin;
 import com.sep490.g28.hvh.be.entity.Volunteer;
@@ -12,10 +10,13 @@ import com.sep490.g28.hvh.be.exception.errorCodeImpl.AppCommonErrorCode;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.SupabaseErrorCode;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.VolunteerErrorCode;
+import com.sep490.g28.hvh.be.integration.authServer.AuthClient;
 import com.sep490.g28.hvh.be.integration.cache.OtpService;
+import com.sep490.g28.hvh.be.integration.mail.EmailService;
 import com.sep490.g28.hvh.be.integration.storage.StoragePathGenerator;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
 import com.sep490.g28.hvh.be.repository.IdentityVerificationRepository;
+import com.sep490.g28.hvh.be.repository.SystemAdminRepository;
 import com.sep490.g28.hvh.be.repository.UserRepository;
 import com.sep490.g28.hvh.be.repository.VolunteerRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,6 +62,35 @@ public class VolunteerServiceTest {
     @InjectMocks
     VolunteerServiceImpl volunteerService;
 
+    @Mock
+    CurrentUserProvider currentUserProvider;
+
+    @Mock
+    SystemAdminRepository systemAdminRepository;
+
+    @Mock
+    AuthClient authClient;
+
+    @Mock
+    EmailService emailService;
+
+    UUID id;
+    SystemAdmin admin;
+
+    @BeforeEach
+    void setup() {
+        id = UUID.randomUUID();
+
+//        admin = new SystemAdmin();
+//        admin.setId(UUID.randomUUID());
+//
+//        when(currentUserProvider.getId()).thenReturn(admin.getId());
+//        when(systemAdminRepository.getReferenceById(any())).thenReturn(admin);
+//
+//        when(storageService.deleteFileAsync(any()))
+//                .thenReturn(CompletableFuture.completedFuture(null));
+    }
+
     private RegisterVolunteerAccountRequest validRegisterVolunteerAccountRequest() {
         RegisterVolunteerAccountRequest req = new RegisterVolunteerAccountRequest();
         req.setOtp("123456");
@@ -86,6 +116,19 @@ public class VolunteerServiceTest {
         return identityVerification;
     }
 
+    private VolunteerRegistrationVerifyRequest approveRequest() {
+        VolunteerRegistrationVerifyRequest req = new VolunteerRegistrationVerifyRequest();
+        req.setApprove(true);
+        req.setFullName("Nguyen Van A");
+        return req;
+    }
+
+    private VolunteerRegistrationVerifyRequest rejectRequest() {
+        VolunteerRegistrationVerifyRequest req = new VolunteerRegistrationVerifyRequest();
+        req.setApprove(false);
+        req.setRejectionReason("invalid info");
+        return req;
+    }
     @Test
     void register_success() {
         RegisterVolunteerAccountRequest request = validRegisterVolunteerAccountRequest();
@@ -278,14 +321,14 @@ public class VolunteerServiceTest {
     void getRegistrationDetails_pending_signedUrlSuccess() {
 
         IdentityVerification identityVerification = validIdentityVerification();
-        when(identityVerificationRepository.findById(any()))
+        when(identityVerificationRepository.findById(id))
                 .thenReturn(Optional.of(identityVerification));
 
         when(storageService.getSignedUrlAsync(any()))
                 .thenReturn(CompletableFuture.completedFuture("signed-url"));
 
         VolunteerRegistrationDetailsResponse res =
-                volunteerService.getRegistrationDetails(identityVerification.getId());
+                volunteerService.getRegistrationDetails(id);
 
         assertEquals("signed-url", res.getCidFrontUrl());
         assertNull(res.getAdminEmail());
@@ -308,11 +351,11 @@ public class VolunteerServiceTest {
         identityVerification.setReviewedBy(admin);
         identityVerification.setVolunteer(volunteer);
 
-        when(identityVerificationRepository.findById(any()))
+        when(identityVerificationRepository.findById(id))
                 .thenReturn(Optional.of(identityVerification));
 
         VolunteerRegistrationDetailsResponse res =
-                volunteerService.getRegistrationDetails(identityVerification.getId());
+                volunteerService.getRegistrationDetails(id);
 
         assertEquals("admin@mail.com", res.getAdminEmail());
         assertEquals("vol@mail.com", res.getVolunteerEmail());
@@ -334,7 +377,7 @@ public class VolunteerServiceTest {
                 .thenReturn(failedFuture);
 
         VolunteerRegistrationDetailsResponse res =
-                volunteerService.getRegistrationDetails(identityVerification.getId());
+                volunteerService.getRegistrationDetails(id);
 
         assertTrue(res.getNote().contains(
                 SupabaseErrorCode.STORAGE_FILE_NOT_EXISTED.getMessage()));
@@ -344,7 +387,7 @@ public class VolunteerServiceTest {
     void getRegistrationDetails_emailCidPhoneUsed_shouldAppendNote() {
 
         IdentityVerification identityVerification = validIdentityVerification();
-        when(identityVerificationRepository.findById(any()))
+        when(identityVerificationRepository.findById(id))
                 .thenReturn(Optional.of(identityVerification));
 
         when(userRepository.existsByEmail(any())).thenReturn(true);
@@ -355,7 +398,7 @@ public class VolunteerServiceTest {
                 .thenReturn(CompletableFuture.completedFuture("url"));
 
         VolunteerRegistrationDetailsResponse res =
-                volunteerService.getRegistrationDetails(identityVerification.getId());
+                volunteerService.getRegistrationDetails(id);
 
         assertTrue(res.getNote().contains(
                 VolunteerErrorCode.EMAIL_USED.getMessage()));
@@ -363,5 +406,149 @@ public class VolunteerServiceTest {
                 VolunteerErrorCode.CID_USED.getMessage()));
         assertTrue(res.getNote().contains(
                 VolunteerErrorCode.PHONE_USED.getMessage()));
+    }
+
+    @Test
+    void verifyRegistration_idNotExist_shouldThrow() {
+
+        when(identityVerificationRepository.findById(id))
+                .thenReturn(Optional.empty());
+
+        assertThrows(AppException.class,
+                () -> volunteerService.verifyRegistration(id, approveRequest()));
+    }
+
+    @Test
+    void verifyRegistration_alreadyVerified_shouldThrow() {
+        IdentityVerification identityVerification = validIdentityVerification();
+        identityVerification.setStatus(EVolunteerVerificationStatus.APPROVED);
+
+        when(identityVerificationRepository.findById(id))
+                .thenReturn(Optional.of(identityVerification));
+
+        AppException ex = assertThrows(AppException.class,
+                () -> volunteerService.verifyRegistration(id, approveRequest()));
+
+        assertEquals(VolunteerErrorCode.REGISTRATION_VERIFIED.getCode(), ex.getCode());
+    }
+
+    @Test
+    void verifyRegistration_approve_success() {
+        IdentityVerification identityVerification = validIdentityVerification();
+
+        admin = new SystemAdmin();
+        admin.setId(UUID.randomUUID());
+
+        when(currentUserProvider.getId()).thenReturn(admin.getId());
+        when(systemAdminRepository.getReferenceById(any())).thenReturn(admin);
+
+        when(storageService.deleteFileAsync(any()))
+                .thenReturn(CompletableFuture.completedFuture(null));
+
+        when(identityVerificationRepository.findById(id))
+                .thenReturn(Optional.of(identityVerification));
+
+        when(authClient.createAccount(any(), any(), any(), any()))
+                .thenReturn(UUID.randomUUID());
+
+        volunteerService.verifyRegistration(id, approveRequest());
+
+        verify(volunteerRepository).save(any());
+        verify(emailService).sendApproveRegisterVolAccountEmail(any(), any());
+        verify(identityVerificationRepository).save(any());
+
+        assertEquals(EVolunteerVerificationStatus.APPROVED,
+                identityVerification.getStatus());
+    }
+
+    @Test
+    void verifyRegistration_cidUsed_shouldThrow() {
+        IdentityVerification identityVerification = validIdentityVerification();
+
+        when(identityVerificationRepository.findById(id))
+                .thenReturn(Optional.of(identityVerification));
+
+        when(volunteerRepository.existsByCid(any())).thenReturn(true);
+
+        AppException ex = assertThrows(AppException.class,
+                () -> volunteerService.verifyRegistration(id, approveRequest()));
+        assertEquals(VolunteerErrorCode.CID_USED.getCode(), ex.getCode());
+    }
+
+    @Test
+    void verifyRegistration_emailUsed_shouldThrow() {
+        IdentityVerification identityVerification = validIdentityVerification();
+
+        when(identityVerificationRepository.findById(id))
+                .thenReturn(Optional.of(identityVerification));
+
+        when(userRepository.existsByEmail(any())).thenReturn(true);
+
+        AppException ex = assertThrows(AppException.class,
+                () -> volunteerService.verifyRegistration(id, approveRequest()));
+        assertEquals(VolunteerErrorCode.EMAIL_USED.getCode(), ex.getCode());
+    }
+
+    @Test
+    void verifyRegistration_phoneUsed_shouldThrow() {
+        IdentityVerification identityVerification = validIdentityVerification();
+
+        when(identityVerificationRepository.findById(id))
+                .thenReturn(Optional.of(identityVerification));
+
+        when(volunteerRepository.existsByPhone(any())).thenReturn(true);
+
+        AppException ex = assertThrows(AppException.class,
+                () -> volunteerService.verifyRegistration(id, approveRequest()));
+        assertEquals(VolunteerErrorCode.PHONE_USED.getCode(), ex.getCode());
+    }
+
+    @Test
+    void verifyRegistration_reject_success() {
+
+        IdentityVerification identityVerification = validIdentityVerification();
+
+        admin = new SystemAdmin();
+        admin.setId(UUID.randomUUID());
+
+        when(currentUserProvider.getId()).thenReturn(admin.getId());
+        when(systemAdminRepository.getReferenceById(any())).thenReturn(admin);
+
+        when(storageService.deleteFileAsync(any()))
+                .thenReturn(CompletableFuture.completedFuture(null));
+
+
+        when(identityVerificationRepository.findById(id))
+                .thenReturn(Optional.of(identityVerification));
+
+        volunteerService.verifyRegistration(id, rejectRequest());
+
+        verify(emailService)
+                .sendRejectRegisterVolAccountEmail(
+                        eq("vol@mail.com"),
+                        eq("invalid info"));
+
+        assertEquals(EVolunteerVerificationStatus.REJECTED,
+                identityVerification.getStatus());
+    }
+
+    @Test
+    void verifyRegistration_deleteFileFail_shouldThrow() {
+        IdentityVerification identityVerification = validIdentityVerification();
+
+        when(identityVerificationRepository.findById(id))
+                .thenReturn(Optional.of(identityVerification));
+
+        CompletableFuture<Void> failed = new CompletableFuture<>();
+        failed.completeExceptionally(new RuntimeException("storage down"));
+
+        when(storageService.deleteFileAsync(any()))
+                .thenReturn(failed);
+
+        when(authClient.createAccount(any(), any(), any(), any()))
+                .thenReturn(UUID.randomUUID());
+
+        assertThrows(RuntimeException.class,
+                () -> volunteerService.verifyRegistration(id, approveRequest()));
     }
 }
