@@ -1,24 +1,30 @@
 package com.sep490.g28.hvh.be.controller;
 
 import com.sep490.g28.hvh.be.constant.ERole;
-import com.sep490.g28.hvh.be.integration.authServer.AuthService;
+import com.sep490.g28.hvh.be.dto.supabase.UserResponse;
+import com.sep490.g28.hvh.be.integration.authServer.AuthClient;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
+import com.sep490.g28.hvh.be.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
+@Slf4j
 @RestController
 @RequestMapping("/test-sb")
 @RequiredArgsConstructor
 public class TestSupabaseController {
 
-    private final AuthService authService;
+    private final AuthClient authClient;
     private final StorageService storageService;
 
 //    public TestSupabaseController(SupabaseAuthService authService, SupabaseStorageService storageService) {
@@ -83,21 +89,25 @@ public class TestSupabaseController {
         );
     }
 
-    // test create signed url
-//    @GetMapping("/signed-url")
-//    public ResponseEntity<Map<String, String>> getSignedUrl(
-//            @RequestParam("path") String path
-//    ) {
-//        String signedUrl = storageService.createSignedUrl(path);
-//
-//        return ResponseEntity.ok(
-//                Map.of("signedURL", signedUrl)
-//        );
-//    }
+//     test create signed url
+    @GetMapping("/signed-url")
+    public ResponseEntity<Map<String, String>> getSignedUrl(
+            @RequestParam("path") String path
+    ) {
+        String signedUrl = storageService.getSignedUrl(path);
 
+        return ResponseEntity.ok(
+                Map.of("signedURL", signedUrl)
+        );
+    }
+
+    private final UserRepository userRepository;
     @GetMapping("/create-account")
-    public ResponseEntity<String> createVolAccount() {
-        authService.createAccount(ERole.VOL, "abc1@gmail.com", "12345678", "0123456789");
+    public ResponseEntity<String> testCreateVolAccount(@RequestParam String email, @RequestParam ERole role) {
+        if (userRepository.existsByEmail(email)){
+            return ResponseEntity.ok("oh oh emddaxd dc su dung");
+        }
+        authClient.createAccount(role, email, "12345678", "0123456789");
         return ResponseEntity.ok("OK");
     }
 

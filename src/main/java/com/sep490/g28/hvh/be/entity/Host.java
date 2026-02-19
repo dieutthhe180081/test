@@ -21,7 +21,7 @@ import java.util.UUID;
 public class Host {
 
     @Id
-    @GeneratedValue
+    @Column(updatable = false)
     private UUID id;
 
     @Column(nullable = false, length = 12)
@@ -51,7 +51,7 @@ public class Host {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", referencedColumnName = "id")
-    private OrganizationManager created_by; //de nhu nay thi chi org manager tao duoc tk host
+    private OrganizationManager createdBy; //de nhu nay thi chi org manager tao duoc tk host
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

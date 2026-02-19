@@ -21,7 +21,7 @@ import java.util.UUID;
 public class OrganizationManager {
 
     @Id
-    @GeneratedValue
+    @Column(updatable = false)
     private UUID id;
 
     @Column(nullable = false, length = 12)
@@ -59,7 +59,7 @@ public class OrganizationManager {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", referencedColumnName = "id")
-    private SystemAdmin created_by;
+    private SystemAdmin createdBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "organization_id", referencedColumnName = "id", nullable = false)

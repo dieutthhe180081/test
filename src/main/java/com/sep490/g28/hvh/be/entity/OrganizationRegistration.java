@@ -22,7 +22,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class OrganizationRegistration {
     @Id
-    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
+    @Column(updatable = false)
     private UUID id;
 
     @Column(nullable = false)
@@ -59,8 +59,8 @@ public class OrganizationRegistration {
     @Column(name = "manager_cid_holding", nullable = false)
     private String managerCidHolding;
 
-    @Column(name = "other_images", length = 500)
-    private String otherImages;
+    @Column(name = "other_evidences", length = 500)
+    private String otherEvidences;
 
     @Column(name = "application_reason")
     private String applicationReason;

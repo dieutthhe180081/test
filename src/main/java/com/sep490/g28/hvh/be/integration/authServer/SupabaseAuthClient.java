@@ -3,25 +3,24 @@ package com.sep490.g28.hvh.be.integration.authServer;
 import com.sep490.g28.hvh.be.config.SupabaseProperties;
 import com.sep490.g28.hvh.be.constant.ERole;
 import com.sep490.g28.hvh.be.dto.supabase.CreateUserRequest;
-import com.sep490.g28.hvh.be.dto.supabase.UserListResponse;
 import com.sep490.g28.hvh.be.dto.supabase.UserResponse;
+import com.sep490.g28.hvh.be.entity.User;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.SupabaseException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.SupabaseErrorCode;
+import com.sep490.g28.hvh.be.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Supabase-based implementation of {@link AuthService}.
+ * Supabase-based implementation of {@link AuthClient}.
  *
  * <p>Uses Supabase Admin REST API to manage user accounts.</p>
  *
@@ -35,16 +34,19 @@ import java.util.UUID;
  */
 @Slf4j
 @Service
-public class SupabaseAuthService implements AuthService {
+public class SupabaseAuthClient implements AuthClient {
     private final RestTemplate restTemplate;
     private final SupabaseProperties supabaseProperties;
+    private final UserRepository userRepository;
 
-    public SupabaseAuthService(
+    public SupabaseAuthClient(
             @Qualifier("supabaseRestTemplate") RestTemplate restTemplate,
-            SupabaseProperties config
+            SupabaseProperties config,
+            UserRepository userRepository
     ) {
         this.restTemplate = restTemplate;
         this.supabaseProperties = config;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -82,34 +84,24 @@ public class SupabaseAuthService implements AuthService {
             );
             UUID id = Objects.requireNonNull(responseEntity.getBody()).id();
             log.info("Create user id={}", id);
+            //save email to table user in db
+            User user = new User();
+            user.setId(id);
+            user.setEmail(email);
+            userRepository.save(user);
             return id;
-        } catch (SupabaseException e){
+        } catch (Exception e) {
+            if (e instanceof SupabaseException se){
+                int status = se.getStatus();
+                if (status == 500) {
+                    throw new AppException(SupabaseErrorCode.INTERNAL_SERVER_ERROR);
+                } else if (status == 422) {
+                    throw new AppException(SupabaseErrorCode.AUTH_EMAIL_USED);
+                }
+            }
             throw new AppException(SupabaseErrorCode.AUTH_CREATE_ACCOUNT_FAIL);
         }
 
-    }
-
-    /**
-     * Checks email existence via Supabase Admin API.
-     *
-     * @param email email to check
-     * @return {@code true} if at least one user is found
-     */
-    @Override
-    public boolean checkEmailExists(String email) {
-        String url = supabaseProperties.getUrl()
-                + "/auth/v1/admin/users?email=" + UriUtils.encode(email, StandardCharsets.UTF_8);
-
-        ResponseEntity<UserListResponse> response =
-                restTemplate.exchange(
-                        url,
-                        HttpMethod.GET,
-                        null,
-                        UserListResponse.class
-                );
-
-        return response.getBody() != null
-                && !response.getBody().users().isEmpty();
     }
 
 }

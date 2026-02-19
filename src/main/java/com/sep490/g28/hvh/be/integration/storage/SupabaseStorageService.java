@@ -2,6 +2,7 @@ package com.sep490.g28.hvh.be.integration.storage;
 
 import com.sep490.g28.hvh.be.config.SupabaseProperties;
 import com.sep490.g28.hvh.be.exception.AppException;
+import com.sep490.g28.hvh.be.exception.SupabaseException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.SupabaseErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,6 +76,12 @@ public class SupabaseStorageService implements StorageService {
             log.info("Get upload url for file with path: {}", path);
             return (String) Objects.requireNonNull(res.getBody()).get("url");
         } catch (Exception e) {
+            if (e instanceof SupabaseException se) {
+                int status = se.getStatus();
+                if (status == 500) {
+                    throw new AppException(SupabaseErrorCode.INTERNAL_SERVER_ERROR);
+                }
+            }
             throw new AppException(SupabaseErrorCode.STORAGE_GET_UPLOAD_URL_FAIL);
         }
     }
@@ -96,6 +103,14 @@ public class SupabaseStorageService implements StorageService {
             restTemplate.delete(url);
             log.info("Delete file in path: {}", path);
         } catch (Exception e) {
+            if (e instanceof SupabaseException se) {
+                int status = se.getStatus();
+                if (status == 400) {
+                    throw new AppException(SupabaseErrorCode.STORAGE_FILE_NOT_EXISTED);
+                } else if (status == 500) {
+                    throw new AppException(SupabaseErrorCode.INTERNAL_SERVER_ERROR);
+                }
+            }
             throw new AppException(SupabaseErrorCode.STORAGE_DELETE_FILE_FAIL);
         }
     }
@@ -129,6 +144,14 @@ public class SupabaseStorageService implements StorageService {
             return (String) Objects.requireNonNull(res.getBody()).get("signedURL");
 
         } catch (Exception e) {
+            if (e instanceof SupabaseException se) {
+                int status = se.getStatus();
+                if (status == 400) {
+                    throw new AppException(SupabaseErrorCode.STORAGE_FILE_NOT_EXISTED);
+                } else if (status == 500) {
+                    throw new AppException(SupabaseErrorCode.INTERNAL_SERVER_ERROR);
+                }
+            }
             throw new AppException(SupabaseErrorCode.STORAGE_GET_SIGNED_URL_FAIL);
         }
     }
@@ -169,6 +192,12 @@ public class SupabaseStorageService implements StorageService {
         } catch (IOException e) {
             log.error("Error occur while upload file: {}",e.getMessage());
         } catch (Exception e){
+            if (e instanceof SupabaseException se) {
+                int status = se.getStatus();
+                if (status == 500) {
+                    throw new AppException(SupabaseErrorCode.INTERNAL_SERVER_ERROR);
+                }
+            }
             throw new AppException(SupabaseErrorCode.STORAGE_UPLOAD_FAIL);
         }
     }

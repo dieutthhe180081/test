@@ -36,20 +36,8 @@ public class Organization {
     @Column(name = "org_introduction", length = 500, nullable = false)
     private String orgIntroduction;
 
-    @Column(name = "manager_full_name", nullable = false, length = 100)
-    private String managerFullName;
-
-    @Column(name = "manager_cid", nullable = false, length = 12)
-    private String managerCid;
-
-    @Column(name = "manager_phone", nullable = false, length = 10)
-    private String managerPhone;
-
-    @Column(name = "manager_email", nullable = false)
-    private String managerEmail;
-
-    @Column(name = "other_images", length = 500)
-    private String otherImages;
+    @Column(name = "other_evidences", length = 500)
+    private String otherEvidences;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -61,5 +49,5 @@ public class Organization {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", referencedColumnName = "id")
-    private SystemAdmin created_by;
+    private SystemAdmin createBy;
 }

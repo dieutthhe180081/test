@@ -2,13 +2,13 @@ package com.sep490.g28.hvh.be.integration.cache;
 
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.AppCommonErrorCode;
 import com.sep490.g28.hvh.be.exception.AppException;
+import com.sep490.g28.hvh.be.util.RandomStringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.security.SecureRandom;
 import java.time.Duration;
 
 /**
@@ -30,9 +30,9 @@ import java.time.Duration;
 @Slf4j
 public class RedisOtpService implements OtpService {
 
-    private static final SecureRandom RANDOM = new SecureRandom();
-    private static final String TYPE_VERIFY_EMAIL_PRE = "otp:verify-email:";
-    private static final String TYPE_RESET_PASSWORD_PRE = "otp:forgot-password:";
+    private static final String TYPE_VOL_REGISTER_PRE = "otp:vol-register:";
+    private static final String TYPE_ORG_REGISTER_PRE = "otp:org-register:";
+    private static final String TYPE_FORGOT_PASSWORD_PRE = "otp:forgot-password:";
     private static final String OTP_SUF = "otp";
     private static final String ATTEMPT_SUF = "attempt";
     private static final int MAX_ATTEMPT = 3;
@@ -45,26 +45,38 @@ public class RedisOtpService implements OtpService {
 
 
     @Override
-    public String getVerifyRegisterOtp(String email) {
-        String key = TYPE_VERIFY_EMAIL_PRE + email;
+    public String getVolAccountRegistrationOtp(String email) {
+        String key = TYPE_VOL_REGISTER_PRE + email;
         return generateOtp(key);
     }
 
     @Override
-    public boolean verifyVerifyRegisterOtp(String email, String inputOtp) {
-        String key = TYPE_VERIFY_EMAIL_PRE + email;
+    public boolean verifyVolAccountRegistrationOtp(String email, String inputOtp) {
+        String key = TYPE_VOL_REGISTER_PRE + email;
+        return verifyOtp(key, inputOtp);
+    }
+
+    @Override
+    public String getOrgRegistrationOtp(String email) {
+        String key = TYPE_ORG_REGISTER_PRE + email;
+        return generateOtp(key);
+    }
+
+    @Override
+    public boolean verifyOrgRegistrationOtp(String email, String inputOtp) {
+        String key = TYPE_ORG_REGISTER_PRE + email;
         return verifyOtp(key, inputOtp);
     }
 
     @Override
     public String getVerifyForgotPasswordOtp(String email) {
-        String key = TYPE_RESET_PASSWORD_PRE + email;
+        String key = TYPE_FORGOT_PASSWORD_PRE + email;
         return generateOtp(key);
     }
 
     @Override
     public boolean verifyVerifyForgotPasswordOtp(String email, String inputOtp) {
-        String key = TYPE_RESET_PASSWORD_PRE + email;
+        String key = TYPE_FORGOT_PASSWORD_PRE + email;
         return verifyOtp(key, inputOtp);
     }
 
@@ -100,7 +112,7 @@ public class RedisOtpService implements OtpService {
         }
 
         // 3. Generate otp
-        String otp = String.valueOf(RANDOM.nextInt(900000) + 100000);
+        String otp = RandomStringUtil.random6Numberic();
 
         HashOperations<String, String, String> hash = redisTemplate.opsForHash();
         hash.put(key, OTP_SUF, otp);

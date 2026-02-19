@@ -19,16 +19,33 @@ public interface EmailService {
      * Send approval email after volunteer account registration is accepted.
      *
      * @param userEmail recipient email
+     * @param password default password of the account
      */
-    void sendApproveRegisterVolAccountEmail(String userEmail);
+    void sendApproveRegisterVolAccountEmail(String userEmail, String password);
 
     /**
-     * Send OTP email for registration email verification.
+     * Send reject email after volunteer account registration is rejected.
+     *
+     * @param userEmail recipient email
+     * @param rejectionReason rejection reason
+     */
+    void sendRejectRegisterVolAccountEmail(String userEmail, String rejectionReason);
+
+    /**
+     * Send OTP email for volunteer account registration verification.
      *
      * @param email recipient email
      * @param otp   verification OTP
      */
-    void sendVerifyRegisterOtp(String email, String otp);
+    void sendVolAccountRegistrationOtp(String email, String otp);
+
+    /**
+     * Send OTP email for organization registration verification.
+     *
+     * @param email recipient email
+     * @param otp   verification OTP
+     */
+    void sendOrgRegistrationOtp(String email, String otp);
 
     /**
      * Send OTP email for forgot-password flow.

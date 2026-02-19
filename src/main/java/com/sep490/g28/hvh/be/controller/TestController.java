@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,15 +23,15 @@ import java.util.Map;
 @Slf4j
 public class TestController {
 
-    @PostMapping(
-            value = "/register",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
-    public ResponseEntity<String> registerVolunteer(
-            @Valid @ModelAttribute RegisterVolunteerAccountRequest request
-    ) {
-        return ResponseEntity.ok("OK");
-    }
+//    @PostMapping(
+//            value = "/register",
+//            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+//    )
+//    public ResponseEntity<String> registerVolunteer(
+//            @Valid @ModelAttribute RegisterVolunteerAccountRequest request
+//    ) {
+//        return ResponseEntity.ok("OK");
+//    }
 
     // test ConstraintViolationException (method-level)
     @GetMapping("/phone")
@@ -72,14 +71,14 @@ public class TestController {
 //        return ResponseEntity.ok("OK");
 //    }
 
-    private final EmailService emailService;
-    @GetMapping("/mail")
-    public ResponseEntity<String> testMail(@RequestParam String email) {
-
-        emailService.sendApproveRegisterVolAccountEmail(email);
-        return ResponseEntity.ok("OK");
-
-    }
+//    private final EmailService emailService;
+//    @GetMapping("/mail")
+//    public ResponseEntity<String> testMail(@RequestParam String email) {
+//
+//        emailService.sendApproveRegisterVolAccountEmail(email);
+//        return ResponseEntity.ok("OK");
+//
+//    }
 
     private final OtpService otpService;
 
@@ -87,17 +86,17 @@ public class TestController {
     public ResponseEntity<String> getOtp() {
         log.info("test logging without authenticated");
 
-        return ResponseEntity.ok(otpService.getVerifyRegisterOtp("huyendieu8304@gmail.com"));
+        return ResponseEntity.ok(otpService.getVolAccountRegistrationOtp("huyendieu8304@gmail.com"));
     }
 
     @GetMapping("/otp-verify")
     public ResponseEntity<String> testOtp(@RequestParam String otp) {
-        if (otpService.verifyVerifyRegisterOtp("huyendieu8304@gmail.com", otp)){
+        if (otpService.verifyVolAccountRegistrationOtp("huyendieu8304@gmail.com", otp)){
         return ResponseEntity.ok("OK");
         }
         return ResponseEntity.ok("oh nooooo");
     }
 
-    // TODO set up docker and test redis
+
 
 }

@@ -1,6 +1,6 @@
 package com.sep490.g28.hvh.be.dto.volunteer;
 
-import com.sep490.g28.hvh.be.validation.ImageMimeType;
+import com.sep490.g28.hvh.be.validation.ImageFileExtension;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -34,14 +34,14 @@ public class RegisterVolunteerAccountRequest {
     String cid;
 
     @NotBlank(message = "INVALID_IMAGE_TYPE")
-    @ImageMimeType(fieldName = "Ảnh mặt trước căn cước công dân")
-    String cidFrontMimeType;
+    @ImageFileExtension(fieldName = "Ảnh mặt trước căn cước công dân")
+    String cidFrontFileExtension;
 
     @NotBlank(message = "INVALID_IMAGE_TYPE")
-    @ImageMimeType(fieldName = "Ảnh mặt sau căn cước công dân")
-    String cidBackMimeType;
+    @ImageFileExtension(fieldName = "Ảnh mặt sau căn cước công dân")
+    String cidBackFileExtension;
 
     @NotBlank(message = "INVALID_IMAGE_TYPE")
-    @ImageMimeType(fieldName = "Ảnh cầm căn cước công dân")
-    String cidHoldingMimeType;
+    @ImageFileExtension(fieldName = "Ảnh cầm căn cước công dân")
+    String cidHoldingFileExtension;
 }

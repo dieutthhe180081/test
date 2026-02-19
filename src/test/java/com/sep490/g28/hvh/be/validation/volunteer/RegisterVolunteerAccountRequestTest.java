@@ -1,6 +1,7 @@
 package com.sep490.g28.hvh.be.validation.volunteer;
 
 import com.sep490.g28.hvh.be.dto.volunteer.RegisterVolunteerAccountRequest;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.ValidationErrorCode;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import jakarta.validation.Validation;
@@ -27,11 +28,11 @@ public class RegisterVolunteerAccountRequestTest {
         RegisterVolunteerAccountRequest req = new RegisterVolunteerAccountRequest();
         req.setOtp("123456");
         req.setEmail("nguyenvanA@gmail.com");
-        req.setPhone("0912345678");
-        req.setCid("123456789012");
-        req.setCidFrontMimeType("image/jpeg");
-        req.setCidBackMimeType("image/png");
-        req.setCidHoldingMimeType("image/jpg");
+        req.setPhone("0916234940");
+        req.setCid("034309880903");
+        req.setCidFrontFileExtension(".jpeg");
+        req.setCidBackFileExtension(".png");
+        req.setCidHoldingFileExtension(".jpg");
         return req;
     }
 
@@ -60,7 +61,7 @@ public class RegisterVolunteerAccountRequestTest {
 
 //        assertThat(violations).hasSize(1);
         assertThat(violations.iterator().next().getMessage())
-                .isEqualTo("INVALID_OTP");
+                .isEqualTo(ValidationErrorCode.INVALID_OTP.name());
     }
 
     @ParameterizedTest
@@ -80,7 +81,7 @@ public class RegisterVolunteerAccountRequestTest {
 
 //        assertThat(violations).hasSize(1);
         assertThat(violations.iterator().next().getMessage())
-                .isEqualTo("INVALID_EMAIL");
+                .isEqualTo(ValidationErrorCode.INVALID_EMAIL.name());
     }
 
     @ParameterizedTest
@@ -101,7 +102,7 @@ public class RegisterVolunteerAccountRequestTest {
 
 //        assertThat(violations).hasSize(1);
         assertThat(violations.iterator().next().getMessage())
-                .isEqualTo("INVALID_PHONE");
+                .isEqualTo(ValidationErrorCode.INVALID_PHONE.name());
     }
 
     @ParameterizedTest
@@ -122,36 +123,36 @@ public class RegisterVolunteerAccountRequestTest {
 
 //        assertThat(violations).hasSize(1);
         assertThat(violations.iterator().next().getMessage())
-                .isEqualTo("INVALID_CID");
+                .isEqualTo(ValidationErrorCode.INVALID_CID.name());
     }
 
     @ParameterizedTest
     @ValueSource(strings = {
-            "application/pdf",
-            "text/html",
+            ".pdf",
+            ".html",
             "   ",
             "",
-            "image/gif",
-            "image/sdf",
+            ".gif",
+            ".sdf",
     })
     void should_fail_when_image_mime_type_invalid(String mimeType) {
         RegisterVolunteerAccountRequest req = validRequest();
-        req.setCidFrontMimeType(mimeType);
+        req.setCidFrontFileExtension(mimeType);
 
         Set<ConstraintViolation<RegisterVolunteerAccountRequest>> violations =
                 validator.validate(req);
 
 //        assertThat(violations).hasSize(1);
         assertThat(violations.iterator().next().getMessage())
-                .isEqualTo("INVALID_IMAGE_TYPE");
+                .isEqualTo(ValidationErrorCode.INVALID_IMAGE_TYPE.name());
     }
 
     @Test
     void should_fail_when_multiple_fields_invalid() {
         RegisterVolunteerAccountRequest req = validRequest();
-        req.setOtp("12");
+        req.setOtp("12345");
         req.setEmail("abc");
-        req.setCidFrontMimeType("text/plain");
+        req.setCidFrontFileExtension(".txt");
 
         Set<ConstraintViolation<RegisterVolunteerAccountRequest>> violations =
                 validator.validate(req);
@@ -161,9 +162,9 @@ public class RegisterVolunteerAccountRequestTest {
         assertThat(violations)
                 .extracting(ConstraintViolation::getMessage)
                 .containsExactlyInAnyOrder(
-                        "INVALID_OTP",
-                        "INVALID_EMAIL",
-                        "INVALID_IMAGE_TYPE"
+                        ValidationErrorCode.INVALID_OTP.name(),
+                        ValidationErrorCode.INVALID_EMAIL.name(),
+                        ValidationErrorCode.INVALID_IMAGE_TYPE.name()
                 );
     }
 }

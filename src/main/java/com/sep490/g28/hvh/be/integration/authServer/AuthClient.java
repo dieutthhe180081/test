@@ -9,7 +9,7 @@ import java.util.UUID;
  *
  * <p>Defines operations for communication with authentication server</p>
  */
-public interface AuthService {
+public interface AuthClient {
     /**
      * Creates a new user account with the given role and credentials.
      *
@@ -21,11 +21,4 @@ public interface AuthService {
      */
     UUID createAccount(ERole role, String email, String password, String phone);
 
-    /**
-     * Checks whether an account with the given email already exists in authentication server.
-     *
-     * @param email email to check
-     * @return {@code true} if the email already exists
-     */
-    boolean checkEmailExists(String email);
 }
