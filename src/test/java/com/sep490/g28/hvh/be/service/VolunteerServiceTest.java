@@ -59,7 +59,7 @@ public class VolunteerServiceTest {
     @Mock
     OtpService otpService;
 
-    @InjectMocks
+//    @InjectMocks
     VolunteerServiceImpl volunteerService;
 
     @Mock
@@ -79,6 +79,19 @@ public class VolunteerServiceTest {
 
     @BeforeEach
     void setup() {
+        //ínsteaed of inectMocks
+        volunteerService = new VolunteerServiceImpl(
+                volunteerRepository,
+                userRepository,
+                identityVerificationRepository,
+                storageService,
+                storagePathGenerator,
+                otpService,
+                authClient,
+                systemAdminRepository,
+                currentUserProvider,
+                emailService
+        );
         id = UUID.randomUUID();
 
 //        admin = new SystemAdmin();
