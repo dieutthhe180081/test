@@ -68,6 +68,6 @@ public class VolunteerController {
     ) {
         java.util.UUID id = java.util.UUID.fromString(inputId);
         volunteerService.verifyRegistration(id, request);
-        return ResponseEntity.ok("OK");
+        return ResponseEntity.ok().build();
     }
 }

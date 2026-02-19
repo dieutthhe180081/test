@@ -3,7 +3,6 @@ package com.sep490.g28.hvh.be.integration.authServer;
 import com.sep490.g28.hvh.be.config.SupabaseProperties;
 import com.sep490.g28.hvh.be.constant.ERole;
 import com.sep490.g28.hvh.be.dto.supabase.CreateUserRequest;
-import com.sep490.g28.hvh.be.dto.supabase.UserListResponse;
 import com.sep490.g28.hvh.be.dto.supabase.UserResponse;
 import com.sep490.g28.hvh.be.entity.User;
 import com.sep490.g28.hvh.be.exception.AppException;
@@ -15,15 +14,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Supabase-based implementation of {@link AuthService}.
+ * Supabase-based implementation of {@link AuthClient}.
  *
  * <p>Uses Supabase Admin REST API to manage user accounts.</p>
  *
@@ -37,12 +34,12 @@ import java.util.UUID;
  */
 @Slf4j
 @Service
-public class SupabaseAuthService implements AuthService {
+public class SupabaseAuthClient implements AuthClient {
     private final RestTemplate restTemplate;
     private final SupabaseProperties supabaseProperties;
     private final UserRepository userRepository;
 
-    public SupabaseAuthService(
+    public SupabaseAuthClient(
             @Qualifier("supabaseRestTemplate") RestTemplate restTemplate,
             SupabaseProperties config,
             UserRepository userRepository

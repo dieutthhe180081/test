@@ -18,6 +18,7 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 public class ActivitySubDomain {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(columnDefinition = "smallint")
     private Short id;
 
