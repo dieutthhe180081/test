@@ -40,7 +40,7 @@ public class HostServiceImpl implements HostService{
 
 //    @Transactional todo
     @Override
-    public void createAccount(CreateHostAccountRequest request) {
+    public void createHostAccount(CreateHostAccountRequest request) {
         OrganizationManager organizationManager = organizationManagerRepository.getReferenceById(currentUserProvider.getId());
 
         //check whether email used by any account

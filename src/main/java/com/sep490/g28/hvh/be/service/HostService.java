@@ -3,5 +3,5 @@ package com.sep490.g28.hvh.be.service;
 import com.sep490.g28.hvh.be.dto.host.CreateHostAccountRequest;
 
 public interface HostService {
-    void createAccount(CreateHostAccountRequest request);
+    void createHostAccount(CreateHostAccountRequest request);
 }

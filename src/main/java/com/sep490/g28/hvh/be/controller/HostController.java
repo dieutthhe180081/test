@@ -25,7 +25,7 @@ public class HostController {
     public ResponseEntity<Void> createAccount(
             @RequestBody @Valid CreateHostAccountRequest request
     ) {
-        hostService.createAccount(request);
+        hostService.createHostAccount(request);
         return ResponseEntity.ok().build();
     }
 }
