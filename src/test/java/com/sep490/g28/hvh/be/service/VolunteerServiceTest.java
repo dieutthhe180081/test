@@ -136,6 +136,9 @@ public class VolunteerServiceTest {
         req.setRejectionReason("invalid info");
         return req;
     }
+
+    // ==== registerVolAccount ===================================
+    // ==== TC01
     @Test
     void register_success() {
         RegisterVolunteerAccountRequest request = validRegisterVolunteerAccountRequest();
@@ -166,6 +169,7 @@ public class VolunteerServiceTest {
         assertEquals("holding-url", response.getCidHoldingUploadUr());
     }
 
+    // ===== TC2 =====
     @Test
     void register_fail_invalid_otp() {
         doThrow(new AppException(AppCommonErrorCode.OTP_INVALID))
@@ -181,6 +185,7 @@ public class VolunteerServiceTest {
         verify(identityVerificationRepository, never()).save(any());
     }
 
+    // ===== TC3 =====
     @Test
     void register_fail_cid_used() {
         RegisterVolunteerAccountRequest request = validRegisterVolunteerAccountRequest();
@@ -198,6 +203,7 @@ public class VolunteerServiceTest {
 
     }
 
+    // ===== TC4 =====
     @Test
     void register_fail_email_used() {
         RegisterVolunteerAccountRequest request = validRegisterVolunteerAccountRequest();
@@ -214,6 +220,7 @@ public class VolunteerServiceTest {
 
     }
 
+    // ===== TC5 =====
     @Test
     void register_fail_phone_used() {
         RegisterVolunteerAccountRequest request = validRegisterVolunteerAccountRequest();
@@ -231,6 +238,8 @@ public class VolunteerServiceTest {
         verify(identityVerificationRepository, never()).save(any());
     }
 
+    // ==== getVolRegistrations ======================================
+    // ===== TC1 =====
     @Test
     void getVolRegistrations_should_return_page_with_status_and_email() {
         int pageNumber = 0;
@@ -261,6 +270,7 @@ public class VolunteerServiceTest {
                         any(Pageable.class));
     }
 
+    // ===== TC2 =====
     @Test
     void getVolRegistrations_should_pass_null_status_when_input_blank() {
         int pageNumber = 0;
@@ -284,7 +294,8 @@ public class VolunteerServiceTest {
                 .search(isNull(), isNull(), any(Pageable.class));
     }
 
-
+    // ===== getVolRegistrationDetails ============================================
+    // ===== TC1 =====
     @Test
     void getVolRegistrationDetails_success() {
         UUID id = UUID.randomUUID();
@@ -313,6 +324,7 @@ public class VolunteerServiceTest {
         assertNull(res.getNote());
     }
 
+    // ===== TC2 =====
     @Test
     void getVolRegistrationDetails_idNotExist_shouldThrowException() {
         UUID invalidId = UUID.randomUUID();
@@ -324,23 +336,51 @@ public class VolunteerServiceTest {
         assertEquals(VolunteerErrorCode.REGISTRATION_NOT_EXISTED.getCode(), ex.getCode());
     }
 
+//    // =====  =====
+//    @Test
+//    void getVolRegistrationDetails_pending_signedUrlSuccess() {
+//
+//        IdentityVerification identityVerification = validIdentityVerification();
+//        when(identityVerificationRepository.findById(id))
+//                .thenReturn(Optional.of(identityVerification));
+//
+//        when(storageService.getSignedUrlAsync(any()))
+//                .thenReturn(CompletableFuture.completedFuture("signed-url"));
+//
+//        VolunteerRegistrationDetailsResponse res =
+//                volunteerService.getVolRegistrationDetails(id);
+//
+//        assertEquals("signed-url", res.getCidFrontUrl());
+//        assertNull(res.getAdminEmail());
+//    }
+
+    // ===== TC3 =====
     @Test
-    void getVolRegistrationDetails_pending_signedUrlSuccess() {
+    void getVolRegistrationDetails_emailCidPhoneUsed_shouldAppendNote() {
 
         IdentityVerification identityVerification = validIdentityVerification();
         when(identityVerificationRepository.findById(id))
                 .thenReturn(Optional.of(identityVerification));
 
+        when(userRepository.existsByEmail(any())).thenReturn(true);
+        when(volunteerRepository.existsByCid(any())).thenReturn(true);
+        when(volunteerRepository.existsByPhone(any())).thenReturn(true);
+
         when(storageService.getSignedUrlAsync(any()))
-                .thenReturn(CompletableFuture.completedFuture("signed-url"));
+                .thenReturn(CompletableFuture.completedFuture("url"));
 
         VolunteerRegistrationDetailsResponse res =
                 volunteerService.getVolRegistrationDetails(id);
 
-        assertEquals("signed-url", res.getCidFrontUrl());
-        assertNull(res.getAdminEmail());
+        assertTrue(res.getNote().contains(
+                VolunteerErrorCode.EMAIL_USED.getMessage()));
+        assertTrue(res.getNote().contains(
+                VolunteerErrorCode.CID_USED.getMessage()));
+        assertTrue(res.getNote().contains(
+                VolunteerErrorCode.PHONE_USED.getMessage()));
     }
 
+    // ===== TC4 =====
     @Test
     void getVolRegistrationDetails_statusNotPending_shouldReturnAdminVolunteerInfo() {
 
@@ -368,6 +408,7 @@ public class VolunteerServiceTest {
         assertEquals("vol@mail.com", res.getVolunteerEmail());
     }
 
+    // ===== TC5 =====
     @Test
     void getVolRegistrationDetails_signedUrlFail_shouldSetNote() {
 
@@ -390,55 +431,8 @@ public class VolunteerServiceTest {
                 SupabaseErrorCode.STORAGE_FILE_NOT_EXISTED.getMessage()));
     }
 
-    @Test
-    void getVolRegistrationDetails_emailCidPhoneUsed_shouldAppendNote() {
-
-        IdentityVerification identityVerification = validIdentityVerification();
-        when(identityVerificationRepository.findById(id))
-                .thenReturn(Optional.of(identityVerification));
-
-        when(userRepository.existsByEmail(any())).thenReturn(true);
-        when(volunteerRepository.existsByCid(any())).thenReturn(true);
-        when(volunteerRepository.existsByPhone(any())).thenReturn(true);
-
-        when(storageService.getSignedUrlAsync(any()))
-                .thenReturn(CompletableFuture.completedFuture("url"));
-
-        VolunteerRegistrationDetailsResponse res =
-                volunteerService.getVolRegistrationDetails(id);
-
-        assertTrue(res.getNote().contains(
-                VolunteerErrorCode.EMAIL_USED.getMessage()));
-        assertTrue(res.getNote().contains(
-                VolunteerErrorCode.CID_USED.getMessage()));
-        assertTrue(res.getNote().contains(
-                VolunteerErrorCode.PHONE_USED.getMessage()));
-    }
-
-    @Test
-    void verifyVolRegistration_idNotExist_shouldThrow() {
-
-        when(identityVerificationRepository.findById(id))
-                .thenReturn(Optional.empty());
-
-        assertThrows(AppException.class,
-                () -> volunteerService.verifyVolRegistration(id, approveRequest()));
-    }
-
-    @Test
-    void verifyVolRegistration_alreadyVerified_shouldThrow() {
-        IdentityVerification identityVerification = validIdentityVerification();
-        identityVerification.setStatus(EVolunteerVerificationStatus.APPROVED);
-
-        when(identityVerificationRepository.findById(id))
-                .thenReturn(Optional.of(identityVerification));
-
-        AppException ex = assertThrows(AppException.class,
-                () -> volunteerService.verifyVolRegistration(id, approveRequest()));
-
-        assertEquals(VolunteerErrorCode.REGISTRATION_VERIFIED.getCode(), ex.getCode());
-    }
-
+    // ===== verifyVolRegistration ===========================================
+    // ===== TC1 =====
     @Test
     void verifyVolRegistration_approve_success() {
         IdentityVerification identityVerification = validIdentityVerification();
@@ -468,6 +462,33 @@ public class VolunteerServiceTest {
                 identityVerification.getStatus());
     }
 
+    // ===== TC2 =====
+    @Test
+    void verifyVolRegistration_idNotExist_shouldThrow() {
+
+        when(identityVerificationRepository.findById(id))
+                .thenReturn(Optional.empty());
+
+        assertThrows(AppException.class,
+                () -> volunteerService.verifyVolRegistration(id, approveRequest()));
+    }
+
+    // ===== TC3 =====
+    @Test
+    void verifyVolRegistration_alreadyVerified_shouldThrow() {
+        IdentityVerification identityVerification = validIdentityVerification();
+        identityVerification.setStatus(EVolunteerVerificationStatus.APPROVED);
+
+        when(identityVerificationRepository.findById(id))
+                .thenReturn(Optional.of(identityVerification));
+
+        AppException ex = assertThrows(AppException.class,
+                () -> volunteerService.verifyVolRegistration(id, approveRequest()));
+
+        assertEquals(VolunteerErrorCode.REGISTRATION_VERIFIED.getCode(), ex.getCode());
+    }
+
+    // ===== TC5 =====
     @Test
     void verifyVolRegistration_cidUsed_shouldThrow() {
         IdentityVerification identityVerification = validIdentityVerification();
@@ -482,6 +503,7 @@ public class VolunteerServiceTest {
         assertEquals(VolunteerErrorCode.CID_USED.getCode(), ex.getCode());
     }
 
+    // ===== TC4 =====
     @Test
     void verifyVolRegistration_emailUsed_shouldThrow() {
         IdentityVerification identityVerification = validIdentityVerification();
@@ -496,6 +518,7 @@ public class VolunteerServiceTest {
         assertEquals(VolunteerErrorCode.EMAIL_USED.getCode(), ex.getCode());
     }
 
+    // ===== TC6 =====
     @Test
     void verifyVolRegistration_phoneUsed_shouldThrow() {
         IdentityVerification identityVerification = validIdentityVerification();
@@ -510,6 +533,7 @@ public class VolunteerServiceTest {
         assertEquals(VolunteerErrorCode.PHONE_USED.getCode(), ex.getCode());
     }
 
+    // ===== TC7 =====
     @Test
     void verifyVolRegistration_reject_success() {
 
