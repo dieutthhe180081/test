@@ -3,7 +3,6 @@ package com.sep490.g28.hvh.be.service;
 import com.sep490.g28.hvh.be.auth.CurrentUserProvider;
 import com.sep490.g28.hvh.be.constant.ERole;
 import com.sep490.g28.hvh.be.dto.host.CreateHostAccountRequest;
-import com.sep490.g28.hvh.be.dto.host.CreateMultipleHostAccountRequest;
 import com.sep490.g28.hvh.be.entity.Host;
 import com.sep490.g28.hvh.be.entity.OrganizationManager;
 import com.sep490.g28.hvh.be.exception.AppException;
@@ -19,9 +18,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import static com.sep490.g28.hvh.be.util.StringNormalizeUtil.normalizeVietnameseName;
@@ -40,53 +38,40 @@ public class HostServiceImpl implements HostService{
 
     CurrentUserProvider currentUserProvider;
 
+//    @Transactional todo
     @Override
-    public String createAccount(CreateMultipleHostAccountRequest request) {
+    public void createAccount(CreateHostAccountRequest request) {
         OrganizationManager organizationManager = organizationManagerRepository.getReferenceById(currentUserProvider.getId());
-        List<String> errors = new ArrayList<>();
 
-        for(CreateHostAccountRequest r : request.getRequests()){
-            //check whether email used by any account
-            //maybe need to check email unique in the same request
-            if (userRepository.existsByEmail(r.getEmail())){
-                errors.add(r.getEmail() + ": " + HostErrorCode.EMAIL_USED.getMessage());
-                continue;
-            }
-
-            String defaultPassword = RandomStringUtil.random8AlphaNumeric();
-            try {
-                //create host account in auth server
-                UUID hostId = authClient.createAccount(ERole.HOST, r.getEmail(), defaultPassword, r.getPhone());
-
-                Host host = new Host();
-                host.setId(hostId);
-                host.setCid(r.getCid());
-                host.setEmail(r.getEmail());
-                host.setPhone(r.getPhone());
-                host.setFullName(normalizeVietnameseName(r.getFullName()));
-                host.setAddress(r.getAddress());
-                host.setDetailAddress(r.getDetailAddress());
-                host.setCreatedBy(organizationManager);
-                host.setOrganization(organizationManager.getOrganization());
-                //save to db
-                hostRepository.save(host);
-                log.info("Create host account, id={}", hostId);
-
-                //send mail
-                emailService.sendCreateHostAccountEmail(
-                        organizationManager.getOrganization().getName(),
-                        r.getEmail(),
-                        defaultPassword
-                        );
-            } catch (AppException e) {
-                errors.add(r.getEmail() + ": " + e.getMessage());
-            }
+        //check whether email used by any account
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new AppException(HostErrorCode.EMAIL_USED);
         }
+        //create account in supabase
+        String defaultPassword = RandomStringUtil.random8AlphaNumeric();
+        //create host account in auth server
+        UUID hostId = authClient.createAccount(ERole.HOST, request.getEmail(), defaultPassword, request.getPhone());
 
-        if (errors.isEmpty()) {
-            return "OK";
-        }
+        Host host = new Host();
+        host.setId(hostId);
+        host.setCid(request.getCid());
+        host.setEmail(request.getEmail());
+        host.setPhone(request.getPhone());
+        host.setFullName(normalizeVietnameseName(request.getFullName()));
+        host.setAddress(request.getAddress());
+        host.setDetailAddress(request.getDetailAddress());
+        host.setCreatedBy(organizationManager);
+        host.setOrganization(organizationManager.getOrganization());
 
-        return String.join("\n", errors);
+        //save to db
+        hostRepository.save(host);
+        log.info("Create host account, id={}", hostId);
+
+        //send mail
+        emailService.sendCreateHostAccountEmail(
+                organizationManager.getOrganization().getName(),
+                request.getEmail(),
+                defaultPassword
+        );
     }
 }
