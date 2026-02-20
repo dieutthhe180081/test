@@ -121,7 +121,7 @@ public class VolunteerServiceImpl implements VolunteerService {
     }
 
     @Override
-    public Page<VolunteerRegistrationSimpleResponse> getRegistrations(int pageNumber, int pageSize, String inputStatus, String email) {
+    public Page<VolunteerRegistrationSimpleResponse> getVolRegistrations(int pageNumber, int pageSize, String inputStatus, String email) {
         //parse status
         EVolunteerVerificationStatus status =
                 (inputStatus == null || inputStatus.isBlank())
@@ -140,7 +140,7 @@ public class VolunteerServiceImpl implements VolunteerService {
     }
 
     @Override
-    public VolunteerRegistrationDetailsResponse getRegistrationDetails(UUID id) {
+    public VolunteerRegistrationDetailsResponse getVolRegistrationDetails(UUID id) {
         //check id exist
         IdentityVerification identityVerification = identityVerificationRepository.findById(id).orElseThrow(
                 () -> new AppException(VolunteerErrorCode.REGISTRATION_NOT_EXISTED)
@@ -203,7 +203,7 @@ public class VolunteerServiceImpl implements VolunteerService {
     }
 
     @Override
-    public void verifyRegistration(UUID id, VolunteerRegistrationVerifyRequest request) {
+    public void verifyVolRegistration(UUID id, VolunteerRegistrationVerifyRequest request) {
         //get the registration from db
         IdentityVerification identityVerification = identityVerificationRepository.findById(id).orElseThrow(
                 () -> new AppException(VolunteerErrorCode.REGISTRATION_NOT_EXISTED)
