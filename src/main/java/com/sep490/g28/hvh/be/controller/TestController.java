@@ -6,7 +6,6 @@ import com.sep490.g28.hvh.be.dto.organization.RegisterOrganizationResponse;
 import com.sep490.g28.hvh.be.dto.volunteer.RegisterVolunteerAccountRequest;
 import com.sep490.g28.hvh.be.integration.cache.OtpService;
 import com.sep490.g28.hvh.be.service.OrganizationService;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;

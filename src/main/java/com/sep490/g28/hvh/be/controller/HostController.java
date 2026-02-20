@@ -1,6 +1,6 @@
 package com.sep490.g28.hvh.be.controller;
 
-import com.sep490.g28.hvh.be.dto.host.CreateMultipleHostAccountRequest;
+import com.sep490.g28.hvh.be.dto.host.CreateHostAccountRequest;
 import com.sep490.g28.hvh.be.service.HostService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -22,9 +22,10 @@ public class HostController {
 
     @PreAuthorize("hasRole('ORG_MANAGER')")
     @PostMapping("/create-account")
-    public ResponseEntity<String> createAccount(
-            @RequestBody @Valid CreateMultipleHostAccountRequest request
+    public ResponseEntity<Void> createAccount(
+            @RequestBody @Valid CreateHostAccountRequest request
     ) {
-        return ResponseEntity.ok(hostService.createAccount(request));
+        hostService.createHostAccount(request);
+        return ResponseEntity.ok().build();
     }
 }

@@ -17,7 +17,7 @@ public enum VolunteerErrorCode implements ErrorCode {
     EMAIL_USED(3002, "Email đã được sử dụng bởi một tình nguyện viên khác.", HttpStatus.BAD_REQUEST),
     PHONE_USED(3003, "Số điện thoại đã được sử dụng bởi một tình nguyện viên khác.", HttpStatus.BAD_REQUEST),
     NICKNAME_USED(3004, "Nickname đã được sử dụng bởi một tình nguyện viên khác.", HttpStatus.BAD_REQUEST),
-    REGISTRATION_NOT_EXISTED(3005, "Đơn đăng kí tình nguyện viên không tồn tại.", HttpStatus.BAD_REQUEST),
+    REGISTRATION_NOT_EXISTED(3005, "Đơn đăng kí tình nguyện viên không tồn tại.", HttpStatus.NOT_FOUND),
     REGISTRATION_VERIFIED(3006, "Đơn đăng kí tình nguyện viên đã được xác thực.", HttpStatus.BAD_REQUEST),
     ;
 

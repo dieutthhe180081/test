@@ -1,17 +1,16 @@
 package com.sep490.g28.hvh.be.dto.volunteer;
 
 import com.sep490.g28.hvh.be.constant.EVolunteerVerificationStatus;
-import com.sep490.g28.hvh.be.entity.IdentityVerification;
-import com.sep490.g28.hvh.be.entity.SystemAdmin;
-import com.sep490.g28.hvh.be.entity.Volunteer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Getter
+@Setter
 @AllArgsConstructor
 @Builder
 public class VolunteerRegistrationDetailsResponse {
@@ -26,8 +25,10 @@ public class VolunteerRegistrationDetailsResponse {
     private String rejectionReason;
     private OffsetDateTime createdAt;
     private OffsetDateTime reviewAt;
-    private SystemAdmin reviewBy;
-    private Volunteer volunteer;
+    private String adminId;
+    private String adminEmail;
+    private String volunteerId;
+    private String volunteerEmail;
     private String note;
 
 }

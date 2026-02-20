@@ -1,6 +1,7 @@
 package com.sep490.g28.hvh.be.validation.volunteer;
 
 import com.sep490.g28.hvh.be.dto.volunteer.RegisterVolunteerAccountRequest;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.ValidationErrorCode;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import jakarta.validation.Validation;
@@ -60,7 +61,7 @@ public class RegisterVolunteerAccountRequestTest {
 
 //        assertThat(violations).hasSize(1);
         assertThat(violations.iterator().next().getMessage())
-                .isEqualTo("INVALID_OTP");
+                .isEqualTo(ValidationErrorCode.INVALID_OTP.name());
     }
 
     @ParameterizedTest
@@ -80,7 +81,7 @@ public class RegisterVolunteerAccountRequestTest {
 
 //        assertThat(violations).hasSize(1);
         assertThat(violations.iterator().next().getMessage())
-                .isEqualTo("INVALID_EMAIL");
+                .isEqualTo(ValidationErrorCode.INVALID_EMAIL.name());
     }
 
     @ParameterizedTest
@@ -101,7 +102,7 @@ public class RegisterVolunteerAccountRequestTest {
 
 //        assertThat(violations).hasSize(1);
         assertThat(violations.iterator().next().getMessage())
-                .isEqualTo("INVALID_PHONE");
+                .isEqualTo(ValidationErrorCode.INVALID_PHONE.name());
     }
 
     @ParameterizedTest
@@ -122,7 +123,7 @@ public class RegisterVolunteerAccountRequestTest {
 
 //        assertThat(violations).hasSize(1);
         assertThat(violations.iterator().next().getMessage())
-                .isEqualTo("INVALID_CID");
+                .isEqualTo(ValidationErrorCode.INVALID_CID.name());
     }
 
     @ParameterizedTest
@@ -143,13 +144,13 @@ public class RegisterVolunteerAccountRequestTest {
 
 //        assertThat(violations).hasSize(1);
         assertThat(violations.iterator().next().getMessage())
-                .isEqualTo("INVALID_IMAGE_TYPE");
+                .isEqualTo(ValidationErrorCode.INVALID_IMAGE_TYPE.name());
     }
 
     @Test
     void should_fail_when_multiple_fields_invalid() {
         RegisterVolunteerAccountRequest req = validRequest();
-        req.setOtp("12");
+        req.setOtp("12345");
         req.setEmail("abc");
         req.setCidFrontFileExtension(".txt");
 
@@ -161,9 +162,9 @@ public class RegisterVolunteerAccountRequestTest {
         assertThat(violations)
                 .extracting(ConstraintViolation::getMessage)
                 .containsExactlyInAnyOrder(
-                        "INVALID_OTP",
-                        "INVALID_EMAIL",
-                        "INVALID_IMAGE_TYPE"
+                        ValidationErrorCode.INVALID_OTP.name(),
+                        ValidationErrorCode.INVALID_EMAIL.name(),
+                        ValidationErrorCode.INVALID_IMAGE_TYPE.name()
                 );
     }
 }
