@@ -54,4 +54,30 @@ public interface EmailService {
      * @param otp   verification OTP
      */
     void sendVerifyForgotPasswordOtp(String email, String otp);
+
+    /**
+     * Send approval email after organization registration is accepted.
+     *
+     * @param orgName organization name
+     * @param userEmail recipient email
+     * @param password default password of the account
+     */
+    void sendApproveRegisterOrganizationEmail(String orgName, String userEmail, String password);
+
+    /**
+     * Send reject email after organization registration is rejected.
+     *
+     * @param userEmail recipient email
+     * @param rejectionReason rejection reason
+     */
+    void sendRejectRegisterOrganizationEmail(String userEmail, String rejectionReason);
+
+    /**
+     * Send approval email after organization registration is accepted.
+     *
+     * @param orgName organization name
+     * @param hostEmail recipient email
+     * @param password default password of the account
+     */
+    void sendCreateHostAccountEmail(String orgName, String hostEmail, String password);
 }

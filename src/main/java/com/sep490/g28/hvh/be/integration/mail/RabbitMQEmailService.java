@@ -87,4 +87,41 @@ public class RabbitMQEmailService implements EmailService {
                 """, otp);
         mailPublisher.enqueue(email, subject, body);
     }
+
+    @Override
+    public void sendApproveRegisterOrganizationEmail(String orgName, String userEmail, String password) {
+        String subject = "HVH - Chào mừng " + orgName;
+        String body = String.format("""
+                Chúc mừng tổ chức %s đã được đăng kí thành công trên hệ thống Hà Nội Volunteer Hub!
+                Hãy sử dụng email này cùng với mật khẩu dưới đây để đăng nhập vào hệ thống. Và để an toàn, hay đổi mật khẩu sau khi đăng nhập thành công!
+                Mật khẩu mặc định: %s
+                Xin trân trong cảm ơn!
+                """, orgName, password);
+        mailPublisher.enqueue(userEmail, subject, body);
+    }
+
+    @Override
+    public void sendRejectRegisterOrganizationEmail(String userEmail, String rejectionReason) {
+        String subject = "HVH - Hanoi Volunteer Hub";
+        String body = String.format("""
+                Chào bạn, chúng tôi xin thông báo rằng yêu cầu tạo tổ chức trên hệ thống Hà Nội Volunteer Hub của bạn đã bị tử chối!
+                Lí do: %s
+                Hãy thử tạo yêu cầu lại một lần nữa.
+                Xin trân trọng cảm ơn bạn
+                """, rejectionReason);
+        mailPublisher.enqueue(userEmail, subject, body);
+    }
+
+    @Override
+    public void sendCreateHostAccountEmail(String orgName, String hostEmail, String password) {
+        String subject = "HVH - Chào mừng bạn" ;
+        String body = String.format("""
+                Chào bạn, bạn đã được quản lí của tổ chức %s mời vào tổ chức trên hệ thống Hà Nội Volunteer Hub.
+                Hãy sử dụng email này cùng với mật khẩu dưới đây để đăng nhập vào hệ thống. Và để an toàn, hay đổi mật khẩu sau khi đăng nhập thành công!
+                Mật khẩu mặc định: %s
+                Xin trân trong cảm ơn!
+                """, orgName, password);
+        mailPublisher.enqueue(hostEmail, subject, body);
+
+    }
 }
