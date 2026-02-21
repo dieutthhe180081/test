@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -30,7 +31,12 @@ public class ActivityDomainServiceImpl implements ActivityDomainService{
     ActivitySubDomainRepository activitySubDomainRepository;
 
     @Override
+    @Transactional
     public void createActivityDomain(CreateActivityDomainRequest request) {
+
+        if(activityDomainRepository.existsByNameIgnoreCase(request.getName())) {
+            throw new AppException(ActivityDomainErrorCode.DOMAIN_NAME_EXISTED);
+        }
 
         //Create activity domain in the db
         ActivityDomain activityDomain = new ActivityDomain();
@@ -47,6 +53,11 @@ public class ActivityDomainServiceImpl implements ActivityDomainService{
 
         //Else create activity subdomain in the db
         for(String subDomain : request.getActivitySubDomain()) {
+
+            if(activitySubDomainRepository.existsByNameIgnoreCase(subDomain)) {
+                throw new AppException(ActivityDomainErrorCode.SUBDOMAIN_NAME_EXISTED);
+            }
+
             ActivitySubDomain activitySubDomain = new ActivitySubDomain();
             activitySubDomain.setName(subDomain);
             activitySubDomain.setActivityDomain(activityDomain);
@@ -57,12 +68,17 @@ public class ActivityDomainServiceImpl implements ActivityDomainService{
     }
 
     @Override
+    @Transactional(rollbackFor = AppException.class)
     public String updateActivityDomain(Short id, UpdateActivityDomainRequest request) {
 
         //update for activity domain
         ActivityDomain activityDomain = activityDomainRepository.findById(id).orElseThrow(
                 () -> new AppException(ActivityDomainErrorCode.DOMAIN_NOT_EXISTED)
         );
+
+        if(activityDomainRepository.existsByNameIgnoreCase(request.getName())) {
+            throw new AppException(ActivityDomainErrorCode.DOMAIN_NAME_EXISTED);
+        }
 
         activityDomain.setName(request.getName());
         activityDomain.setSpecialSessionMaxTime(request.getSpecialSessionMaxTime());
@@ -82,6 +98,11 @@ public class ActivityDomainServiceImpl implements ActivityDomainService{
                     ActivitySubDomain activitySubDomainEdit = activitySubDomainRepository.findById(ur.getId()).orElseThrow(
                             () -> new AppException(ActivityDomainErrorCode.SUBDOMAIN_NOT_EXISTED)
                     );
+
+                    if(activitySubDomainRepository.existsByNameIgnoreCase(ur.getName())) {
+                        throw new AppException(ActivityDomainErrorCode.SUBDOMAIN_NAME_EXISTED);
+                    }
+
                     activitySubDomainEdit.setName(ur.getName());
                     activitySubDomainRepository.save(activitySubDomainEdit);
                     break;
@@ -94,6 +115,9 @@ public class ActivityDomainServiceImpl implements ActivityDomainService{
                     break;
 
                 case "ADD":
+                    if(activitySubDomainRepository.existsByNameIgnoreCase(ur.getName())) {
+                        throw new AppException(ActivityDomainErrorCode.SUBDOMAIN_NAME_EXISTED);
+                    }
                     ActivitySubDomain activitySubDomainNew = new ActivitySubDomain();
                     activitySubDomainNew.setName(ur.getName());
                     activitySubDomainNew.setActivityDomain(activityDomain);

@@ -19,4 +19,6 @@ public interface ActivityDomainRepository extends JpaRepository<ActivityDomain, 
             @Param("name") String name,
             Pageable pageable
     );
+
+    boolean existsByNameIgnoreCase(String name);
 }

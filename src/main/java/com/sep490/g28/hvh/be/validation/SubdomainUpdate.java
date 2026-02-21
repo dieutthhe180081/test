@@ -11,7 +11,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = SubdomainUpdateValidator.class)
 public @interface SubdomainUpdate {
-    String message() default "INVALID_ORG_TYPE";
+    String message() default "INVALID_SUBDOMAIN_UPDATE";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }
