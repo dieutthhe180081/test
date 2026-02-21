@@ -35,9 +35,9 @@ public class OrganizationRegistrationDetailsResponse {
     private String rejectionReason;
     private OffsetDateTime createdAt;
     private OffsetDateTime reviewedAt;
-    private SystemAdmin reviewedBy;
-    private Organization organization;
-    private OrganizationManager orgManager;
+    private UUID adminId;
+    private UUID organizationId;
+    private UUID orgManagerId;
     private String note;
 
 }

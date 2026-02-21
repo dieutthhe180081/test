@@ -24,14 +24,4 @@ public interface OrganizationRegistrationRepository extends JpaRepository<Organi
             @Param("managerEmail") String managerEmail,
             Pageable pageable
     );
-
-    @Query("""
-            SELECT or
-            FROM OrganizationRegistration or
-            LEFT JOIN FETCH or.reviewedBy sa
-            LEFT JOIN FETCH or.organization o
-            LEFT JOIN FETCH or.orgManager om
-            WHERE or.id = :id
-            """)
-    Optional<OrganizationRegistration> findOrganizationRegistrationsByIdWithLazyLoad(UUID id);
 }

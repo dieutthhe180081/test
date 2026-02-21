@@ -169,7 +169,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Override
     public OrganizationRegistrationDetailsResponse getOrgRegistrationDetails(UUID id) {
         //check id exist
-        OrganizationRegistration organizationRegistration = organizationRegistrationRepository.findOrganizationRegistrationsByIdWithLazyLoad(id).orElseThrow(
+        OrganizationRegistration organizationRegistration = organizationRegistrationRepository.findById(id).orElseThrow(
                 () -> new AppException(OrganizationErrorCode.REGISTRATION_NOT_EXISTED)
         );
 
@@ -236,9 +236,9 @@ public class OrganizationServiceImpl implements OrganizationService {
                 .rejectionReason(organizationRegistration.getRejectionReason())
                 .createdAt(organizationRegistration.getCreatedAt())
                 .reviewedAt(organizationRegistration.getReviewedAt())
-                .reviewedBy(organizationRegistration.getReviewedBy())
-                .organization(organizationRegistration.getOrganization())
-                .orgManager(organizationRegistration.getOrgManager())
+                .adminId(organizationRegistration.getReviewedBy().getId())
+                .organizationId(organizationRegistration.getOrganization().getId())
+                .orgManagerId(organizationRegistration.getOrgManager().getId())
                 .note(note)
                 .build();
     }
