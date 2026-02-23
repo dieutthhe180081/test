@@ -1,7 +1,7 @@
 package com.sep490.g28.hvh.be.integration.messagequeue;
 
 import com.sep490.g28.hvh.be.config.RabbitMqEmailProperties;
-import com.sep490.g28.hvh.be.dto.rabbitmq.MailMessage;
+import com.sep490.g28.hvh.be.dto.rabbitmq.EmailMessage;
 import com.sep490.g28.hvh.be.integration.mail.EmailSenderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +50,7 @@ public class MailConsumer {
      */
     @RabbitListener(queues = "${rabbitmq.mail.queue.send}")
     public void consume(
-            MailMessage msg
+            EmailMessage msg
     ) {
         try {
             emailSenderService.sendEmail(
@@ -74,7 +74,7 @@ public class MailConsumer {
      * @param msg     deserialized email payload
      */
     @RabbitListener(queues = "${rabbitmq.mail.queue.dlq}")
-    public void consumeDlq(Message message, MailMessage msg) {
+    public void consumeDlq(Message message, EmailMessage msg) {
         MessageProperties props = message.getMessageProperties();
 
         List<Map<String, Object>> deaths =
