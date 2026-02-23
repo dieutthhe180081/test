@@ -33,10 +33,10 @@ public class EmailOtpController {
         return ResponseEntity.ok().build();
     }
 
-//    @PostMapping("/verify-forgot-password")
-//    public ResponseEntity<String> sendVerifyForgotPasswordOtp(@RequestParam @Email String email) {
-//        emailOtpService.sendVerifyForgotPasswordOtp(email);
-//        return ResponseEntity.ok("Email sent");
-//    }
+    @PostMapping("/verify-forgot-password")
+    public ResponseEntity<String> sendVerifyForgotPasswordOtp(@RequestParam @Email String email) {
+        emailOtpService.sendVerifyForgotPasswordOtp(email);
+        return ResponseEntity.ok().build();
+    }
 
 }

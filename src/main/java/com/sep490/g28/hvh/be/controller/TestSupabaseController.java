@@ -111,4 +111,21 @@ public class TestSupabaseController {
         return ResponseEntity.ok("OK");
     }
 
+    @PutMapping("/change-password")
+    public ResponseEntity<Void> changePassword(
+            @RequestParam UUID accountId,
+            @RequestParam String newPassword
+    ) {
+//        String newPassword = RandomStringUtil.random8AlphaNumeric();
+        authClient.changePassword(accountId, newPassword);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/acount-info")
+    public ResponseEntity<UserResponse> getAccountInfo(
+            @RequestParam UUID accountId
+    ){
+        return ResponseEntity.ok(authClient.getAccountInfo(accountId));
+    }
+
 }
