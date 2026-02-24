@@ -1,7 +1,7 @@
 package com.sep490.g28.hvh.be.controller;
 
 import com.sep490.g28.hvh.be.constant.ERole;
-import com.sep490.g28.hvh.be.dto.supabase.UserResponse;
+import com.sep490.g28.hvh.be.integration.authServer.dto.UserResponse;
 import com.sep490.g28.hvh.be.integration.authServer.AuthClient;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
 import com.sep490.g28.hvh.be.repository.UserRepository;

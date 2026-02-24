@@ -1,7 +1,7 @@
 package com.sep490.g28.hvh.be.integration.authServer;
 
 import com.sep490.g28.hvh.be.constant.ERole;
-import com.sep490.g28.hvh.be.dto.supabase.UserResponse;
+import com.sep490.g28.hvh.be.integration.authServer.dto.UserResponse;
 
 import java.util.UUID;
 
