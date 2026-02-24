@@ -1,9 +1,6 @@
 package com.sep490.g28.hvh.be.service;
 
-import com.sep490.g28.hvh.be.dto.activityDomain.ActivityDomainDetailsResponse;
-import com.sep490.g28.hvh.be.dto.activityDomain.CreateActivityDomainRequest;
-import com.sep490.g28.hvh.be.dto.activityDomain.UpdateActivityDomainRequest;
-import com.sep490.g28.hvh.be.dto.activityDomain.UpdateActivitySubDomainRequest;
+import com.sep490.g28.hvh.be.dto.activityDomain.*;
 import com.sep490.g28.hvh.be.entity.ActivityDomain;
 import com.sep490.g28.hvh.be.entity.ActivitySubDomain;
 import com.sep490.g28.hvh.be.exception.AppException;
@@ -41,6 +38,7 @@ public class ActivityDomainServiceTest {
 
     Short domainId = 1;
     ActivityDomain activityDomain;
+    ActivitySubDomain activitySubDomain;
 
     @BeforeEach
     void setup() {
@@ -73,12 +71,32 @@ public class ActivityDomainServiceTest {
         return request;
     }
 
+    private ChangeActivityDomainVisibilityRequest validChangeVisibilityRequest() {
+        ChangeActivityDomainVisibilityRequest request = new ChangeActivityDomainVisibilityRequest();
+        request.setIsVisible(true);
+        return request;
+    }
+
+    private ChangeActivitySubDomainVisibilityRequest validChangeSubDomainVisibilityRequest() {
+        ChangeActivitySubDomainVisibilityRequest request = new ChangeActivitySubDomainVisibilityRequest();
+        request.setIsVisible(true);
+        return request;
+    }
+
     private ActivityDomain validActivityDomain() {
         ActivityDomain domain = new ActivityDomain();
         domain.setId(domainId);
         domain.setName("Domain A");
         domain.setActive(true);
         return domain;
+    }
+
+    private ActivitySubDomain validActivitySubDomain() {
+        ActivitySubDomain subDomain = new ActivitySubDomain();
+        subDomain.setId((short) 1);
+        subDomain.setName("Subdomain 1");
+        subDomain.setActive(true);
+        return subDomain;
     }
 
     // ==== createActivityDomain ===================================
@@ -322,6 +340,60 @@ public class ActivityDomainServiceTest {
 
         assertEquals(1, result.getTotalElements());
         verify(activityDomainRepository).search(isNull(), isNull(), any(Pageable.class));
+    }
+
+    // ==== changeActivityDomainVisibility ===================================
+    // ===== TC1 =====
+    @Test
+    void changeActivityDomainVisibility_success() {
+        ChangeActivityDomainVisibilityRequest request = validChangeVisibilityRequest();
+        activityDomain = validActivityDomain();
+
+        when(activityDomainRepository.findById(domainId)).thenReturn(Optional.of(activityDomain));
+
+        activityDomainService.changeActivityDomainVisibility(domainId, request);
+
+        verify(activityDomainRepository).save(activityDomain);
+    }
+
+    // ===== TC2 =====
+    @Test
+    void changeActivityDomainVisibility_fail_domain_not_existed() {
+        ChangeActivityDomainVisibilityRequest request = validChangeVisibilityRequest();
+        when(activityDomainRepository.findById(domainId)).thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(
+                AppException.class,
+                () -> activityDomainService.changeActivityDomainVisibility(domainId, request)
+        );
+        assertEquals(ActivityDomainErrorCode.DOMAIN_NOT_EXISTED.getCode(), ex.getCode());
+    }
+
+    // ==== changeActivitySubDomainVisibility ===================================
+    // ===== TC1 =====
+    @Test
+    void changeActivitySubDomainVisibility_success() {
+        ChangeActivitySubDomainVisibilityRequest request = validChangeSubDomainVisibilityRequest();
+        activitySubDomain = validActivitySubDomain();
+
+        when(activitySubDomainRepository.findById((short) 1)).thenReturn(Optional.of(activitySubDomain));
+
+        activityDomainService.changeActivitySubDomainVisibility((short) 1, request);
+
+        verify(activitySubDomainRepository).save(activitySubDomain);
+    }
+
+    // ===== TC2 =====
+    @Test
+    void changeActivitySubDomainVisibility_fail_subdomain_not_existed() {
+        ChangeActivitySubDomainVisibilityRequest request = validChangeSubDomainVisibilityRequest();
+        when(activitySubDomainRepository.findById((short) 1)).thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(
+                AppException.class,
+                () -> activityDomainService.changeActivitySubDomainVisibility(domainId, request)
+        );
+        assertEquals(ActivityDomainErrorCode.SUBDOMAIN_NOT_EXISTED.getCode(), ex.getCode());
     }
 }
 
