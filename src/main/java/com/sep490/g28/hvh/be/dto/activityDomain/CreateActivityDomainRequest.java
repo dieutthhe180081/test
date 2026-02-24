@@ -1,19 +1,15 @@
 package com.sep490.g28.hvh.be.dto.activityDomain;
 
-import com.sep490.g28.hvh.be.entity.ActivityDomain;
-import com.sep490.g28.hvh.be.entity.ActivitySubDomain;
 import com.sep490.g28.hvh.be.validation.RequiredField;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.validator.constraints.Length;
 
-import java.time.LocalTime;
 import java.util.List;
 
 @Getter

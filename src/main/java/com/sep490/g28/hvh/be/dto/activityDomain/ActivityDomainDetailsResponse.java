@@ -5,7 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 @AllArgsConstructor
@@ -21,8 +23,11 @@ public class ActivityDomainDetailsResponse {
                 ad.getName(),
                 ad.getSpecialSessionMaxTime(),
                 ad.getActive(),
-                ad.getActivitySubDomains().stream()
-                        .map(ActivitySubDomainDetailsResponse::from).toList()
+                Optional.ofNullable(ad.getActivitySubDomains())
+                        .map(list -> list.stream()
+                                .map(ActivitySubDomainDetailsResponse::from)
+                                .toList())
+                        .orElse(Collections.emptyList())
         );
     }
 }
