@@ -1,8 +1,6 @@
 package com.sep490.g28.hvh.be.controller;
 
-import com.sep490.g28.hvh.be.dto.activityDomain.ActivityDomainDetailsResponse;
-import com.sep490.g28.hvh.be.dto.activityDomain.CreateActivityDomainRequest;
-import com.sep490.g28.hvh.be.dto.activityDomain.UpdateActivityDomainRequest;
+import com.sep490.g28.hvh.be.dto.activityDomain.*;
 import com.sep490.g28.hvh.be.service.ActivityDomainService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -52,5 +50,21 @@ public class ActivityDomainController {
             @RequestParam(required = false) String name
     ) {
         return ResponseEntity.ok(activityDomainService.getActivityDomains(pageNumber, pageSize, inputActive, name));
+    }
+
+    @PreAuthorize("hasRole('SYS_ADMIN')")
+    @PostMapping("/{id}/change-visibility")
+    public ResponseEntity<String> updateActivityDomain(@PathVariable(name = "id") Short inputId
+            , @RequestBody @Valid ChangeActivityDomainVisibilityRequest request) {
+        activityDomainService.changeActivityDomainVisibility(inputId, request);
+        return ResponseEntity.ok("");
+    }
+
+    @PreAuthorize("hasRole('SYS_ADMIN')")
+    @PostMapping("activity-subdomain/{id}/change-visibility")
+    public ResponseEntity<String> updateActivityDomain(@PathVariable(name = "id") Short inputId
+            , @RequestBody @Valid ChangeActivitySubDomainVisibilityRequest request) {
+        activityDomainService.changeActivitySubDomainVisibility(inputId, request);
+        return ResponseEntity.ok("");
     }
 }

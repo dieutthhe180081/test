@@ -1,9 +1,6 @@
 package com.sep490.g28.hvh.be.service;
 
-import com.sep490.g28.hvh.be.dto.activityDomain.ActivityDomainDetailsResponse;
-import com.sep490.g28.hvh.be.dto.activityDomain.CreateActivityDomainRequest;
-import com.sep490.g28.hvh.be.dto.activityDomain.UpdateActivityDomainRequest;
-import com.sep490.g28.hvh.be.dto.activityDomain.UpdateActivitySubDomainRequest;
+import com.sep490.g28.hvh.be.dto.activityDomain.*;
 import com.sep490.g28.hvh.be.entity.ActivityDomain;
 import com.sep490.g28.hvh.be.entity.ActivitySubDomain;
 import com.sep490.g28.hvh.be.exception.AppException;
@@ -147,6 +144,24 @@ public class ActivityDomainServiceImpl implements ActivityDomainService{
         //search
         return activityDomainRepository.search(active, name, pageable)
                 .map(ActivityDomainDetailsResponse::from);
+    }
+
+    @Override
+    public void changeActivityDomainVisibility(Short id, ChangeActivityDomainVisibilityRequest changeActivityDomainVisibilityRequest) {
+        ActivityDomain activityDomain = activityDomainRepository.findById(id).orElseThrow(
+                () -> new AppException(ActivityDomainErrorCode.DOMAIN_NOT_EXISTED)
+        );
+        activityDomain.setActive(changeActivityDomainVisibilityRequest.getIsVisible());
+        activityDomainRepository.save(activityDomain);
+    }
+
+    @Override
+    public void changeActivitySubDomainVisibility(Short id, ChangeActivitySubDomainVisibilityRequest changeActivitySubDomainVisibilityRequest) {
+        ActivitySubDomain activitySubDomain = activitySubDomainRepository.findById(id).orElseThrow(
+                () -> new AppException(ActivityDomainErrorCode.SUBDOMAIN_NOT_EXISTED)
+        );
+        activitySubDomain.setActive(changeActivitySubDomainVisibilityRequest.getIsVisible());
+        activitySubDomainRepository.save(activitySubDomain);
     }
 
 

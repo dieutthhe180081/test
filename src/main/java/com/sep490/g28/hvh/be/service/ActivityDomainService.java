@@ -1,8 +1,6 @@
 package com.sep490.g28.hvh.be.service;
 
-import com.sep490.g28.hvh.be.dto.activityDomain.ActivityDomainDetailsResponse;
-import com.sep490.g28.hvh.be.dto.activityDomain.CreateActivityDomainRequest;
-import com.sep490.g28.hvh.be.dto.activityDomain.UpdateActivityDomainRequest;
+import com.sep490.g28.hvh.be.dto.activityDomain.*;
 import jakarta.validation.constraints.Email;
 import org.springframework.data.domain.Page;
 
@@ -16,4 +14,8 @@ public interface ActivityDomainService {
 
     Page<ActivityDomainDetailsResponse> getActivityDomains(
             int pageNumber, int pageSize, String inputActive, String name);
+
+    void changeActivityDomainVisibility(Short id, ChangeActivityDomainVisibilityRequest changeActivityDomainVisibilityRequest);
+
+    void changeActivitySubDomainVisibility(Short id, ChangeActivitySubDomainVisibilityRequest changeActivitySubDomainVisibilityRequest);
 }
