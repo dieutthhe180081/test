@@ -1,4 +1,4 @@
-package com.sep490.g28.hvh.be.dto.rabbitmq;
+package com.sep490.g28.hvh.be.integration.email;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

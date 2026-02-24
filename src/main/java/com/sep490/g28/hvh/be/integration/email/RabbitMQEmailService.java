@@ -1,6 +1,5 @@
-package com.sep490.g28.hvh.be.integration.mail;
+package com.sep490.g28.hvh.be.integration.email;
 
-import com.sep490.g28.hvh.be.integration.messagequeue.MailPublisher;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -29,7 +28,7 @@ import org.springframework.stereotype.Service;
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class RabbitMQEmailService implements EmailService {
 
-    MailPublisher mailPublisher;
+    EmailPublisher emailPublisher;
 
     @Override
     public void sendApproveRegisterVolAccountEmail(String userEmail, String password) {
@@ -40,7 +39,7 @@ public class RabbitMQEmailService implements EmailService {
                 Mật khẩu mặc định: %s
                 Cảm ơn bạn!
                 """, password);
-        mailPublisher.enqueue(userEmail, subject, body);
+        emailPublisher.enqueue(userEmail, subject, body);
     }
 
     @Override
@@ -52,7 +51,7 @@ public class RabbitMQEmailService implements EmailService {
                 Hãy thử tạo yêu cầu lại một lần nữa.
                 Xin trân trọng cảm ơn bạn
                 """, rejectionReason);
-        mailPublisher.enqueue(userEmail, subject, body);
+        emailPublisher.enqueue(userEmail, subject, body);
     }
 
     @Override
@@ -63,7 +62,7 @@ public class RabbitMQEmailService implements EmailService {
                 Hãy sử dụng mã OTP dưới đây dể xác nhận.
                 Mã OTP: %s
                 """, otp);
-        mailPublisher.enqueue(email, subject, body);
+        emailPublisher.enqueue(email, subject, body);
     }
 
     @Override
@@ -74,7 +73,7 @@ public class RabbitMQEmailService implements EmailService {
                 Hãy sử dụng mã OTP dưới đây dể xác nhận.
                 Mã OTP: %s
                 """, otp);
-        mailPublisher.enqueue(email, subject, body);
+        emailPublisher.enqueue(email, subject, body);
     }
 
     @Override
@@ -85,7 +84,7 @@ public class RabbitMQEmailService implements EmailService {
                 Hãy sử dụng mã OTP dưới đây dể xác nhận.
                 Mã OTP: %s
                 """, otp);
-        mailPublisher.enqueue(email, subject, body);
+        emailPublisher.enqueue(email, subject, body);
     }
 
     @Override
@@ -97,7 +96,7 @@ public class RabbitMQEmailService implements EmailService {
                 Mật khẩu mặc định: %s
                 Cảm ơn bạn!
                 """, newPassword);
-        mailPublisher.enqueue(email, subject, body);
+        emailPublisher.enqueue(email, subject, body);
     }
 
     @Override
@@ -109,7 +108,7 @@ public class RabbitMQEmailService implements EmailService {
                 Mật khẩu mặc định: %s
                 Xin trân trong cảm ơn!
                 """, orgName, password);
-        mailPublisher.enqueue(userEmail, subject, body);
+        emailPublisher.enqueue(userEmail, subject, body);
     }
 
     @Override
@@ -121,7 +120,7 @@ public class RabbitMQEmailService implements EmailService {
                 Hãy thử tạo yêu cầu lại một lần nữa.
                 Xin trân trọng cảm ơn bạn
                 """, rejectionReason);
-        mailPublisher.enqueue(userEmail, subject, body);
+        emailPublisher.enqueue(userEmail, subject, body);
     }
 
     @Override
@@ -133,7 +132,7 @@ public class RabbitMQEmailService implements EmailService {
                 Mật khẩu mặc định: %s
                 Xin trân trong cảm ơn!
                 """, orgName, password);
-        mailPublisher.enqueue(hostEmail, subject, body);
+        emailPublisher.enqueue(hostEmail, subject, body);
 
     }
 }

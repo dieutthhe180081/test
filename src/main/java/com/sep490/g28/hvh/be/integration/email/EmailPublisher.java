@@ -1,7 +1,6 @@
-package com.sep490.g28.hvh.be.integration.messagequeue;
+package com.sep490.g28.hvh.be.integration.email;
 
 import com.sep490.g28.hvh.be.config.RabbitMqEmailProperties;
-import com.sep490.g28.hvh.be.dto.rabbitmq.EmailMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
@@ -26,7 +25,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
-public class MailPublisher {
+public class EmailPublisher {
 
     private final RabbitMqEmailProperties properties;
     private final RabbitTemplate rabbitTemplate;
