@@ -16,19 +16,19 @@ public class SubdomainUpdateValidator implements ConstraintValidator<SubdomainUp
 
         switch (action) {
             case "EDIT":
-                if(id != null || name != null) {
-                    return true;
+                if(id == null || name == null) {
+                    return false;
                 }
             case "DELETE":
-                if(id != null) {
-                    return true;
+                if(id == null) {
+                    return false;
                 }
             case "ADD":
-                if(name != null) {
-                    return true;
+                if(name == null) {
+                    return false;
                 }
         }
 
-        return false;
+        return true;
     }
 }
