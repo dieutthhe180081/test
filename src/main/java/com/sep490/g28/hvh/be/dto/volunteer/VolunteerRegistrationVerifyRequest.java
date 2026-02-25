@@ -24,7 +24,7 @@ public class VolunteerRegistrationVerifyRequest {
     - not include digit, special char, space in head and tail
      */
     @Pattern(regexp = "^[A-ZÀ-Ỹ][a-zà-ỹ]*(?:\\s[A-ZÀ-Ỹ][a-zà-ỹ]*)*$", message = "INVALID_FULL_NAME")
-    @NotBlank(message = "INVALID_FULL_NAME")
+//    @NotBlank(message = "INVALID_FULL_NAME")
     @Length(max = 100, message = "INVALID_FULL_NAME")
     String fullName;
 }
