@@ -10,7 +10,7 @@ import java.util.Map;
  */
 @Getter
 @Builder
-public class PushNotificationPayload {
+public class NotificationPayload {
     String title;
     String body;
     Map<String, String> data;

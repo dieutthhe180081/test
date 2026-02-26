@@ -1,6 +1,8 @@
 package com.sep490.g28.hvh.be.notification.service;
 
+import com.sep490.g28.hvh.be.notification.dto.RegisterTokenRequest;
+
 public interface NotificationService {
 
-    void sendToToken(String token, String title, String body);
+    void registerNotificationToken(RegisterTokenRequest request);
 }
