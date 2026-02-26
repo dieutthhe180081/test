@@ -17,6 +17,38 @@ public class FcmPushNotificationClient implements PushNotificationClient {
     private static final int BATCH_SIZE = 500;
     private static final String GLOBAL_TOPIC = "global";
 
+    private void handleFirebaseMessagingException(FirebaseMessagingException e, String token) {
+        MessagingErrorCode code = e.getMessagingErrorCode();
+
+            switch (code) {
+
+                case UNREGISTERED:
+                    //token not exist or died
+                    // todo token chết → xóa DB
+                    //tim xem co khong da
+                    if (token != null && !token.isEmpty()) {
+//                    userFcmTokenRepository.deleteByToken(token);
+                    log.warn("FCM token unregistered, deleted: {}", token);
+
+                    }
+                    break;
+
+                case INVALID_ARGUMENT:
+                    log.error("Invalid FCM payload/token", e);
+                    break;
+
+                case QUOTA_EXCEEDED:
+                    log.warn("FCM token quota exceeded", e);
+                case UNAVAILABLE:
+                    // retry nếu có queue
+                    log.warn("FCM temporary error, should retry", e);
+                    break;
+
+                default:
+                    log.error("FCM send failed", e);
+            }
+    }
+
     @Async("pushExecutor")
     @Override
     public void sendToToken(String token, NotificationPayload payload) {
@@ -38,7 +70,8 @@ public class FcmPushNotificationClient implements PushNotificationClient {
             String msgId = FirebaseMessaging.getInstance().send(msg);
             log.info("Send message to token={} id={}", token, msgId);
         } catch (FirebaseMessagingException e) {
-            log.error("FCM send failed", e);
+            log.error("FCM send to token failed,  token={}", token);
+            handleFirebaseMessagingException(e, token);
         }
     }
 
@@ -70,13 +103,15 @@ public class FcmPushNotificationClient implements PushNotificationClient {
                         FirebaseMessaging.getInstance().sendEachForMulticast(message);
 
                 log.info(
-                        "Push sent: success={}, failure={}",
+                        "Sent multicast: success={}, failure={}",
                         response.getSuccessCount(),
                         response.getFailureCount()
                 );
 
             } catch (FirebaseMessagingException e) {
-                log.error("FCM send failed", e);
+                log.error("FCM send multicast failed");
+                handleFirebaseMessagingException(e, null);
+
             }
         }
     }
@@ -88,7 +123,8 @@ public class FcmPushNotificationClient implements PushNotificationClient {
                 .subscribeToTopic(List.of(token), topic);
             log.info("Subscribe to topic={} to token={}", topic, token);
         } catch (FirebaseMessagingException e) {
-            log.error("FCM subscribe failed", e);
+            log.error("FCM subscribe failed, topic={} to token={}", topic, token);
+            handleFirebaseMessagingException(e, null);
         }
     }
 
@@ -99,7 +135,8 @@ public class FcmPushNotificationClient implements PushNotificationClient {
                     .unsubscribeFromTopic(List.of(token), topic);
             log.info("Unsubscribe to topic={} to token={}", topic, token);
         } catch (FirebaseMessagingException e) {
-            log.error("FCM subscribe failed", e);
+            log.error("FCM unsubscribe failed, topic={} to token={}", topic, token);
+            handleFirebaseMessagingException(e, null);
         }
     }
 
@@ -121,9 +158,8 @@ public class FcmPushNotificationClient implements PushNotificationClient {
             String msgId = FirebaseMessaging.getInstance().send(msg);
             log.info("Send message to topic={} id={}", topic, msgId);
         } catch (FirebaseMessagingException e) {
-            log.error("FCM send failed", e);
+            log.error("FCM send to topic failed, topic={}", topic);
+            handleFirebaseMessagingException(e, null);
         }
     }
-
-
 }
