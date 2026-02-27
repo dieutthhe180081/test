@@ -33,7 +33,6 @@ public class RegisterOrganizationRequest {
     String orgIntroduction;
 
     @Pattern(regexp = "^[A-ZÀ-Ỹ][a-zà-ỹ]*(?:\\s[A-ZÀ-Ỹ][a-zà-ỹ]*)*$", message = "INVALID_FULL_NAME")
-    @NotBlank(message = "INVALID_FULL_NAME")
     @Length(max = 100, message = "INVALID_FULL_NAME")
     String managerFullName;
 
