@@ -63,6 +63,6 @@ public class OrganizationController {
     ) {
         java.util.UUID id = java.util.UUID.fromString(inputId);
         organizationService.verifyOrgRegistration(id, request);
-        return ResponseEntity.ok("");
+        return ResponseEntity.ok().build();
     }
 }

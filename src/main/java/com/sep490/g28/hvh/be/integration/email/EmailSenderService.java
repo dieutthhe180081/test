@@ -1,4 +1,4 @@
-package com.sep490.g28.hvh.be.integration.mail;
+package com.sep490.g28.hvh.be.integration.email;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;

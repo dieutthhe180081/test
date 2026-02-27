@@ -1,7 +1,6 @@
-package com.sep490.g28.hvh.be.integration.messagequeue;
+package com.sep490.g28.hvh.be.integration.email;
 
 import com.sep490.g28.hvh.be.config.RabbitMqEmailProperties;
-import com.sep490.g28.hvh.be.dto.rabbitmq.MailMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;

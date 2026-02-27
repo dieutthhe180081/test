@@ -1,6 +1,5 @@
-package com.sep490.g28.hvh.be.integration.mail;
+package com.sep490.g28.hvh.be.integration.email;
 
-import com.sep490.g28.hvh.be.integration.messagequeue.MailPublisher;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

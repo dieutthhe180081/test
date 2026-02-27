@@ -27,7 +27,7 @@ public class ActivityDomainController {
     @PostMapping("/create")
     public ResponseEntity<String> createActivityDomain(@RequestBody @Valid CreateActivityDomainRequest request) {
         activityDomainService.createActivityDomain(request);
-        return ResponseEntity.ok("");
+        return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("hasRole('SYS_ADMIN')")
@@ -35,7 +35,7 @@ public class ActivityDomainController {
     public ResponseEntity<String> updateActivityDomain(@PathVariable(name = "id") Short inputId
             , @RequestBody @Valid UpdateActivityDomainRequest request) {
         activityDomainService.updateActivityDomain(inputId, request);
-        return ResponseEntity.ok("");
+        return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("hasRole('SYS_ADMIN')")
@@ -57,7 +57,7 @@ public class ActivityDomainController {
     public ResponseEntity<String> updateActivityDomain(@PathVariable(name = "id") Short inputId
             , @RequestBody @Valid ChangeActivityDomainVisibilityRequest request) {
         activityDomainService.changeActivityDomainVisibility(inputId, request);
-        return ResponseEntity.ok("");
+        return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("hasRole('SYS_ADMIN')")
@@ -65,6 +65,6 @@ public class ActivityDomainController {
     public ResponseEntity<String> updateActivityDomain(@PathVariable(name = "id") Short inputId
             , @RequestBody @Valid ChangeActivitySubDomainVisibilityRequest request) {
         activityDomainService.changeActivitySubDomainVisibility(inputId, request);
-        return ResponseEntity.ok("");
+        return ResponseEntity.ok().build();
     }
 }

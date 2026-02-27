@@ -1,4 +1,4 @@
-package com.sep490.g28.hvh.be.integration.mail;
+package com.sep490.g28.hvh.be.integration.email;
 
 /**
  * Email service abstraction.

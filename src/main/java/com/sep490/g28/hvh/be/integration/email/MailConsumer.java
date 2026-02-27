@@ -1,8 +1,6 @@
-package com.sep490.g28.hvh.be.integration.messagequeue;
+package com.sep490.g28.hvh.be.integration.email;
 
 import com.sep490.g28.hvh.be.config.RabbitMqEmailProperties;
-import com.sep490.g28.hvh.be.dto.rabbitmq.MailMessage;
-import com.sep490.g28.hvh.be.integration.mail.EmailSenderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
