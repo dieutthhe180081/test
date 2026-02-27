@@ -4,7 +4,9 @@ import com.sep490.g28.hvh.be.constant.EPlatform;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
@@ -30,4 +32,8 @@ public class NotificationToken {
 
     @Column(name = "device_id", nullable = false)
     String deviceId;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private OffsetDateTime createdAt;
 }
