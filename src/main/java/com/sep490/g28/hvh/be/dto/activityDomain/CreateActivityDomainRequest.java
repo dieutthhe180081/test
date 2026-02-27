@@ -18,7 +18,7 @@ import java.util.List;
 public class CreateActivityDomainRequest {
 
     @RequiredField(fieldName = "Tên lĩnh vực tình nguyện")
-    @Length(max = 50)
+    @Length(max = 50, message = "INVALID_STRING_LENGTH")
     String name;
 
     @RequiredField(fieldName = "Thời gian giới hạn với lý do")

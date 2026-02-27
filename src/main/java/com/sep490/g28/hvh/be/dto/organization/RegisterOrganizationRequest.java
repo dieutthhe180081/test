@@ -29,7 +29,7 @@ public class RegisterOrganizationRequest {
     String orgType;
 
     @RequiredField(fieldName = "Giới thiệu về tổ chức")
-    @Length(max = 500)
+    @Length(max = 500, message = "INVALID_STRING_LENGTH")
     String orgIntroduction;
 
     @Pattern(regexp = "^[A-ZÀ-Ỹ][a-zà-ỹ]*(?:\\s[A-ZÀ-Ỹ][a-zà-ỹ]*)*$", message = "INVALID_FULL_NAME")
