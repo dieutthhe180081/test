@@ -8,6 +8,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -15,6 +16,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Slf4j
 public class UpdateActivitySubDomainRequestTest {
     private static Validator validator;
 
@@ -24,7 +26,7 @@ public class UpdateActivitySubDomainRequestTest {
         validator = factory.getValidator();
     }
 
-    private UpdateActivitySubDomainRequest validRequest() {
+    private UpdateActivitySubDomainRequest validRequest1() {
         UpdateActivitySubDomainRequest req = new UpdateActivitySubDomainRequest();
         req.setId(Short.valueOf("1"));
         req.setName("Subdomain 1");
@@ -32,17 +34,32 @@ public class UpdateActivitySubDomainRequestTest {
         return req;
     }
 
+    private UpdateActivitySubDomainRequest validRequest3() {
+        UpdateActivitySubDomainRequest req = new UpdateActivitySubDomainRequest();
+        req.setName("Subdomain 1");
+        req.setAction("ADD");
+        return req;
+    }
+
     @Test
-    void validRequest_shouldHaveNoViolation() {
+    void validRequest1_shouldHaveNoViolation() {
         Set<ConstraintViolation<UpdateActivitySubDomainRequest>> violations =
-                validator.validate(validRequest());
+                validator.validate(validRequest1());
+
+        assertTrue(violations.isEmpty());
+    }
+
+    @Test
+    void validRequest3_shouldHaveNoViolation() {
+        Set<ConstraintViolation<UpdateActivitySubDomainRequest>> violations =
+                validator.validate(validRequest3());
 
         assertTrue(violations.isEmpty());
     }
 
     @Test
     void nameLengthEqualsMax_shouldPass() {
-        UpdateActivitySubDomainRequest r = validRequest();
+        UpdateActivitySubDomainRequest r = validRequest1();
         r.setName("a".repeat(50));
 
         assertTrue(validator.validate(r).isEmpty());
@@ -50,7 +67,7 @@ public class UpdateActivitySubDomainRequestTest {
 
     @Test
     void nameLengthGreaterThanMax_shouldFail() {
-        UpdateActivitySubDomainRequest r = validRequest();
+        UpdateActivitySubDomainRequest r = validRequest1();
         r.setName("a".repeat(51));
 
         Set<ConstraintViolation<UpdateActivitySubDomainRequest>> v = validator.validate(r);
@@ -60,7 +77,7 @@ public class UpdateActivitySubDomainRequestTest {
 
     @Test
     void nameNullWhenActionIsEdit_shouldFail() {
-        UpdateActivitySubDomainRequest r = validRequest();
+        UpdateActivitySubDomainRequest r = validRequest1();
         r.setName(null);
         r.setAction("EDIT");
 
@@ -72,7 +89,7 @@ public class UpdateActivitySubDomainRequestTest {
 
     @Test
     void idNullWhenActionIsEdit_shouldFail() {
-        UpdateActivitySubDomainRequest r = validRequest();
+        UpdateActivitySubDomainRequest r = validRequest1();
         r.setId(null);
         r.setAction("EDIT");
 
@@ -84,7 +101,7 @@ public class UpdateActivitySubDomainRequestTest {
 
     @Test
     void idNullWhenActionIsDelete_shouldFail() {
-        UpdateActivitySubDomainRequest r = validRequest();
+        UpdateActivitySubDomainRequest r = validRequest1();
         r.setId(null);
         r.setAction("DELETE");
 
@@ -96,7 +113,7 @@ public class UpdateActivitySubDomainRequestTest {
 
     @Test
     void nameNullWhenActionIsAdd_shouldFail() {
-        UpdateActivitySubDomainRequest r = validRequest();
+        UpdateActivitySubDomainRequest r = validRequest1();
         r.setName(null);
         r.setAction("ADD");
 

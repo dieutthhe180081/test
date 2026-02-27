@@ -71,6 +71,17 @@ public class CreateActivityDomainRequestTest {
     }
 
     @Test
+    void specialSessionMaxTimeNull_shouldFail() {
+        CreateActivityDomainRequest r = validRequest();
+        r.setSpecialSessionMaxTime(null);
+
+        Set<ConstraintViolation<CreateActivityDomainRequest>> v = validator.validate(r);
+
+        assertEquals(1, v.size());
+        assertEquals(ValidationErrorCode.MISSING_REQUIRED_FIELD.name(), v.iterator().next().getMessage());
+    }
+
+    @Test
     void specialSessionMaxTimeEqualsMin_shouldPass() {
         CreateActivityDomainRequest r = validRequest();
         r.setSpecialSessionMaxTime(Short.valueOf("4"));

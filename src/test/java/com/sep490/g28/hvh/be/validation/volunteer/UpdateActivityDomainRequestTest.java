@@ -39,10 +39,13 @@ public class UpdateActivityDomainRequestTest {
 
         UpdateActivitySubDomainRequest subDomainUpdate_2 = new UpdateActivitySubDomainRequest();
         subDomainUpdate_2.setId(Short.valueOf("2"));
-        subDomainUpdate_2.setName("Subdomain 2");
         subDomainUpdate_2.setAction("DELETE");
 
-        req.setActivitySubDomainUpdateRequests(List.of(subDomainUpdate_1, subDomainUpdate_2));
+        UpdateActivitySubDomainRequest subDomainUpdate_3 = new UpdateActivitySubDomainRequest();
+        subDomainUpdate_3.setName("Subdomain 3");
+        subDomainUpdate_3.setAction("ADD");
+
+        req.setActivitySubDomainUpdateRequests(List.of(subDomainUpdate_1, subDomainUpdate_2, subDomainUpdate_3));
 
         return req;
     }
@@ -71,7 +74,6 @@ public class UpdateActivityDomainRequestTest {
         UpdateActivityDomainRequest req = validRequest();
         req.setName("");
         req.setSpecialSessionMaxTime(null);
-
 
         Set<ConstraintViolation<UpdateActivityDomainRequest>> violations =
                 validator.validate(req);

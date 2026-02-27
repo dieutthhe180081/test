@@ -132,6 +132,7 @@ public class ActivityDomainServiceTest {
     @Test
     void createActivityDomain_fail_domain_name_existed() {
         CreateActivityDomainRequest request = validCreateRequest();
+        request.setName("Domain C");
         when(activityDomainRepository.existsByNameIgnoreCase(request.getName())).thenReturn(true);
 
         AppException ex = assertThrows(
@@ -147,8 +148,9 @@ public class ActivityDomainServiceTest {
     @Test
     void createActivityDomain_fail_subdomain_name_existed() {
         CreateActivityDomainRequest request = validCreateRequest();
+        request.setActivitySubDomain(List.of("Subdomain A"));
         when(activityDomainRepository.existsByNameIgnoreCase(request.getName())).thenReturn(false);
-        when(activitySubDomainRepository.existsByNameIgnoreCase("Subdomain 1")).thenReturn(true);
+        when(activitySubDomainRepository.existsByNameIgnoreCase("Subdomain A")).thenReturn(true);
 
         AppException ex = assertThrows(
                 AppException.class,
@@ -253,11 +255,11 @@ public class ActivityDomainServiceTest {
     @Test
     void updateActivityDomain_fail_domain_not_existed() {
         UpdateActivityDomainRequest request = validUpdateRequest();
-        when(activityDomainRepository.findById(domainId)).thenReturn(Optional.empty());
+        when(activityDomainRepository.findById(Short.valueOf("2"))).thenReturn(Optional.empty());
 
         AppException ex = assertThrows(
                 AppException.class,
-                () -> activityDomainService.updateActivityDomain(domainId, request)
+                () -> activityDomainService.updateActivityDomain(Short.valueOf("2"), request)
         );
         assertEquals(ActivityDomainErrorCode.DOMAIN_NOT_EXISTED.getCode(), ex.getCode());
     }
@@ -266,6 +268,7 @@ public class ActivityDomainServiceTest {
     @Test
     void updateActivityDomain_fail_domain_name_existed() {
         UpdateActivityDomainRequest request = validUpdateRequest();
+        request.setName("Updated Domain B");
         activityDomain = validActivityDomain();
 
         when(activityDomainRepository.findById(domainId)).thenReturn(Optional.of(activityDomain));

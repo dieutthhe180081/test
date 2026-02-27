@@ -112,22 +112,7 @@ public class RegisterOrganizationRequestTest {
     @Test
     void should_pass_when_org_introduction_length_equals_max() {
         RegisterOrganizationRequest req = validRequest();
-        String equalsMaxLengthString = """
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-                enim ad minim veniam, quis nostrud exercitation ullamco laboris
-                nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
-                in reprehenderit in voluptate velit esse cillum dolore eu fugiat
-                nulla pariatur. Excepteur sint occaecat cupidatat non proident,
-                sunt in culpa qui officia deserunt mollit anim id est laborum.
-                Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-                accusantium doloremque laudantium, totam rem aperiam, eaque ipsa
-                quae ab illo inventore veritatis et quasi architecto beatae vitae
-                dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit
-                aspernatur aut odit aut fugit, sed quia consequuntur magni dolores
-                eos qui ratione voluptatem se.
-                """;
-        req.setOrgIntroduction(equalsMaxLengthString);
+        req.setOrgIntroduction("a".repeat(500));
 
         Set<ConstraintViolation<RegisterOrganizationRequest>> violations =
                 validator.validate(req);
@@ -138,22 +123,7 @@ public class RegisterOrganizationRequestTest {
     @Test
     void should_pass_when_org_introduction_length_greater_than_max() {
         RegisterOrganizationRequest req = validRequest();
-        String greaterThanMaxLengthString = """
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-                enim ad minim veniam, quis nostrud exercitation ullamco laboris
-                nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
-                in reprehenderit in voluptate velit esse cillum dolore eu fugiat
-                nulla pariatur. Excepteur sint occaecat cupidatat non proident,
-                sunt in culpa qui officia deserunt mollit anim id est laborum.
-                Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-                accusantium doloremque laudantium, totam rem aperiam, eaque ipsa
-                quae ab illo inventore veritatis et quasi architecto beatae vitae
-                dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit
-                aspernatur aut odit aut fugit, sed quia consequuntur magni dolores
-                eos qui ratione voluptatem sequi nesciunt.
-                """;
-        req.setOrgIntroduction(greaterThanMaxLengthString);
+        req.setOrgIntroduction("a".repeat(501));
 
         Set<ConstraintViolation<RegisterOrganizationRequest>> violations =
                 validator.validate(req);
@@ -201,11 +171,12 @@ public class RegisterOrganizationRequestTest {
         req.setManagerPhone("123");
         req.setManagerCidFrontExtension(".txt");
         req.setManagerFullName("nguyen van a");
+        req.setManagerCid("123");
 
         Set<ConstraintViolation<RegisterOrganizationRequest>> violations =
                 validator.validate(req);
 
-        assertThat(violations).hasSize(5);
+        assertThat(violations).hasSize(6);
 
         assertThat(violations)
                 .extracting(ConstraintViolation::getMessage)
@@ -214,7 +185,8 @@ public class RegisterOrganizationRequestTest {
                         ValidationErrorCode.INVALID_EMAIL.name(),
                         ValidationErrorCode.INVALID_PHONE.name(),
                         ValidationErrorCode.INVALID_IMAGE_TYPE.name(),
-                        ValidationErrorCode.INVALID_FULL_NAME.name()
+                        ValidationErrorCode.INVALID_FULL_NAME.name(),
+                        ValidationErrorCode.INVALID_CID.name()
                 );
     }
 
