@@ -25,7 +25,7 @@ public interface AuthClient {
 
     void changePassword(UUID accountId, String newPassword);
 
-    UserResponse   getAccountInfo(UUID accountId);
+    UserResponse getAccountInfo(UUID accountId);
 
     boolean isAccountActive(UUID accountId);
 }

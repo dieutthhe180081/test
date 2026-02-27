@@ -16,10 +16,7 @@ import com.sep490.g28.hvh.be.integration.cache.OtpService;
 import com.sep490.g28.hvh.be.integration.email.EmailService;
 import com.sep490.g28.hvh.be.integration.storage.StoragePathGenerator;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
-import com.sep490.g28.hvh.be.repository.OrganizationManagerRepository;
-import com.sep490.g28.hvh.be.repository.OrganizationRegistrationRepository;
-import com.sep490.g28.hvh.be.repository.OrganizationRepository;
-import com.sep490.g28.hvh.be.repository.SystemAdminRepository;
+import com.sep490.g28.hvh.be.repository.*;
 import com.sep490.g28.hvh.be.util.RandomStringUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +44,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     OrganizationRegistrationRepository organizationRegistrationRepository;
     OrganizationRepository organizationRepository;
     OrganizationManagerRepository organizationManagerRepository;
+    UserRepository userRepository;
     StorageService storageService;
     StoragePathGenerator storagePathGenerator;
     OtpService otpService;
@@ -62,6 +60,9 @@ public class OrganizationServiceImpl implements OrganizationService {
         otpService.verifyOrgRegistrationOtp(request.getManagerEmail(), request.getOtp());
 
         //2. check the unique email in the all system's account
+        if (userRepository.existsByEmail(request.getManagerEmail())) {
+            throw new AppException(OrganizationErrorCode.EMAIL_USED);
+        }
 
         OrganizationRegistration orgRegistration = new OrganizationRegistration();
         UUID id = UUID.randomUUID();
@@ -173,51 +174,16 @@ public class OrganizationServiceImpl implements OrganizationService {
                 () -> new AppException(OrganizationErrorCode.REGISTRATION_NOT_EXISTED)
         );
 
-        String note = null;
+        StringBuilder note = new StringBuilder();
 
-        //get signed URL of file
-        CompletableFuture<String> managerCidFrontFuture =
-                storageService.getSignedUrlAsync(organizationRegistration.getManagerCidFront());
-        CompletableFuture<String> managerCidBackFuture =
-                storageService.getSignedUrlAsync(organizationRegistration.getManagerCidBack());
-        CompletableFuture<String> managerCidHoldingFuture =
-                storageService.getSignedUrlAsync(organizationRegistration.getManagerCidHolding());
-
-        String[] otherEvidences = organizationRegistration.getOtherEvidences().split("\\s+");
-        List<String> otherEvidencesList = new ArrayList<>(Arrays.asList(otherEvidences));
-        List<CompletableFuture<String>> otherEvidencesFutures = new ArrayList<>();
-        for (String otherEvidence : otherEvidencesList) {
-            CompletableFuture<String> otherEvidenceFuture =
-                    storageService.getSignedUrlAsync(otherEvidence);
-            otherEvidencesFutures.add(otherEvidenceFuture);
+        //check email exist in any account
+        if (userRepository.existsByEmail(organizationRegistration.getManagerEmail())) {
+            //add to the note to announce sys_admin
+            note.append(OrganizationErrorCode.EMAIL_USED.getMessage()).append("\n");
         }
 
-        String managerCidFrontUrl = null;
-        String managerCidBackUrl = null;
-        String managerCidHoldingUrl = null;
-        List<String> otherEvidencesUrls = new ArrayList<>();
-
-        try {
-            CompletableFuture.allOf(managerCidFrontFuture, managerCidBackFuture, managerCidHoldingFuture).join();
-            managerCidFrontUrl = managerCidFrontFuture.join();
-            managerCidBackUrl = managerCidBackFuture.join();
-            managerCidHoldingUrl = managerCidHoldingFuture.join();
-
-            CompletableFuture.allOf(otherEvidencesFutures.toArray(new CompletableFuture[0])).join();
-            for (CompletableFuture<String> otherEvidenceFuture : otherEvidencesFutures) {
-                otherEvidencesUrls.add(otherEvidenceFuture.join());
-            }
-
-        } catch (CompletionException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof AppException ae) {
-                note = ae.getMessage() + "\n";
-            } else {
-                throw cause instanceof RuntimeException re ? re : e;
-            }
-        }
-
-        return OrganizationRegistrationDetailsResponse.builder()
+        //build response
+        OrganizationRegistrationDetailsResponse response = OrganizationRegistrationDetailsResponse.builder()
                 .id(organizationRegistration.getId())
                 .name(organizationRegistration.getName())
                 .dhaRegistered(organizationRegistration.getDhaRegistered())
@@ -227,20 +193,68 @@ public class OrganizationServiceImpl implements OrganizationService {
                 .managerCid(organizationRegistration.getManagerCid())
                 .managerPhone(organizationRegistration.getManagerPhone())
                 .managerEmail(organizationRegistration.getManagerEmail())
-                .managerCidFrontUrl(managerCidFrontUrl)
-                .managerCidBackUrl(managerCidBackUrl)
-                .managerCidHoldingUrl(managerCidHoldingUrl)
-                .otherEvidencesUrls(otherEvidencesUrls)
                 .applicationReason(organizationRegistration.getApplicationReason())
                 .status(organizationRegistration.getStatus())
                 .rejectionReason(organizationRegistration.getRejectionReason())
                 .createdAt(organizationRegistration.getCreatedAt())
                 .reviewedAt(organizationRegistration.getReviewedAt())
-                .reviewedBy(organizationRegistration.getReviewedBy())
-                .organization(organizationRegistration.getOrganization())
-                .orgManager(organizationRegistration.getOrgManager())
-                .note(note)
                 .build();
+
+        if(organizationRegistration.getStatus() != EOrgRegistrationStatus.PENDING) {
+            response.setAdminId(organizationRegistration.getReviewedBy().getId());
+            response.setOrganizationId(organizationRegistration.getOrganization().getId());
+            response.setOrgManagerId(organizationRegistration.getOrgManager().getId());
+        } else {
+            //get signed URL of file
+            CompletableFuture<String> managerCidFrontFuture =
+                    storageService.getSignedUrlAsync(organizationRegistration.getManagerCidFront());
+            CompletableFuture<String> managerCidBackFuture =
+                    storageService.getSignedUrlAsync(organizationRegistration.getManagerCidBack());
+            CompletableFuture<String> managerCidHoldingFuture =
+                    storageService.getSignedUrlAsync(organizationRegistration.getManagerCidHolding());
+
+            List<CompletableFuture<String>> otherEvidencesFutures = new ArrayList<>();
+            if(organizationRegistration.getOtherEvidences() != null) {
+                String[] otherEvidences = organizationRegistration.getOtherEvidences().split("\\s+");
+                List<String> otherEvidencesList = new ArrayList<>(Arrays.asList(otherEvidences));
+                for (String otherEvidence : otherEvidencesList) {
+                    CompletableFuture<String> otherEvidenceFuture =
+                            storageService.getSignedUrlAsync(otherEvidence);
+                    otherEvidencesFutures.add(otherEvidenceFuture);
+                }
+            }
+
+            String managerCidFrontUrl = null;
+            String managerCidBackUrl = null;
+            String managerCidHoldingUrl = null;
+            List<String> otherEvidencesUrls = new ArrayList<>();
+
+            try {
+                CompletableFuture.allOf(managerCidFrontFuture, managerCidBackFuture, managerCidHoldingFuture).join();
+                managerCidFrontUrl = managerCidFrontFuture.join();
+                managerCidBackUrl = managerCidBackFuture.join();
+                managerCidHoldingUrl = managerCidHoldingFuture.join();
+
+                CompletableFuture.allOf(otherEvidencesFutures.toArray(new CompletableFuture[0])).join();
+                response.setManagerCidFrontUrl(managerCidFrontUrl);
+                response.setManagerCidBackUrl(managerCidBackUrl);
+                response.setManagerCidHoldingUrl(managerCidHoldingUrl);
+                for (CompletableFuture<String> otherEvidenceFuture : otherEvidencesFutures) {
+                    otherEvidencesUrls.add(otherEvidenceFuture.join());
+                }
+                response.setOtherEvidencesUrls(otherEvidencesUrls);
+
+            } catch (CompletionException e) {
+                Throwable cause = e.getCause();
+                if (cause instanceof AppException ae) {
+                    note.append(ae.getMessage()).append("\n");
+                } else {
+                    throw cause instanceof RuntimeException re ? re : e;
+                }
+            }
+        }
+        response.setNote(note.isEmpty() ? null : note.toString());
+        return response;
     }
 
     @Override
@@ -250,8 +264,13 @@ public class OrganizationServiceImpl implements OrganizationService {
                 () -> new AppException(OrganizationErrorCode.REGISTRATION_NOT_EXISTED)
         );
 
-        if(!organizationRegistration.getStatus().equals(EOrgRegistrationStatus.PENDING)) {
+        if (!organizationRegistration.getStatus().equals(EOrgRegistrationStatus.PENDING)) {
             throw new AppException(OrganizationErrorCode.REGISTRATION_VERIFIED);
+        }
+
+        //check the unique of email
+        if (userRepository.existsByEmail(organizationRegistration.getManagerEmail())) {
+            throw new AppException(OrganizationErrorCode.EMAIL_USED);
         }
 
         SystemAdmin currentAdmin = systemAdminRepository.getReferenceById(currentUserProvider.getId());
@@ -280,9 +299,8 @@ public class OrganizationServiceImpl implements OrganizationService {
         organizationRegistration.setManagerCidBack("");
         organizationRegistration.setManagerCidHolding("");
 
-        if(Boolean.TRUE.equals(request.getApprove())) {
+        if (Boolean.TRUE.equals(request.getApprove())) {
             //APPROVE
-            //check the unique of email
 
             //Create organization in the db
             Organization organization = new Organization();

@@ -1,7 +1,6 @@
 package com.sep490.g28.hvh.be.dto.volunteer;
 
 import com.sep490.g28.hvh.be.validation.RequiredField;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -24,7 +23,6 @@ public class VolunteerRegistrationVerifyRequest {
     - not include digit, special char, space in head and tail
      */
     @Pattern(regexp = "^[A-ZÀ-Ỹ][a-zà-ỹ]*(?:\\s[A-ZÀ-Ỹ][a-zà-ỹ]*)*$", message = "INVALID_FULL_NAME")
-//    @NotBlank(message = "INVALID_FULL_NAME")
     @Length(max = 100, message = "INVALID_FULL_NAME")
     String fullName;
 }

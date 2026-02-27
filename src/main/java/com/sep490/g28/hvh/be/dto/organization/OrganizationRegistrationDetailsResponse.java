@@ -8,6 +8,7 @@ import com.sep490.g28.hvh.be.entity.SystemAdmin;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.UUID;
 
 @Getter
 @AllArgsConstructor
+@Setter
 @Builder
 public class OrganizationRegistrationDetailsResponse {
     private UUID id;
@@ -35,9 +37,9 @@ public class OrganizationRegistrationDetailsResponse {
     private String rejectionReason;
     private OffsetDateTime createdAt;
     private OffsetDateTime reviewedAt;
-    private SystemAdmin reviewedBy;
-    private Organization organization;
-    private OrganizationManager orgManager;
+    private UUID adminId;
+    private UUID organizationId;
+    private UUID orgManagerId;
     private String note;
 
 }
