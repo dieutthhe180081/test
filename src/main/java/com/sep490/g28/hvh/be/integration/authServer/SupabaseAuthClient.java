@@ -2,8 +2,8 @@ package com.sep490.g28.hvh.be.integration.authServer;
 
 import com.sep490.g28.hvh.be.config.SupabaseProperties;
 import com.sep490.g28.hvh.be.constant.ERole;
-import com.sep490.g28.hvh.be.dto.supabase.CreateUserRequest;
-import com.sep490.g28.hvh.be.dto.supabase.UserResponse;
+import com.sep490.g28.hvh.be.integration.authServer.dto.CreateUserRequest;
+import com.sep490.g28.hvh.be.integration.authServer.dto.UserResponse;
 import com.sep490.g28.hvh.be.entity.User;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.SupabaseException;

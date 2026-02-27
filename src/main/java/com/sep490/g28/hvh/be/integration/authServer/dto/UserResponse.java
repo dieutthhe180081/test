@@ -1,4 +1,4 @@
-package com.sep490.g28.hvh.be.dto.supabase;
+package com.sep490.g28.hvh.be.integration.authServer.dto;
 
 import java.time.OffsetDateTime;
 import java.util.Map;

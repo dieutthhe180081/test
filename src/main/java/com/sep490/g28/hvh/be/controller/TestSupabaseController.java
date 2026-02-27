@@ -1,7 +1,7 @@
 package com.sep490.g28.hvh.be.controller;
 
 import com.sep490.g28.hvh.be.constant.ERole;
-import com.sep490.g28.hvh.be.dto.supabase.UserResponse;
+import com.sep490.g28.hvh.be.integration.authServer.dto.UserResponse;
 import com.sep490.g28.hvh.be.integration.authServer.AuthClient;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
 import com.sep490.g28.hvh.be.repository.UserRepository;
@@ -27,8 +27,8 @@ public class TestSupabaseController {
     private final AuthClient authClient;
     private final StorageService storageService;
 
-//    public TestSupabaseController(SupabaseAuthService authService, SupabaseStorageService storageService) {
-//        this.authService = authService;
+//    public TestSupabaseController(SupabaseAuthClient authClient, SupabaseStorageService storageService) {
+//        this.authClient = authClient;
 //        this.storageService = storageService;
 //    }
 
