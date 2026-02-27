@@ -15,6 +15,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Firebase Cloud Messaging (FCM) implementation of {@link PushNotificationClient}.
+ *
+ * <p>Handles sending notifications to tokens, multicast batches,
+ * and topics using the Firebase Admin SDK.</p>
+ *
+ * <p>Responsibilities:</p>
+ * <ul>
+ *   <li>Respect FCM batch size limits (500 tokens/request)</li>
+ *   <li>Handle and classify {@link FirebaseMessagingException}</li>
+ *   <li>Clean up invalid or expired FCM tokens from persistence</li>
+ *   <li>Support async delivery for single-token messages</li>
+ * </ul>
+ */
 @Slf4j
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -22,10 +36,22 @@ import java.util.Map;
 public class FcmPushNotificationClient implements PushNotificationClient {
     NotificationTokenRepository tokenRepository;
 
-    // FCM limit 500 token / request
+    /** FCM maximum number of tokens per multicast request. */
     private static final int BATCH_SIZE = 500;
 
-    @Transactional
+    /**
+     * Centralized handler for Firebase messaging exceptions.
+     *
+     * <p>Depending on the error code, this method may:</p>
+     * <ul>
+     *   <li>Remove invalid/unregistered tokens from the database</li>
+     *   <li>Log configuration or authentication issues</li>
+     *   <li>Indicate retryable or quota-related errors</li>
+     * </ul>
+     *
+     * @param e     Firebase messaging exception
+     * @param token related device token (nullable)
+     */
     public void handleFirebaseMessagingException(FirebaseMessagingException e, String token) {
         MessagingErrorCode code = e.getMessagingErrorCode();
 
@@ -66,6 +92,14 @@ public class FcmPushNotificationClient implements PushNotificationClient {
             }
     }
 
+    /**
+     * Asynchronously send a notification to a single device token.
+     *
+     * <p>Uses FCM {@link Message} with both notification and data payload.</p>
+     *
+     * @param token   target device token
+     * @param payload notification content and custom data
+     */
     @Async("pushExecutor")
     @Override
     public void sendToToken(String token, NotificationPayload payload) {
@@ -84,6 +118,7 @@ public class FcmPushNotificationClient implements PushNotificationClient {
                 )
                 .build();
         try {
+            //send message
             String msgId = FirebaseMessaging.getInstance().send(msg);
             log.info("Send message to token={} id={}", token, msgId);
         } catch (FirebaseMessagingException e) {
@@ -92,17 +127,32 @@ public class FcmPushNotificationClient implements PushNotificationClient {
         }
     }
 
-    @Transactional
+    /**
+     * Send a notification to multiple device tokens asynchronously.
+     *
+     * <p>Splits the token list into batches of {@code BATCH_SIZE} to comply with
+     * Firebase Cloud Messaging limits (max 500 tokens per request).</p>
+     *
+     * <p>After sending, failed responses are inspected and permanently invalid
+     * tokens (UNREGISTERED, INVALID_ARGUMENT, SENDER_ID_MISMATCH) are removed
+     * from the database.</p>
+     *
+     * @param tokens  list of target device tokens
+     * @param payload notification content and custom data
+     */
+    @Async("pushExecutor")
     @Override
     public void sendMulticast(List<String> tokens, NotificationPayload payload) {
+        //check tokens list
         if (tokens == null || tokens.isEmpty()) {
             return;
         }
 
+        //split into batches
         for (int i = 0; i < tokens.size(); i += BATCH_SIZE) {
             List<String> batch =
                     tokens.subList(i, Math.min(i + BATCH_SIZE, tokens.size()));
-
+            //create batch message
             MulticastMessage message = MulticastMessage.builder()
                     .addAllTokens(batch)
                     .setNotification(
@@ -117,6 +167,7 @@ public class FcmPushNotificationClient implements PushNotificationClient {
                     .build();
 
             try {
+                //send batch message
                 BatchResponse response =
                         FirebaseMessaging.getInstance().sendEachForMulticast(message);
 
@@ -126,6 +177,7 @@ public class FcmPushNotificationClient implements PushNotificationClient {
                         response.getFailureCount()
                 );
 
+                //has some messages sent fail, delete respective tokens
                 if (response.getFailureCount() > 0) {
                     List<String> invalidTokens = getInvalidTokens(tokens, response);
                     tokenRepository.deleteByTokenIn(invalidTokens);
@@ -138,6 +190,16 @@ public class FcmPushNotificationClient implements PushNotificationClient {
         }
     }
 
+    /**
+     * Extract permanently invalid FCM tokens from a multicast response.
+     *
+     * <p>Only non-retryable errors are considered invalid and eligible
+     * for removal.</p>
+     *
+     * @param tokens   original token list (same order as request)
+     * @param response Firebase batch response
+     * @return list of invalid tokens
+     */
     private static List<String> getInvalidTokens(List<String> tokens, BatchResponse response) {
         List<String> invalidTokens = new ArrayList<>();
 
@@ -155,7 +217,14 @@ public class FcmPushNotificationClient implements PushNotificationClient {
         return invalidTokens;
     }
 
+    /**
+     * Asynchronously subscribe a device token to a Firebase topic.
+     *
+     * @param token device token
+     * @param topic topic name
+     */
     @Override
+    @Async("pushExecutor")
     public void subscribeToTopic(String token, String topic) {
         try {
         FirebaseMessaging.getInstance()
@@ -167,7 +236,14 @@ public class FcmPushNotificationClient implements PushNotificationClient {
         }
     }
 
+    /**
+     * Asynchronously unsubscribe a device token from a Firebase topic.
+     *
+     * @param token device token
+     * @param topic topic name
+     */
     @Override
+    @Async("pushExecutor")
     public void unsubscribeFromTopic(String token, String topic) {
         try {
             FirebaseMessaging.getInstance()
@@ -179,7 +255,14 @@ public class FcmPushNotificationClient implements PushNotificationClient {
         }
     }
 
+    /**
+     * Asynchronously send a notification to all devices subscribed to a topic.
+     *
+     * @param topic   topic name
+     * @param payload notification content and custom data
+     */
     @Override
+    @Async("pushExecutor")
     public void sendToTopic(String topic, NotificationPayload payload) {
         Message msg = Message.builder()
                 .setTopic(topic)

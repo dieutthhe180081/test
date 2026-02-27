@@ -10,20 +10,26 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.InputStream;
 
 /**
- * Configuration for Firebase
+ * Firebase configuration for initializing the Firebase Admin SDK.
+ *
+ * <p>This configuration loads the Firebase service account credentials from
+ * {@code serviceAccountKey.json} located on the classpath and initializes
+ * a {@link FirebaseApp} instance during application startup.</p>
+ *
+ * <p>The initialization is executed in {@link PostConstruct} to ensure that
+ * Firebase is ready before any Firebase-dependent components are used.</p>
+ *
+ * <p>To avoid duplicate initialization errors, the Firebase app is only
+ * initialized if no existing {@link FirebaseApp} instances are present.</p>
+ *
+ * @see FirebaseApp
+ * @see FirebaseOptions
+ * @see GoogleCredentials
  */
 @Configuration
 public class FirebaseConfig {
     @PostConstruct
     void init() throws Exception {
-//        FileInputStream serviceAccount =
-//                new FileInputStream("serviceAccountKey.json");
-//        FirebaseOptions options = new FirebaseOptions.Builder()
-//                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-//                .build();
-//
-//        FirebaseApp.initializeApp(options);
-
         InputStream serviceAccount =
                 new ClassPathResource("serviceAccountKey.json").getInputStream();
         FirebaseOptions options = FirebaseOptions.builder()

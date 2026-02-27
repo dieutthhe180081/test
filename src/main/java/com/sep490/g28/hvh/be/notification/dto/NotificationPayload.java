@@ -6,7 +6,7 @@ import lombok.Getter;
 import java.util.Map;
 
 /**
- * payload to send to firebase
+ * Payload model for sending notifications to Firebase Cloud Messaging (FCM).
  */
 @Getter
 @Builder
