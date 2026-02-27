@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
  *
  * <p>Responsibilities:</p>
  * <ul>
- *   <li>Create {@link MailMessage}</li>
+ *   <li>Create {@link EmailMessage}</li>
  *   <li>Publish to configured exchange and routing key</li>
  * </ul>
  *
@@ -25,13 +25,13 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
-public class MailPublisher {
+public class EmailPublisher {
 
     private final RabbitMqEmailProperties properties;
     private final RabbitTemplate rabbitTemplate;
 
     public void enqueue(String to, String subject, String body) {
-        MailMessage msg = new MailMessage(to, subject, body);
+        EmailMessage msg = new EmailMessage(to, subject, body);
 
         rabbitTemplate.convertAndSend(
                 properties.exchange(),
