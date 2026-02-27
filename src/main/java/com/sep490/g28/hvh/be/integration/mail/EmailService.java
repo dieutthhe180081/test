@@ -56,6 +56,14 @@ public interface EmailService {
     void sendVerifyForgotPasswordOtp(String email, String otp);
 
     /**
+     * Send email after forgot pass successfully.
+     *
+     * @param email recipient email
+     * @param newPassword   new system-generated password
+     */
+    void sendNewPasswordEmail(String email, String newPassword);
+
+    /**
      * Send approval email after organization registration is accepted.
      *
      * @param orgName organization name

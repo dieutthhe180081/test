@@ -14,9 +14,7 @@ public class OrgTypeValidator implements ConstraintValidator<OrgType, String> {
 
         // Ensure the payment type exists within the enum
         try {
-            if(s != null) {
-                EOrgType.valueOf(s);
-            }
+            EOrgType.valueOf(s);
         } catch (IllegalArgumentException e) {
             return false;
         }

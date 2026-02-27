@@ -10,9 +10,9 @@ import java.util.UUID;
 public interface VolunteerService {
     RegisterVolunteerAccountResponse registerVolAccount (RegisterVolunteerAccountRequest registerVolunteerAccountRequest);
 
-    Page<VolunteerRegistrationSimpleResponse> getRegistrations(int pageNumber, int pageSize, String inputStatus, @Email String email);
+    Page<VolunteerRegistrationSimpleResponse> getVolRegistrations(int pageNumber, int pageSize, String inputStatus, @Email String email);
 
-    VolunteerRegistrationDetailsResponse getRegistrationDetails(UUID id);
+    VolunteerRegistrationDetailsResponse getVolRegistrationDetails(UUID id);
 
-    void verifyRegistration(UUID id, @Valid VolunteerRegistrationVerifyRequest request);
+    void verifyVolRegistration(UUID id, @Valid VolunteerRegistrationVerifyRequest request);
 }

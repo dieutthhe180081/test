@@ -89,6 +89,18 @@ public class RabbitMQEmailService implements EmailService {
     }
 
     @Override
+    public void sendNewPasswordEmail(String email, String newPassword) {
+        String subject = "HVH - Khôi phục mật khẩu thành công";
+        String body = String.format("""
+                Chào bạn, chúng tôi gửi mail thông báo rằng mật khẩu đăng nhập Hà Nội Volunteer Hub của bạn đã được khôi phục.
+                Hãy sử dụng email này cùng với mật khẩu dưới đây để đăng nhập vào hệ thống. Và để an toàn, hay đổi mật khẩu sau khi đăng nhập thành công!
+                Mật khẩu mặc định: %s
+                Cảm ơn bạn!
+                """, newPassword);
+        mailPublisher.enqueue(email, subject, body);
+    }
+
+    @Override
     public void sendApproveRegisterOrganizationEmail(String orgName, String userEmail, String password) {
         String subject = "HVH - Chào mừng " + orgName;
         String body = String.format("""

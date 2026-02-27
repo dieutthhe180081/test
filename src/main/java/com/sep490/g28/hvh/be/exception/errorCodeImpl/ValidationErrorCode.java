@@ -40,9 +40,7 @@ public enum ValidationErrorCode implements ErrorCode {
     INVALID_DATE_OF_BIRTH(2021, "Tuổi của bạn phải từ {min} tới {max} tuổi.", HttpStatus.BAD_REQUEST),
     INVALID_ADDRESS(2022, "Địa chỉ không hợp lệ", HttpStatus.BAD_REQUEST),
     INVALID_DETAIL_ADDRESS(2023, "Địa chỉ chi tiết không hợp lệ", HttpStatus.BAD_REQUEST),
-    INVALID_SUBDOMAIN_UPDATE(2024, "Dữ liệu cập nhật lĩnh vực tình nguyện con không hợp lệ" +
-                                   ", cần tuân thủ theo: EDIT: id + name, DELETE: id, ADD: name", HttpStatus.BAD_REQUEST),
-    INVALID_STRING_LENGTH(2025, "Độ dài chuỗi ký tự không hợp lệ", HttpStatus.BAD_REQUEST),
+    
     ;
 
     private final int code;

@@ -1,5 +1,6 @@
 package com.sep490.g28.hvh.be.service;
 
+import com.sep490.g28.hvh.be.dto.auth.ForgotPasswordRequest;
 import com.sep490.g28.hvh.be.entity.User;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.AppCommonErrorCode;
@@ -7,47 +8,42 @@ import com.sep490.g28.hvh.be.integration.authServer.AuthClient;
 import com.sep490.g28.hvh.be.integration.cache.OtpService;
 import com.sep490.g28.hvh.be.integration.mail.EmailService;
 import com.sep490.g28.hvh.be.repository.UserRepository;
+import com.sep490.g28.hvh.be.util.RandomStringUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class EmailOtpServiceImpl implements EmailOtpService {
+public class AuthServiceImpl implements AuthService {
+    OtpService otpService;
+    EmailService emailService;
     UserRepository userRepository;
     AuthClient authClient;
 
-    OtpService otpService;
-    EmailService emailService;
-
     @Override
-    public void sendVerifyVolAccountRegistrationOtp(String email){
-        String otp = otpService.getVolAccountRegistrationOtp(email);
-        emailService.sendVolAccountRegistrationOtp(email, otp);
-    }
-
-    @Override
-    public void sendVerifyOrganizationRegistrationOtp(String email){
-        String otp = otpService.getOrgRegistrationOtp(email);
-        emailService.sendOrgRegistrationOtp(email, otp);
-    }
-
-
-    @Override
-    public void sendVerifyForgotPasswordOtp(String email) {
+    public void forgotPassword(ForgotPasswordRequest request) {
+        //validate otp
+        otpService.verifyVerifyForgotPasswordOtp(request.getEmail(), request.getOtp());
 
         //check whether the email is used for a account?
-        User user = userRepository.findByEmail(email).orElseThrow(
+        User user = userRepository.findByEmail(request.getEmail()).orElseThrow(
                 () -> new AppException(AppCommonErrorCode.EMAIL_NOT_USED)
         );
         //check active account
         if (!authClient.isAccountActive(user.getId())){
-            throw new AppException(AppCommonErrorCode.ACCOUNT_INACTIVE);
+                throw new AppException(AppCommonErrorCode.ACCOUNT_INACTIVE);
         }
+        //change password
+        String newPassword = RandomStringUtil.random8AlphaNumeric();
+        authClient.changePassword(user.getId(), newPassword);
 
-        String otp = otpService.getVerifyForgotPasswordOtp(email);
-        emailService.sendVerifyForgotPasswordOtp(email, otp);
+        //send email to the user
+        emailService.sendNewPasswordEmail(request.getEmail(), newPassword);
+        log.info("Reset password for account successful, id={}", user.getId());
     }
 }
