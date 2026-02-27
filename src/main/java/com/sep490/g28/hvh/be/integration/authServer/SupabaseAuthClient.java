@@ -15,6 +15,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -103,5 +104,72 @@ public class SupabaseAuthClient implements AuthClient {
         }
 
     }
+
+    @Override
+    public void changePassword(UUID accountId, String newPassword) {
+        String url = supabaseProperties.getUrl()
+                + "/auth/v1/admin/users/" + accountId;
+
+        Map<String, Object> body = Map.of(
+                "password", newPassword
+        );
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body);
+
+        try {
+            ResponseEntity<UserResponse> responseEntity = restTemplate.exchange(
+                    url,
+                    HttpMethod.PUT,
+                    entity,
+                    UserResponse.class // THIS COULD BE VOID
+            );
+            log.info(Objects.requireNonNull(responseEntity.getBody()).toString());
+        } catch (Exception e) {
+            if (e instanceof SupabaseException se){
+                int status = se.getStatus();
+                if (status == 500) {
+                    throw new AppException(SupabaseErrorCode.INTERNAL_SERVER_ERROR);
+                } else if (status == 404) {
+                    throw new AppException(SupabaseErrorCode.AUTH_ACCOUNT_NOT_EXISTED);
+                }
+            }
+            throw new AppException(SupabaseErrorCode.AUTH_CHANGE_PASSWORD_FAIL);
+        }
+    }
+
+    @Override
+    public UserResponse getAccountInfo(UUID accountId) {
+        String url = supabaseProperties.getUrl() + "/auth/v1/admin/users/" + accountId;
+
+        try {
+            ResponseEntity<UserResponse> responseEntity = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    HttpEntity.EMPTY,
+                    UserResponse.class
+            );
+            return responseEntity.getBody();
+        } catch (Exception e) {
+            if (e instanceof SupabaseException se){
+                int status = se.getStatus();
+                if (status == 500) {
+                    throw new AppException(SupabaseErrorCode.INTERNAL_SERVER_ERROR);
+                } else if (status == 404) {
+                    throw new AppException(SupabaseErrorCode.AUTH_ACCOUNT_NOT_EXISTED);
+                }
+            }
+            throw new AppException(SupabaseErrorCode.AUTH_CHANGE_PASSWORD_FAIL);
+        }
+
+    }
+
+    @Override
+    public boolean isAccountActive(UUID accountId) {
+        UserResponse user = getAccountInfo(accountId);
+        //not been banned or already end banned
+        return user.banned_until() == null
+                || user.banned_until().isBefore(OffsetDateTime.now());
+    }
+
 
 }
