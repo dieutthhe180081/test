@@ -1,6 +1,10 @@
 package com.sep490.g28.hvh.be.controller;
 
-import com.sep490.g28.hvh.be.dto.organization.*;
+import com.sep490.g28.hvh.be.dto.organization.request.OrganizationRegistrationVerifyRequest;
+import com.sep490.g28.hvh.be.dto.organization.request.RegisterOrganizationRequest;
+import com.sep490.g28.hvh.be.dto.organization.response.OrganizationRegistrationDetailsResponse;
+import com.sep490.g28.hvh.be.dto.organization.response.OrganizationRegistrationSimpleResponse;
+import com.sep490.g28.hvh.be.dto.organization.response.RegisterOrganizationResponse;
 import com.sep490.g28.hvh.be.service.OrganizationService;
 import com.sep490.g28.hvh.be.validation.OrganizationRegistrationStatus;
 import jakarta.validation.Valid;

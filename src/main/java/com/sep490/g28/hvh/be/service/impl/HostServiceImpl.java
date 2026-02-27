@@ -1,4 +1,4 @@
-package com.sep490.g28.hvh.be.service;
+package com.sep490.g28.hvh.be.service.impl;
 
 import com.sep490.g28.hvh.be.auth.CurrentUserProvider;
 import com.sep490.g28.hvh.be.constant.ERole;
@@ -12,6 +12,7 @@ import com.sep490.g28.hvh.be.integration.email.EmailService;
 import com.sep490.g28.hvh.be.repository.HostRepository;
 import com.sep490.g28.hvh.be.repository.OrganizationManagerRepository;
 import com.sep490.g28.hvh.be.repository.UserRepository;
+import com.sep490.g28.hvh.be.service.HostService;
 import com.sep490.g28.hvh.be.util.RandomStringUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,7 @@ import static com.sep490.g28.hvh.be.util.StringNormalizeUtil.normalizeVietnamese
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class HostServiceImpl implements HostService{
+public class HostServiceImpl implements HostService {
     HostRepository hostRepository;
     OrganizationManagerRepository organizationManagerRepository;
     UserRepository userRepository;

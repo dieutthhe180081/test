@@ -1,10 +1,7 @@
-package com.sep490.g28.hvh.be.dto.organization;
+package com.sep490.g28.hvh.be.dto.organization.response;
 
 import com.sep490.g28.hvh.be.constant.EOrgRegistrationStatus;
 import com.sep490.g28.hvh.be.constant.EOrgType;
-import com.sep490.g28.hvh.be.entity.Organization;
-import com.sep490.g28.hvh.be.entity.OrganizationManager;
-import com.sep490.g28.hvh.be.entity.SystemAdmin;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

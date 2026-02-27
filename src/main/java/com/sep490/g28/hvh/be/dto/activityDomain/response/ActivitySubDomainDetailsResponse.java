@@ -1,4 +1,4 @@
-package com.sep490.g28.hvh.be.dto.activityDomain;
+package com.sep490.g28.hvh.be.dto.activityDomain.response;
 
 import com.sep490.g28.hvh.be.entity.ActivitySubDomain;
 import lombok.AllArgsConstructor;

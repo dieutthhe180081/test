@@ -1,10 +1,14 @@
-package com.sep490.g28.hvh.be.service;
+package com.sep490.g28.hvh.be.service.impl;
 
 import com.sep490.g28.hvh.be.auth.CurrentUserProvider;
 import com.sep490.g28.hvh.be.constant.EOrgRegistrationStatus;
 import com.sep490.g28.hvh.be.constant.EOrgType;
 import com.sep490.g28.hvh.be.constant.ERole;
-import com.sep490.g28.hvh.be.dto.organization.*;
+import com.sep490.g28.hvh.be.dto.organization.request.OrganizationRegistrationVerifyRequest;
+import com.sep490.g28.hvh.be.dto.organization.request.RegisterOrganizationRequest;
+import com.sep490.g28.hvh.be.dto.organization.response.OrganizationRegistrationDetailsResponse;
+import com.sep490.g28.hvh.be.dto.organization.response.OrganizationRegistrationSimpleResponse;
+import com.sep490.g28.hvh.be.dto.organization.response.RegisterOrganizationResponse;
 import com.sep490.g28.hvh.be.entity.Organization;
 import com.sep490.g28.hvh.be.entity.OrganizationManager;
 import com.sep490.g28.hvh.be.entity.OrganizationRegistration;
@@ -17,6 +21,7 @@ import com.sep490.g28.hvh.be.integration.email.EmailService;
 import com.sep490.g28.hvh.be.integration.storage.StoragePathGenerator;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
 import com.sep490.g28.hvh.be.repository.*;
+import com.sep490.g28.hvh.be.service.OrganizationService;
 import com.sep490.g28.hvh.be.util.RandomStringUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

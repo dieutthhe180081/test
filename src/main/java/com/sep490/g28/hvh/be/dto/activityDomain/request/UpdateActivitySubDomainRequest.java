@@ -1,4 +1,4 @@
-package com.sep490.g28.hvh.be.dto.activityDomain;
+package com.sep490.g28.hvh.be.dto.activityDomain.request;
 
 import com.sep490.g28.hvh.be.validation.RequiredField;
 import com.sep490.g28.hvh.be.validation.SubdomainUpdate;

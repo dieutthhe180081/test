@@ -1,4 +1,4 @@
-package com.sep490.g28.hvh.be.dto.organization;
+package com.sep490.g28.hvh.be.dto.organization.response;
 
 import com.sep490.g28.hvh.be.constant.EOrgType;
 import com.sep490.g28.hvh.be.entity.OrganizationRegistration;

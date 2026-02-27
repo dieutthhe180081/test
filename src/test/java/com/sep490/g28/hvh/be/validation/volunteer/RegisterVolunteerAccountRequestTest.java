@@ -1,6 +1,6 @@
 package com.sep490.g28.hvh.be.validation.volunteer;
 
-import com.sep490.g28.hvh.be.dto.volunteer.RegisterVolunteerAccountRequest;
+import com.sep490.g28.hvh.be.dto.volunteer.request.RegisterVolunteerAccountRequest;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.ValidationErrorCode;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;

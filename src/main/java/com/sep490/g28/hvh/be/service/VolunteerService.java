@@ -1,6 +1,10 @@
 package com.sep490.g28.hvh.be.service;
 
-import com.sep490.g28.hvh.be.dto.volunteer.*;
+import com.sep490.g28.hvh.be.dto.volunteer.request.RegisterVolunteerAccountRequest;
+import com.sep490.g28.hvh.be.dto.volunteer.request.VolunteerRegistrationVerifyRequest;
+import com.sep490.g28.hvh.be.dto.volunteer.response.RegisterVolunteerAccountResponse;
+import com.sep490.g28.hvh.be.dto.volunteer.response.VolunteerRegistrationDetailsResponse;
+import com.sep490.g28.hvh.be.dto.volunteer.response.VolunteerRegistrationSimpleResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import org.springframework.data.domain.Page;

@@ -1,4 +1,4 @@
-package com.sep490.g28.hvh.be.dto.volunteer;
+package com.sep490.g28.hvh.be.dto.volunteer.request;
 
 import com.sep490.g28.hvh.be.validation.ImageFileExtension;
 import jakarta.validation.constraints.Email;

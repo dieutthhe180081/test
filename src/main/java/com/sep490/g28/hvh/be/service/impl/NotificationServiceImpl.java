@@ -1,8 +1,7 @@
-package com.sep490.g28.hvh.be.service;
+package com.sep490.g28.hvh.be.service.impl;
 
 import com.sep490.g28.hvh.be.auth.CurrentUserProvider;
 import com.sep490.g28.hvh.be.constant.ERole;
-import com.sep490.g28.hvh.be.entity.Organization;
 import com.sep490.g28.hvh.be.notification.dto.NotificationPayload;
 import com.sep490.g28.hvh.be.notification.entity.NotificationToken;
 import com.sep490.g28.hvh.be.notification.repository.NotificationTokenRepository;
@@ -10,6 +9,7 @@ import com.sep490.g28.hvh.be.notification.dto.RegisterNotificationTokenRequest;
 import com.sep490.g28.hvh.be.notification.sender.PushNotificationClient;
 import com.sep490.g28.hvh.be.repository.HostRepository;
 import com.sep490.g28.hvh.be.repository.OrganizationManagerRepository;
+import com.sep490.g28.hvh.be.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

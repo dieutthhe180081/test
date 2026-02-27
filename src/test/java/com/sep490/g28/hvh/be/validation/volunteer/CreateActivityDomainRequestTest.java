@@ -1,6 +1,6 @@
 package com.sep490.g28.hvh.be.validation.volunteer;
 
-import com.sep490.g28.hvh.be.dto.activityDomain.CreateActivityDomainRequest;
+import com.sep490.g28.hvh.be.dto.activityDomain.request.CreateActivityDomainRequest;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.ValidationErrorCode;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;

@@ -1,4 +1,4 @@
-package com.sep490.g28.hvh.be.dto.volunteer;
+package com.sep490.g28.hvh.be.dto.volunteer.response;
 
 import com.sep490.g28.hvh.be.constant.EVolunteerVerificationStatus;
 import lombok.AllArgsConstructor;

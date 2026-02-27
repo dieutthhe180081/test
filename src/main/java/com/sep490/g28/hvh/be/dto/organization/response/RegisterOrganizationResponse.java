@@ -1,4 +1,4 @@
-package com.sep490.g28.hvh.be.dto.organization;
+package com.sep490.g28.hvh.be.dto.organization.response;
 
 import lombok.Builder;
 import lombok.Getter;

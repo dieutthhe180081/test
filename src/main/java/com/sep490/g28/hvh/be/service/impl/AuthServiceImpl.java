@@ -1,4 +1,4 @@
-package com.sep490.g28.hvh.be.service;
+package com.sep490.g28.hvh.be.service.impl;
 
 import com.sep490.g28.hvh.be.dto.auth.ForgotPasswordRequest;
 import com.sep490.g28.hvh.be.entity.User;
@@ -8,6 +8,7 @@ import com.sep490.g28.hvh.be.integration.authServer.AuthClient;
 import com.sep490.g28.hvh.be.integration.cache.OtpService;
 import com.sep490.g28.hvh.be.integration.email.EmailService;
 import com.sep490.g28.hvh.be.repository.UserRepository;
+import com.sep490.g28.hvh.be.service.AuthService;
 import com.sep490.g28.hvh.be.util.RandomStringUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

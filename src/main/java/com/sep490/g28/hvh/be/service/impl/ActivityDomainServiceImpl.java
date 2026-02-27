@@ -1,12 +1,14 @@
-package com.sep490.g28.hvh.be.service;
+package com.sep490.g28.hvh.be.service.impl;
 
-import com.sep490.g28.hvh.be.dto.activityDomain.*;
+import com.sep490.g28.hvh.be.dto.activityDomain.request.*;
+import com.sep490.g28.hvh.be.dto.activityDomain.response.ActivityDomainDetailsResponse;
 import com.sep490.g28.hvh.be.entity.ActivityDomain;
 import com.sep490.g28.hvh.be.entity.ActivitySubDomain;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.ActivityDomainErrorCode;
 import com.sep490.g28.hvh.be.repository.ActivityDomainRepository;
 import com.sep490.g28.hvh.be.repository.ActivitySubDomainRepository;
+import com.sep490.g28.hvh.be.service.ActivityDomainService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class ActivityDomainServiceImpl implements ActivityDomainService{
+public class ActivityDomainServiceImpl implements ActivityDomainService {
 
     ActivityDomainRepository activityDomainRepository;
     ActivitySubDomainRepository activitySubDomainRepository;

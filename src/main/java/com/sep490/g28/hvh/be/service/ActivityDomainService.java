@@ -1,10 +1,11 @@
 package com.sep490.g28.hvh.be.service;
 
-import com.sep490.g28.hvh.be.dto.activityDomain.*;
-import jakarta.validation.constraints.Email;
+import com.sep490.g28.hvh.be.dto.activityDomain.request.ChangeActivityDomainVisibilityRequest;
+import com.sep490.g28.hvh.be.dto.activityDomain.request.ChangeActivitySubDomainVisibilityRequest;
+import com.sep490.g28.hvh.be.dto.activityDomain.request.CreateActivityDomainRequest;
+import com.sep490.g28.hvh.be.dto.activityDomain.request.UpdateActivityDomainRequest;
+import com.sep490.g28.hvh.be.dto.activityDomain.response.ActivityDomainDetailsResponse;
 import org.springframework.data.domain.Page;
-
-import java.util.UUID;
 
 public interface ActivityDomainService {
 

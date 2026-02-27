@@ -1,9 +1,8 @@
 package com.sep490.g28.hvh.be.controller;
 
 import com.sep490.g28.hvh.be.auth.CurrentUserProvider;
-import com.sep490.g28.hvh.be.dto.organization.RegisterOrganizationRequest;
-import com.sep490.g28.hvh.be.dto.organization.RegisterOrganizationResponse;
-import com.sep490.g28.hvh.be.dto.volunteer.RegisterVolunteerAccountRequest;
+import com.sep490.g28.hvh.be.dto.organization.request.RegisterOrganizationRequest;
+import com.sep490.g28.hvh.be.dto.organization.response.RegisterOrganizationResponse;
 import com.sep490.g28.hvh.be.integration.cache.OtpService;
 import com.sep490.g28.hvh.be.service.OrganizationService;
 import jakarta.validation.Valid;

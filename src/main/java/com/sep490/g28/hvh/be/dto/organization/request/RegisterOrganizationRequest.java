@@ -1,4 +1,4 @@
-package com.sep490.g28.hvh.be.dto.organization;
+package com.sep490.g28.hvh.be.dto.organization.request;
 
 import com.sep490.g28.hvh.be.validation.AllowedFileExtension;
 import com.sep490.g28.hvh.be.validation.ImageFileExtension;
