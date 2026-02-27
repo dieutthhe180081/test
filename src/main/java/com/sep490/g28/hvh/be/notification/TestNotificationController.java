@@ -1,24 +1,24 @@
-package com.sep490.g28.hvh.be.controller;
+package com.sep490.g28.hvh.be.notification;
 
-import com.sep490.g28.hvh.be.auth.CurrentUserProvider;
-//import com.sep490.g28.hvh.be.notification.dto.RegisterTokenRequest;
 import com.sep490.g28.hvh.be.notification.dto.NotificationPayload;
 import com.sep490.g28.hvh.be.notification.dto.SendPushRequest;
 import com.sep490.g28.hvh.be.notification.sender.PushNotificationClient;
-import com.sep490.g28.hvh.be.notification.service.NotificationService;
+import com.sep490.g28.hvh.be.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Controller for notification
+ * Test controller for notification
  */
 @RestController
 @RequestMapping("/test/notification")
 @RequiredArgsConstructor
 public class TestNotificationController {
 
+    //todo delete this class after finish
     private final PushNotificationClient pushNotificationClient;
+    private final NotificationService notificationService;
 
     @PostMapping("/send")
     public ResponseEntity<Void> send(@RequestBody SendPushRequest request) {
