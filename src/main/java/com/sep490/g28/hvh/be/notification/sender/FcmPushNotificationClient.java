@@ -2,14 +2,13 @@ package com.sep490.g28.hvh.be.notification.sender;
 
 import com.google.firebase.messaging.*;
 import com.sep490.g28.hvh.be.notification.dto.NotificationPayload;
-import com.sep490.g28.hvh.be.notification.repository.NotificationTokenRepository;
+import com.sep490.g28.hvh.be.notification.service.NotificationTokenTxService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,8 +33,8 @@ import java.util.Map;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 public class FcmPushNotificationClient implements PushNotificationClient {
-    NotificationTokenRepository tokenRepository;
 
+    NotificationTokenTxService notificationTokenTxService;
     /** FCM maximum number of tokens per multicast request. */
     private static final int BATCH_SIZE = 500;
 
@@ -59,7 +58,7 @@ public class FcmPushNotificationClient implements PushNotificationClient {
                 // token dead
                 case UNREGISTERED, SENDER_ID_MISMATCH:
                     if (token != null && !token.isBlank()) {
-                        tokenRepository.deleteByToken(token);
+                        notificationTokenTxService.deleteToken(token);
                         log.warn("FCM token removed: {} ({})", token, code);
                     }
                     break;
@@ -67,7 +66,7 @@ public class FcmPushNotificationClient implements PushNotificationClient {
                 // invalid token/payload
                 case INVALID_ARGUMENT:
                     if (token != null && !token.isBlank()) {
-                        tokenRepository.deleteByToken(token);
+                        notificationTokenTxService.deleteToken(token);
                         log.warn("Invalid FCM token/payload, removed: {}", token);
                     }
                     break;
@@ -180,7 +179,8 @@ public class FcmPushNotificationClient implements PushNotificationClient {
                 //has some messages sent fail, delete respective tokens
                 if (response.getFailureCount() > 0) {
                     List<String> invalidTokens = getInvalidTokens(tokens, response);
-                    tokenRepository.deleteByTokenIn(invalidTokens);
+                    notificationTokenTxService.deleteInvalidTokens(invalidTokens);
+                    log.warn("Delete invalid tokens: {}", invalidTokens);
                 }
 
             } catch (FirebaseMessagingException e) {
