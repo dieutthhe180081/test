@@ -1,9 +1,17 @@
 package com.sep490.g28.hvh.be.constant;
 
 public enum EEventStatus {
-    //todo finish this
-    DRAFT, //Bản nháp
+    EDITING,
+    DRAFTED, //Bản nháp
     SUBMITTED,
-
-
+    CREATED,
+    APPROVED_BY_MNG,
+    REJECTED_BY_MNG,
+    REJECTED_BY_AD,
+    RECRUITING,
+    UPCOMING,
+    ONGOING,
+    ENDED,
+    FINISHED,
+    CANCELLED,
 }
