@@ -12,9 +12,26 @@ import java.util.UUID;
 
 public interface NotificationTokenRepository extends JpaRepository<NotificationToken, UUID> {
 
+    @Query(
+            value = """
+                      select *
+                      from notification_tokens
+                      where user_id = :userId
+                        and platform = :platform
+                        and device_id = :deviceId
+                    """,
+            nativeQuery = true
+    )
     Optional<NotificationToken> findByUserIdAndPlatformAndDeviceId(UUID userId, EPlatform platform, String deviceId);
 
-    @Query("select nt.token from NotificationToken nt where nt.userId = :userId")
+    @Query(
+            value = """
+                      select token
+                      from notification_tokens
+                      where user_id = :userId
+                    """,
+            nativeQuery = true
+    )
     List<String> findTokensByUserId(@Param("userId") UUID userId);
 
     void deleteByToken(String token);

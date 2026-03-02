@@ -14,7 +14,7 @@ import java.util.UUID;
  * Notification token of user and device save in db
  */
 @Entity
-@Table(name = "notification_token")
+@Table(name = "notification_tokens")
 @Getter
 @Setter
 @NoArgsConstructor

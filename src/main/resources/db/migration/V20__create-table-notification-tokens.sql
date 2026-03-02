@@ -1,4 +1,4 @@
-CREATE TABLE notification_token
+CREATE TABLE notification_tokens
 (
     id        UUID         NOT NULL,
     user_id   UUID,
@@ -9,5 +9,5 @@ CREATE TABLE notification_token
     CONSTRAINT pk_notification_token PRIMARY KEY (id)
 );
 
-ALTER TABLE notification_token
+ALTER TABLE notification_tokens
     ADD CONSTRAINT uc_notification_token_token UNIQUE (token);

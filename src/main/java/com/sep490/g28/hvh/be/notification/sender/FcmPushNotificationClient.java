@@ -1,7 +1,7 @@
 package com.sep490.g28.hvh.be.notification.sender;
 
 import com.google.firebase.messaging.*;
-import com.sep490.g28.hvh.be.notification.dto.NotificationPayload;
+import com.sep490.g28.hvh.be.notification.repository.NotificationTokenRepository;
 import com.sep490.g28.hvh.be.notification.service.NotificationTokenTxService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -37,6 +38,7 @@ public class FcmPushNotificationClient implements PushNotificationClient {
     NotificationTokenTxService notificationTokenTxService;
     /** FCM maximum number of tokens per multicast request. */
     private static final int BATCH_SIZE = 500;
+    private final NotificationTokenRepository notificationTokenRepository;
 
     /**
      * Centralized handler for Firebase messaging exceptions.
@@ -91,40 +93,6 @@ public class FcmPushNotificationClient implements PushNotificationClient {
             }
     }
 
-    /**
-     * Asynchronously send a notification to a single device token.
-     *
-     * <p>Uses FCM {@link Message} with both notification and data payload.</p>
-     *
-     * @param token   target device token
-     * @param payload notification content and custom data
-     */
-    @Async("pushExecutor")
-    @Override
-    public void sendToToken(String token, NotificationPayload payload) {
-        Message msg = Message.builder()
-                .setToken(token)
-                .setNotification(
-                        Notification.builder()
-                                .setTitle(payload.getTitle())
-                                .setBody(payload.getBody())
-                                .build()
-                )
-//                .putData("ACTION", "test")
-//                .putAllData(payload.getData())
-                .putAllData(
-                        payload.getData() == null ? Map.of() : payload.getData()
-                )
-                .build();
-        try {
-            //send message
-            String msgId = FirebaseMessaging.getInstance().send(msg);
-            log.info("Send message to token={} id={}", token, msgId);
-        } catch (FirebaseMessagingException e) {
-            log.error("FCM send to token failed,  token={}", token);
-            handleFirebaseMessagingException(e, token);
-        }
-    }
 
     /**
      * Send a notification to multiple device tokens asynchronously.
@@ -136,12 +104,13 @@ public class FcmPushNotificationClient implements PushNotificationClient {
      * tokens (UNREGISTERED, INVALID_ARGUMENT, SENDER_ID_MISMATCH) are removed
      * from the database.</p>
      *
-     * @param tokens  list of target device tokens
-     * @param payload notification content and custom data
+     * @param notification notification content and custom data
      */
-    @Async("pushExecutor")
     @Override
-    public void sendMulticast(List<String> tokens, NotificationPayload payload) {
+    @Async("pushExecutor")
+    public void sendMulticast(com.sep490.g28.hvh.be.notification.entity.Notification notification) {
+        if (notification.getUser() == null) return;
+        List<String> tokens = notificationTokenRepository.findTokensByUserId(notification.getUser().getId());
         //check tokens list
         if (tokens == null || tokens.isEmpty()) {
             return;
@@ -156,12 +125,12 @@ public class FcmPushNotificationClient implements PushNotificationClient {
                     .addAllTokens(batch)
                     .setNotification(
                             Notification.builder()
-                                    .setTitle(payload.getTitle())
-                                    .setBody(payload.getBody())
+                                    .setTitle(notification.getTitle())
+                                    .setBody(notification.getBody())
                                     .build()
                     )
                     .putAllData(
-                            payload.getData() == null ? Map.of() : payload.getData()
+                            notification.getData() == null ? Map.of() : notification.getData()
                     )
                     .build();
 
@@ -171,7 +140,8 @@ public class FcmPushNotificationClient implements PushNotificationClient {
                         FirebaseMessaging.getInstance().sendEachForMulticast(message);
 
                 log.info(
-                        "Sent multicast: success={}, failure={}",
+                        "Sent multicast: notificationId={}, success={}, failure={}",
+                        notification.getId(),
                         response.getSuccessCount(),
                         response.getFailureCount()
                 );
@@ -184,7 +154,7 @@ public class FcmPushNotificationClient implements PushNotificationClient {
                 }
 
             } catch (FirebaseMessagingException e) {
-                log.error("FCM send multicast failed");
+                log.error("FCM send multicast failed: notificationId={}", notification.getId(), e);
                 handleFirebaseMessagingException(e, null);
             }
         }
@@ -218,6 +188,44 @@ public class FcmPushNotificationClient implements PushNotificationClient {
     }
 
     /**
+     * Asynchronously send a notification to all devices subscribed to a topic.
+     *
+     * @param notification notification content and custom data
+     */
+    @Override
+    @Async("pushExecutor")
+    public void sendToTopic(com.sep490.g28.hvh.be.notification.entity.Notification notification) {
+        if (notification.getTopic() == null) return;
+        Message msg = Message.builder()
+                .setTopic(notification.getTopic())
+                .setNotification(
+                        Notification.builder()
+                                .setTitle(notification.getTitle())
+                                .setBody(notification.getBody())
+                                .build()
+                )
+                .putAllData(
+                        notification.getData() == null ? Map.of() : notification.getData()
+                )
+                .build();
+        try {
+            String msgId = FirebaseMessaging.getInstance().send(msg);
+            log.info("Send message to topic={}, notificationId={}, msgId={}",
+                    notification.getTopic(),
+                    notification.getId(),
+                    msgId
+            );
+        } catch (FirebaseMessagingException e) {
+            log.error("FCM send to topic failed: topic={}, notificationId={}",
+                    notification.getId(),
+                    notification.getTopic(),
+                    e
+            );
+            handleFirebaseMessagingException(e, null);
+        }
+    }
+
+    /**
      * Asynchronously subscribe a device token to a Firebase topic.
      *
      * @param token device token
@@ -232,6 +240,23 @@ public class FcmPushNotificationClient implements PushNotificationClient {
             log.info("Subscribe to topic={} to token={}", topic, token);
         } catch (FirebaseMessagingException e) {
             log.error("FCM subscribe failed, topic={} to token={}", topic, token);
+            handleFirebaseMessagingException(e, null);
+        }
+    }
+
+    @Override
+    @Async("pushExecutor")
+    public void subscribeToTopics(String token, Collection<String> topics) {
+        if (token == null || topics == null || topics.isEmpty()) return;
+
+        try {
+            for (String topic : topics) {
+                FirebaseMessaging.getInstance()
+                        .subscribeToTopic(List.of(token), topic);
+            }
+            log.info("Subscribed token={} to topics={}", token, topics);
+        } catch (FirebaseMessagingException e) {
+            log.error("FCM subscribe failed token={} topics={}", token, topics, e);
             handleFirebaseMessagingException(e, null);
         }
     }
@@ -255,32 +280,19 @@ public class FcmPushNotificationClient implements PushNotificationClient {
         }
     }
 
-    /**
-     * Asynchronously send a notification to all devices subscribed to a topic.
-     *
-     * @param topic   topic name
-     * @param payload notification content and custom data
-     */
     @Override
     @Async("pushExecutor")
-    public void sendToTopic(String topic, NotificationPayload payload) {
-        Message msg = Message.builder()
-                .setTopic(topic)
-                .setNotification(
-                        Notification.builder()
-                                .setTitle(payload.getTitle())
-                                .setBody(payload.getBody())
-                                .build()
-                )
-                .putAllData(
-                        payload.getData() == null ? Map.of() : payload.getData()
-                )
-                .build();
+    public void unsubscribeFromTopics(String token, Collection<String> topics) {
+        if (token == null || topics == null || topics.isEmpty()) return;
+
         try {
-            String msgId = FirebaseMessaging.getInstance().send(msg);
-            log.info("Send message to topic={} id={}", topic, msgId);
+            for (String topic : topics) {
+                FirebaseMessaging.getInstance()
+                        .unsubscribeFromTopic(List.of(token), topic);
+            }
+            log.info("Unsubscribed token={} from topics={}", token, topics);
         } catch (FirebaseMessagingException e) {
-            log.error("FCM send to topic failed, topic={}", topic);
+            log.error("FCM unsubscribe failed token={} topics={}", token, topics, e);
             handleFirebaseMessagingException(e, null);
         }
     }
