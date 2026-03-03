@@ -1,6 +1,8 @@
 package com.sep490.g28.hvh.be.notification.sender;
 
 import com.google.firebase.messaging.*;
+import com.sep490.g28.hvh.be.notification.constant.EFcmFailureType;
+import com.sep490.g28.hvh.be.notification.exception.NonRetryableFcmException;
 import com.sep490.g28.hvh.be.notification.repository.NotificationTokenRepository;
 import com.sep490.g28.hvh.be.notification.service.NotificationTokenTxService;
 import lombok.AccessLevel;
@@ -16,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Firebase Cloud Messaging (FCM) implementation of {@link PushNotificationClient}.
+ * Firebase Cloud Messaging (FCM) implementation of {@link PushNotificationSender}.
  *
  * <p>Handles sending notifications to tokens, multicast batches,
  * and topics using the Firebase Admin SDK.</p>
@@ -33,66 +35,34 @@ import java.util.Map;
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
-public class FcmPushNotificationClient implements PushNotificationClient {
+public class FcmPushNotificationSender implements PushNotificationSender {
 
     NotificationTokenTxService notificationTokenTxService;
     /** FCM maximum number of tokens per multicast request. */
     private static final int BATCH_SIZE = 500;
     private final NotificationTokenRepository notificationTokenRepository;
 
-    /**
-     * Centralized handler for Firebase messaging exceptions.
-     *
-     * <p>Depending on the error code, this method may:</p>
-     * <ul>
-     *   <li>Remove invalid/unregistered tokens from the database</li>
-     *   <li>Log configuration or authentication issues</li>
-     *   <li>Indicate retryable or quota-related errors</li>
-     * </ul>
-     *
-     * @param e     Firebase messaging exception
-     * @param token related device token (nullable)
-     */
-    public void handleFirebaseMessagingException(FirebaseMessagingException e, String token) {
+    public EFcmFailureType classifyFcmFailureType(FirebaseMessagingException e, String token) {
+
         MessagingErrorCode code = e.getMessagingErrorCode();
 
-            switch (code) {
-                // token dead
-                case UNREGISTERED, SENDER_ID_MISMATCH:
-                    if (token != null && !token.isBlank()) {
-                        notificationTokenTxService.deleteToken(token);
-                        log.warn("FCM token removed: {} ({})", token, code);
-                    }
-                    break;
-
-                // invalid token/payload
-                case INVALID_ARGUMENT:
-                    if (token != null && !token.isBlank()) {
-                        notificationTokenTxService.deleteToken(token);
-                        log.warn("Invalid FCM token/payload, removed: {}", token);
-                    }
-                    break;
-
-                // invalid auth/config
-                case THIRD_PARTY_AUTH_ERROR:
-                    log.error("FCM auth/config error (service account, senderId)", e);
-                    break;
-
-                // temporal error
-                case UNAVAILABLE, INTERNAL:
-                    log.warn("FCM temporary error, should retry: {}", code);
-                    break;
-
-                // rate/quota
-                case QUOTA_EXCEEDED:
-                    log.warn("FCM quota exceeded, backoff required");
-                    break;
-
-                default:
-                    log.error("Unhandled FCM error code: {}", code, e);
+        return switch (code) {
+            //token dead, invalid token/payload
+            case UNREGISTERED, SENDER_ID_MISMATCH, INVALID_ARGUMENT -> {
+                if (token != null && !token.isBlank()) {
+                    notificationTokenTxService.deleteToken(token);
+                }
+                yield EFcmFailureType.NON_RETRYABLE;
             }
+            // temporal error, rate/quota
+            case UNAVAILABLE, INTERNAL, QUOTA_EXCEEDED -> EFcmFailureType.RETRYABLE;
+            // invalid auth/config
+            case THIRD_PARTY_AUTH_ERROR -> {
+                log.error("FCM auth/config error");
+                yield EFcmFailureType.NON_RETRYABLE;
+            }
+        };
     }
-
 
     /**
      * Send a notification to multiple device tokens asynchronously.
@@ -109,7 +79,6 @@ public class FcmPushNotificationClient implements PushNotificationClient {
     @Override
     @Async("pushExecutor")
     public void sendMulticast(com.sep490.g28.hvh.be.notification.entity.Notification notification) {
-        if (notification.getUser() == null) return;
         List<String> tokens = notificationTokenRepository.findTokensByUserId(notification.getUser().getId());
         //check tokens list
         if (tokens == null || tokens.isEmpty()) {
@@ -155,7 +124,13 @@ public class FcmPushNotificationClient implements PushNotificationClient {
 
             } catch (FirebaseMessagingException e) {
                 log.error("FCM send multicast failed: notificationId={}", notification.getId(), e);
-                handleFirebaseMessagingException(e, null);
+                EFcmFailureType type = classifyFcmFailureType(e, null);
+
+                if (type == EFcmFailureType.RETRYABLE) {
+                    throw new RuntimeException("FCM_RETRYABLE");
+                } else {
+                    throw new NonRetryableFcmException("FCM_NON_RETRYABLE");
+                }
             }
         }
     }
@@ -195,7 +170,6 @@ public class FcmPushNotificationClient implements PushNotificationClient {
     @Override
     @Async("pushExecutor")
     public void sendToTopic(com.sep490.g28.hvh.be.notification.entity.Notification notification) {
-        if (notification.getTopic() == null) return;
         Message msg = Message.builder()
                 .setTopic(notification.getTopic())
                 .setNotification(
@@ -221,26 +195,13 @@ public class FcmPushNotificationClient implements PushNotificationClient {
                     notification.getTopic(),
                     e
             );
-            handleFirebaseMessagingException(e, null);
-        }
-    }
+            EFcmFailureType type = classifyFcmFailureType(e, null);
 
-    /**
-     * Asynchronously subscribe a device token to a Firebase topic.
-     *
-     * @param token device token
-     * @param topic topic name
-     */
-    @Override
-    @Async("pushExecutor")
-    public void subscribeToTopic(String token, String topic) {
-        try {
-        FirebaseMessaging.getInstance()
-                .subscribeToTopic(List.of(token), topic);
-            log.info("Subscribe to topic={} to token={}", topic, token);
-        } catch (FirebaseMessagingException e) {
-            log.error("FCM subscribe failed, topic={} to token={}", topic, token);
-            handleFirebaseMessagingException(e, null);
+            if (type == EFcmFailureType.RETRYABLE) {
+                throw new RuntimeException("FCM_RETRYABLE");
+            } else {
+                throw new NonRetryableFcmException("FCM_NON_RETRYABLE");
+            }
         }
     }
 
@@ -257,26 +218,13 @@ public class FcmPushNotificationClient implements PushNotificationClient {
             log.info("Subscribed token={} to topics={}", token, topics);
         } catch (FirebaseMessagingException e) {
             log.error("FCM subscribe failed token={} topics={}", token, topics, e);
-            handleFirebaseMessagingException(e, null);
-        }
-    }
+            EFcmFailureType type = classifyFcmFailureType(e, null);
 
-    /**
-     * Asynchronously unsubscribe a device token from a Firebase topic.
-     *
-     * @param token device token
-     * @param topic topic name
-     */
-    @Override
-    @Async("pushExecutor")
-    public void unsubscribeFromTopic(String token, String topic) {
-        try {
-            FirebaseMessaging.getInstance()
-                    .unsubscribeFromTopic(List.of(token), topic);
-            log.info("Unsubscribe to topic={} to token={}", topic, token);
-        } catch (FirebaseMessagingException e) {
-            log.error("FCM unsubscribe failed, topic={} to token={}", topic, token);
-            handleFirebaseMessagingException(e, null);
+            if (type == EFcmFailureType.RETRYABLE) {
+                throw new RuntimeException("FCM_RETRYABLE");
+            } else {
+                throw new NonRetryableFcmException("FCM_NON_RETRYABLE");
+            }
         }
     }
 
@@ -293,7 +241,13 @@ public class FcmPushNotificationClient implements PushNotificationClient {
             log.info("Unsubscribed token={} from topics={}", token, topics);
         } catch (FirebaseMessagingException e) {
             log.error("FCM unsubscribe failed token={} topics={}", token, topics, e);
-            handleFirebaseMessagingException(e, null);
+            EFcmFailureType type = classifyFcmFailureType(e, null);
+
+            if (type == EFcmFailureType.RETRYABLE) {
+                throw new RuntimeException("FCM_RETRYABLE");
+            } else {
+                throw new NonRetryableFcmException("FCM_NON_RETRYABLE");
+            }
         }
     }
 }

@@ -1,6 +1,6 @@
 package com.sep490.g28.hvh.be.notification;
 
-import com.sep490.g28.hvh.be.notification.sender.PushNotificationClient;
+import com.sep490.g28.hvh.be.notification.sender.PushNotificationSender;
 import com.sep490.g28.hvh.be.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 public class TestNotificationController {
 
     //todo delete this class after finish
-    private final PushNotificationClient pushNotificationClient;
+    private final PushNotificationSender pushNotificationSender;
     private final NotificationService notificationService;
 
 //    @PostMapping("/send")
@@ -38,24 +38,24 @@ public class TestNotificationController {
 //        return ResponseEntity.ok().build();
 //    }
 
-    @PostMapping("/subscribe-topic")
-    public ResponseEntity<Void> subscribeTopic(
-            @RequestParam String token,
-            @RequestParam String topic
-            ) {
-        pushNotificationClient.subscribeToTopic(token, topic);
+//    @PostMapping("/subscribe-topic")
+//    public ResponseEntity<Void> subscribeTopic(
+//            @RequestParam String token,
+//            @RequestParam String topic
+//            ) {
+//        pushNotificationSender.subscribeToTopic(token, topic);
+//
+//        return ResponseEntity.ok().build();
+//    }
 
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/unsubscribe-topic")
-    public ResponseEntity<Void> unsubscribeTopic(
-            @RequestParam String token,
-            @RequestParam String topic
-    ) {
-        pushNotificationClient.unsubscribeFromTopic(token, topic);
-        return ResponseEntity.ok().build();
-    }
+//    @PostMapping("/unsubscribe-topic")
+//    public ResponseEntity<Void> unsubscribeTopic(
+//            @RequestParam String token,
+//            @RequestParam String topic
+//    ) {
+//        pushNotificationSender.unsubscribeFromTopic(token, topic);
+//        return ResponseEntity.ok().build();
+//    }
 
 //    @PostMapping("/send-topic")
 //    public ResponseEntity<Void> send(

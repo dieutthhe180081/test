@@ -20,6 +20,7 @@ import java.util.UUID;
 @Table(name = "notifications")
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)

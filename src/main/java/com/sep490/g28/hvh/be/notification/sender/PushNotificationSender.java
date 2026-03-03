@@ -10,7 +10,7 @@ import java.util.Collection;
  * <p>Implementations are responsible for handling provider-specific
  * details (e.g. Firebase Cloud Messaging).</p>
  */
-public interface PushNotificationClient {
+public interface PushNotificationSender {
 
     /**
      * Send a notification to multiple device tokens.
@@ -30,28 +30,12 @@ public interface PushNotificationClient {
     void sendToTopic(Notification notification);
 
     /**
-     * Subscribe a device token to a topic.
-     *
-     * @param token device token
-     * @param topic topic's name
-     */
-    void subscribeToTopic(String token, String topic);
-
-    /**
      * Subscribe a device token to multiple topics.
      *
      * @param token device token
      * @param topics topics' name
      */
     void subscribeToTopics(String token, Collection<String> topics);
-
-    /**
-     * Unsubscribe a device token from a topic.
-     *
-     * @param token device token
-     * @param topic topic's name
-     */
-    void unsubscribeFromTopic(String token, String topic);
 
     /**
      * Unsubscribe a device token to multiple topics.

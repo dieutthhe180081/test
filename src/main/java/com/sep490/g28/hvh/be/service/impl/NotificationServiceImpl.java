@@ -6,13 +6,12 @@ import com.sep490.g28.hvh.be.entity.Event;
 import com.sep490.g28.hvh.be.entity.User;
 import com.sep490.g28.hvh.be.notification.entity.Notification;
 import com.sep490.g28.hvh.be.notification.entity.NotificationToken;
+import com.sep490.g28.hvh.be.notification.messageque.NotificationPublisher;
 import com.sep490.g28.hvh.be.notification.repository.NotificationRepository;
 import com.sep490.g28.hvh.be.notification.repository.NotificationTokenRepository;
 import com.sep490.g28.hvh.be.notification.dto.RegisterNotificationTokenRequest;
 import com.sep490.g28.hvh.be.notification.repository.NotificationTopicSubscriptionRepository;
-import com.sep490.g28.hvh.be.notification.sender.PushNotificationClient;
 import com.sep490.g28.hvh.be.notification.service.NotificationTokenTxService;
-import com.sep490.g28.hvh.be.repository.OrganizationManagerRepository;
 import com.sep490.g28.hvh.be.repository.UserRepository;
 import com.sep490.g28.hvh.be.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -27,13 +26,16 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class NotificationServiceImpl implements NotificationService {
+    private final UserRepository userRepository;
     private final NotificationTokenRepository notificationTokenRepository;
-    private final OrganizationManagerRepository organizationManagerRepository;
+    private final NotificationRepository notificationRepository;
+    private final NotificationTopicSubscriptionRepository notificationTopicSubscriptionRepository;
 
-    private final PushNotificationClient pushNotificationClient;
     private final CurrentUserProvider currentUserProvider;
 
     private final NotificationTokenTxService notificationTokenTxService;
+
+    private final NotificationPublisher notificationPublisher;
 
     private static final String ORG_TOPIC_PRE = "org_"; //org_{orgId}
     private static final String EVENT_TOPIC_PRE = "event_"; //event_{eventId}
@@ -41,9 +43,6 @@ public class NotificationServiceImpl implements NotificationService {
 
     private static final String DATA_REF_ID_KEY = "refId";
     private static final String DATA_NOTIFICATION_TYPE = "type";
-    private final UserRepository userRepository;
-    private final NotificationTopicSubscriptionRepository notificationTopicSubscriptionRepository;
-    private final NotificationRepository notificationRepository;
 
     @Override
     public void registerNotificationToken(RegisterNotificationTokenRequest request) {
@@ -80,7 +79,7 @@ public class NotificationServiceImpl implements NotificationService {
     private void subscribeTokenToTopicsAfterRegister(String token, UUID userId) {
         List<String> topics = notificationTopicSubscriptionRepository.findTopicsByUserId(userId);
 
-        pushNotificationClient.subscribeToTopics(token, topics);
+        notificationPublisher.enqueueSubscribeToTopics(token, topics);
     }
 
     @Override
@@ -101,7 +100,7 @@ public class NotificationServiceImpl implements NotificationService {
     private void unsubscribeTopicsAfterUnregister(String token, UUID userId) {
         List<String> topics = notificationTopicSubscriptionRepository.findTopicsByUserId(userId);
 
-        pushNotificationClient.unsubscribeFromTopics(token, topics);
+        notificationPublisher.enqueueUnsubscribeFromTopics(token, topics);
     }
 
     @Override
@@ -130,6 +129,6 @@ public class NotificationServiceImpl implements NotificationService {
 
         notificationRepository.save(notification);
 
-        pushNotificationClient.sendMulticast(notification);
+        notificationPublisher.enqueueNotification(notification);
     }
 }
