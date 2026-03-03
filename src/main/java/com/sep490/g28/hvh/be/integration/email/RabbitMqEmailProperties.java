@@ -1,4 +1,4 @@
-package com.sep490.g28.hvh.be.config;
+package com.sep490.g28.hvh.be.integration.email;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -11,7 +11,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * <p>Includes exchange, queue names, routing keys,
  * and retry time-to-live (TTL) settings.</p>
  */
-@ConfigurationProperties(prefix = "rabbitmq.mail")
+@ConfigurationProperties(prefix = "rabbitmq.email")
 public record RabbitMqEmailProperties(
         String exchange,
         Queue queue,
@@ -20,23 +20,18 @@ public record RabbitMqEmailProperties(
 ) {
     public record Queue(
             String send,
-            String retry1,
-            String retry2,
-            String retry3,
+            String retry,
             String dlq
     ) {}
 
     public record Routing(
             String send,
-            String retry1,
-            String retry2,
-            String retry3,
+            String retry,
             String dlq
     ) {}
 
     public record Retry(
-            int ttl1,
-            int ttl2,
-            int ttl3
+            int ttl,
+            int maxAttempts
     ) {}
 }

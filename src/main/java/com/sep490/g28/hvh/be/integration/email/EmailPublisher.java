@@ -1,6 +1,5 @@
 package com.sep490.g28.hvh.be.integration.email;
 
-import com.sep490.g28.hvh.be.config.RabbitMqEmailProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
@@ -35,7 +34,7 @@ public class EmailPublisher {
 
         rabbitTemplate.convertAndSend(
                 properties.exchange(),
-                properties.queue().send(),
+                properties.routing().send(),
                 msg
         );
     }
