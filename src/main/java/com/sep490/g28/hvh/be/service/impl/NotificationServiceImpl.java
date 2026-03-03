@@ -60,7 +60,7 @@ public class NotificationServiceImpl implements NotificationService {
                 notificationTokenRepository
                         .findByUserIdAndPlatformAndDeviceId(
                                 user.getId(),
-                                request.getPlatform(),
+                                request.getPlatform().name(),
                                 request.getDeviceId()
                         )
                         .orElseGet(NotificationToken::new);

@@ -20,15 +20,4 @@ public class AsyncConfig {
         ex.initialize();
         return ex;
     }
-
-    @Bean("pushExecutor")
-    public Executor pushExecutor() {
-        ThreadPoolTaskExecutor ex = new ThreadPoolTaskExecutor();
-        ex.setCorePoolSize(5);
-        ex.setMaxPoolSize(10);
-        ex.setQueueCapacity(1000);
-        ex.setThreadNamePrefix("push-");
-        ex.initialize();
-        return ex;
-    }
 }

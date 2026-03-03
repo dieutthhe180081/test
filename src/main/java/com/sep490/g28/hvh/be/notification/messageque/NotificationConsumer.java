@@ -1,8 +1,8 @@
 package com.sep490.g28.hvh.be.notification.messageque;
 
 import com.sep490.g28.hvh.be.notification.config.RabbitMqNotificationProperties;
+import com.sep490.g28.hvh.be.notification.dto.SendNotificationMessage;
 import com.sep490.g28.hvh.be.notification.dto.TopicSubscriptionMessage;
-import com.sep490.g28.hvh.be.notification.entity.Notification;
 import com.sep490.g28.hvh.be.notification.exception.NonRetryableFcmException;
 import com.sep490.g28.hvh.be.notification.sender.PushNotificationSender;
 import lombok.RequiredArgsConstructor;
@@ -56,7 +56,7 @@ public class NotificationConsumer {
     @RabbitListener(queues = "${rabbitmq.notification.queue.send-user}")
     public void consumeSendUser(
             Message message,
-            Notification notification) {
+            SendNotificationMessage notification) {
 
         int retryCount = getRetryCountForQueue(message, properties.queue().sendUser());
         if (retryCount >= properties.retry().maxAttempts() - 1) {
@@ -87,7 +87,7 @@ public class NotificationConsumer {
     }
 
     @RabbitListener(queues = "${rabbitmq.notification.queue.dlq-user}")
-    public void consumeDlqUser(Message message, Notification notification) {
+    public void consumeDlqUser(Message message, SendNotificationMessage notification) {
         MessageProperties props = message.getMessageProperties();
 
         int retryCount = getRetryCountForQueue(message, properties.queue().dlqUser());
@@ -103,13 +103,13 @@ public class NotificationConsumer {
     @RabbitListener(queues = "${rabbitmq.notification.queue.send-topic}")
     public void consumeSendTopic(
             Message message,
-            Notification notification) {
+            SendNotificationMessage notification) {
 
         int retryCount = getRetryCountForQueue(message, properties.queue().sendTopic());
 
         try {
             //retry send notification
-            pushNotificationSender.sendMulticast(notification);
+            pushNotificationSender.sendToTopic(notification);
         } catch (NonRetryableFcmException e) {
             // send to dlq immediately
             rabbitTemplate.send(
@@ -133,7 +133,7 @@ public class NotificationConsumer {
     }
 
     @RabbitListener(queues = "${rabbitmq.notification.queue.dlq-topic}")
-    public void consumeDlqTopic(Message message, Notification notification) {
+    public void consumeDlqTopic(Message message, SendNotificationMessage notification) {
         MessageProperties props = message.getMessageProperties();
 
         int retryCount = getRetryCountForQueue(message, properties.queue().dlqUser());

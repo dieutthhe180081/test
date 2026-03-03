@@ -2,6 +2,7 @@ package com.sep490.g28.hvh.be.notification.sender;
 
 import com.google.firebase.messaging.*;
 import com.sep490.g28.hvh.be.notification.constant.EFcmFailureType;
+import com.sep490.g28.hvh.be.notification.dto.SendNotificationMessage;
 import com.sep490.g28.hvh.be.notification.exception.NonRetryableFcmException;
 import com.sep490.g28.hvh.be.notification.repository.NotificationTokenRepository;
 import com.sep490.g28.hvh.be.notification.service.NotificationTokenTxService;
@@ -77,9 +78,8 @@ public class FcmPushNotificationSender implements PushNotificationSender {
      * @param notification notification content and custom data
      */
     @Override
-    @Async("pushExecutor")
-    public void sendMulticast(com.sep490.g28.hvh.be.notification.entity.Notification notification) {
-        List<String> tokens = notificationTokenRepository.findTokensByUserId(notification.getUser().getId());
+    public void sendMulticast(SendNotificationMessage notification) {
+        List<String> tokens = notificationTokenRepository.findTokensByUserId(notification.getUserId());
         //check tokens list
         if (tokens == null || tokens.isEmpty()) {
             return;
@@ -110,7 +110,7 @@ public class FcmPushNotificationSender implements PushNotificationSender {
 
                 log.info(
                         "Sent multicast: notificationId={}, success={}, failure={}",
-                        notification.getId(),
+                        notification.getNotificationId(),
                         response.getSuccessCount(),
                         response.getFailureCount()
                 );
@@ -123,7 +123,7 @@ public class FcmPushNotificationSender implements PushNotificationSender {
                 }
 
             } catch (FirebaseMessagingException e) {
-                log.error("FCM send multicast failed: notificationId={}", notification.getId(), e);
+                log.error("FCM send multicast failed: notificationId={}", notification.getNotificationId(), e);
                 EFcmFailureType type = classifyFcmFailureType(e, null);
 
                 if (type == EFcmFailureType.RETRYABLE) {
@@ -168,8 +168,7 @@ public class FcmPushNotificationSender implements PushNotificationSender {
      * @param notification notification content and custom data
      */
     @Override
-    @Async("pushExecutor")
-    public void sendToTopic(com.sep490.g28.hvh.be.notification.entity.Notification notification) {
+    public void sendToTopic(SendNotificationMessage notification) {
         Message msg = Message.builder()
                 .setTopic(notification.getTopic())
                 .setNotification(
@@ -186,12 +185,12 @@ public class FcmPushNotificationSender implements PushNotificationSender {
             String msgId = FirebaseMessaging.getInstance().send(msg);
             log.info("Send message to topic={}, notificationId={}, msgId={}",
                     notification.getTopic(),
-                    notification.getId(),
+                    notification.getNotificationId(),
                     msgId
             );
         } catch (FirebaseMessagingException e) {
             log.error("FCM send to topic failed: topic={}, notificationId={}",
-                    notification.getId(),
+                    notification.getNotificationId(),
                     notification.getTopic(),
                     e
             );
@@ -206,7 +205,6 @@ public class FcmPushNotificationSender implements PushNotificationSender {
     }
 
     @Override
-    @Async("pushExecutor")
     public void subscribeToTopics(String token, Collection<String> topics) {
         if (token == null || topics == null || topics.isEmpty()) return;
 
@@ -229,7 +227,6 @@ public class FcmPushNotificationSender implements PushNotificationSender {
     }
 
     @Override
-    @Async("pushExecutor")
     public void unsubscribeFromTopics(String token, Collection<String> topics) {
         if (token == null || topics == null || topics.isEmpty()) return;
 

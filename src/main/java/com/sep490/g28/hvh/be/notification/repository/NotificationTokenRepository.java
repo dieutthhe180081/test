@@ -22,7 +22,7 @@ public interface NotificationTokenRepository extends JpaRepository<NotificationT
                     """,
             nativeQuery = true
     )
-    Optional<NotificationToken> findByUserIdAndPlatformAndDeviceId(UUID userId, EPlatform platform, String deviceId);
+    Optional<NotificationToken> findByUserIdAndPlatformAndDeviceId(UUID userId, String platform, String deviceId);
 
     @Query(
             value = """

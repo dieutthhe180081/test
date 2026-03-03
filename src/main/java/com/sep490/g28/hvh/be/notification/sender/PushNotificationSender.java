@@ -1,6 +1,6 @@
 package com.sep490.g28.hvh.be.notification.sender;
 
-import com.sep490.g28.hvh.be.notification.entity.Notification;
+import com.sep490.g28.hvh.be.notification.dto.SendNotificationMessage;
 
 import java.util.Collection;
 
@@ -20,14 +20,14 @@ public interface PushNotificationSender {
      *
      * @param notification the notification that will be sent
      */
-    void sendMulticast(Notification notification);
+    void sendMulticast(SendNotificationMessage notification);
 
     /**
      * Send a notification to all devices subscribed to a topic.
      *
      * @param notification the notification that will be sent
      */
-    void sendToTopic(Notification notification);
+    void sendToTopic(SendNotificationMessage notification);
 
     /**
      * Subscribe a device token to multiple topics.
