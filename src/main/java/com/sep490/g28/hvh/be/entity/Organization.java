@@ -36,6 +36,9 @@ public class Organization {
     @Column(name = "org_introduction", length = 500, nullable = false)
     private String orgIntroduction;
 
+    @Column(name = "legal_document", nullable = false)
+    private String legalDocument;
+
     @Column(name = "other_evidences", length = 500)
     private String otherEvidences;
 

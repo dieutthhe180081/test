@@ -5,7 +5,7 @@ CREATE TABLE events
     organization_id        UUID                        NOT NULL,
     name                   VARCHAR(255)                NOT NULL,
     images                 VARCHAR(500),
-    description            VARCHAR(255)                NOT NULL,
+    description            TEXT                        NOT NULL,
     address                VARCHAR(255)                NOT NULL,
     auto_approve           BOOLEAN                     NOT NULL,
     activity_sub_domain_id SMALLINT                    NOT NULL,

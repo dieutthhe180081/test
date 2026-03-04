@@ -43,7 +43,7 @@ public class Event {
     @Column(name = "images", length = 500)
     private String images;
 
-    @Column(name = "description", nullable = false)
+    @Column(name = "description", columnDefinition = "text", nullable = false)
     private String description;
 
     @Column(name = "address", nullable = false)
