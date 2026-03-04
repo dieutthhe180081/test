@@ -32,6 +32,9 @@ public class IdentityVerification {
     @Column(nullable = false, length = 10)
     private String phone;
 
+    @Column(name = "full_name", length = 100, nullable = false)
+    private String fullName;
+
     @Column(name = "cid_front", nullable = false)
     private String cidFront;
 

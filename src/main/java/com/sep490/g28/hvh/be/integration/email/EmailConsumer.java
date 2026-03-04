@@ -1,6 +1,5 @@
 package com.sep490.g28.hvh.be.integration.email;
 
-import com.sep490.g28.hvh.be.config.RabbitMqEmailProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
@@ -46,18 +45,31 @@ public class EmailConsumer {
      *
      * @param msg email payload
      */
-    @RabbitListener(queues = "${rabbitmq.mail.queue.send}")
+    @RabbitListener(queues = "${rabbitmq.email.queue.send}")
     public void consume(
+            Message message,
             EmailMessage msg
     ) {
+        int retryCount = getRetryCountForSendQueue(message);
+
+        if (retryCount >= properties.retry().maxAttempts() - 1) {
+            // exceed max attempts -> send to dlq
+            rabbitTemplate.send(
+                    properties.exchange(),
+                    properties.routing().dlq(),
+                    message
+            );
+            return;
+        }
+
         try {
+            //retry send email
             emailSenderService.sendEmail(
                     msg.getTo(),
                     msg.getSubject(),
                     msg.getBody()
             );
         } catch (Exception e) {
-            log.error("Send message failed: {}", msg);
             throw new AmqpRejectAndDontRequeueException("MAIL_SEND_FAILED");
         }
     }
@@ -71,17 +83,11 @@ public class EmailConsumer {
      * @param message raw AMQP message (headers, metadata)
      * @param msg     deserialized email payload
      */
-    @RabbitListener(queues = "${rabbitmq.mail.queue.dlq}")
+    @RabbitListener(queues = "${rabbitmq.email.queue.dlq}")
     public void consumeDlq(Message message, EmailMessage msg) {
         MessageProperties props = message.getMessageProperties();
 
-        List<Map<String, Object>> deaths =
-                (List<Map<String, Object>>) props.getHeaders().get("x-death");
-
-        long retryCount = deaths == null ? 0 :
-                deaths.stream()
-                        .mapToLong(d -> (Long) d.get("count"))
-                        .sum();
+        int retryCount = getRetryCountForSendQueue(message);
 
         log.error(
                 "MAIL FAILED after {} retries, reason={}",
@@ -89,6 +95,30 @@ public class EmailConsumer {
                 props.getHeaders().get("x-first-death-reason")
         );
         log.error("DLQ MESSAGE: {}", msg);
+    }
+
+    /**
+     * Extract the times the message is retried in queue send
+     *
+     * @param message raw AMQP message (headers, metadata)
+     * @return int as number of retry times
+     */
+    private int getRetryCountForSendQueue(Message message) {
+
+        List<Map<String, Object>> deaths =
+                (List<Map<String, Object>>) message
+                        .getMessageProperties()
+                        .getHeaders()
+                        .get("x-death");
+
+        if (deaths == null) return 0;
+
+        log.info(deaths.toString());
+
+        return deaths.stream()
+                .filter(d -> properties.queue().send().equals(d.get("queue")))
+                .mapToInt(d -> ((Long) d.get("count")).intValue())
+                .sum();
     }
 }
 

@@ -15,9 +15,10 @@ import java.util.Map;
 @AllArgsConstructor
 public enum ValidationErrorCode implements ErrorCode {
 
-    //from 1000
+    VALIDATION_ERROR(4000, "Error occur during validation data", HttpStatus.BAD_REQUEST),
+    //from 2000
     INVALID_ERROR_CODE(2000, "Might have some spelling mistake in validation", HttpStatus.I_AM_A_TEAPOT),
-    INVALID_DATA_TYPE(2001, "Invalid type for parameter: ", HttpStatus.BAD_REQUEST),
+    INVALID_DATA_TYPE(2001, "Invalid data type", HttpStatus.BAD_REQUEST),
     INVALID_REQUEST_FORMAT(2002, "Invalid request format. Please check your input, there might be one field with wrong format.", HttpStatus.BAD_REQUEST),
     MISSING_QUERY_PARAM(2003, "Missing required parameter. ", HttpStatus.BAD_REQUEST),
     INVALID_EMAIL(2004, "Địa chỉ email không hợp lệ", HttpStatus.BAD_REQUEST),
@@ -48,6 +49,11 @@ public enum ValidationErrorCode implements ErrorCode {
     private final int code;
     private final String message;
     private final HttpStatus httpStatus;
+
+    @Override
+    public String getName() {
+        return this.name();
+    }
 
     public String formatMessage(Map<String, Object> params) {
         String result = this.getMessage();

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 /**
  * Handles access denied (authorization) errors for JWT-protected resources.
@@ -42,10 +43,13 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE); //set header content type
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
-        ExceptionResponse<String> apiResponse = new ExceptionResponse<>(errorCode.getCode(), errorCode.getMessage(), null);
+        ExceptionResponse exceptionResponse = new ExceptionResponse();
+        exceptionResponse.setCode(errorCode.getCode());
+        exceptionResponse.setMessage(errorCode.name());
+        exceptionResponse.setMoreInfo(Map.of("auth", errorCode.getMessage()));
 
         ObjectMapper mapper = new ObjectMapper();
-        response.getWriter().write(mapper.writeValueAsString(apiResponse));
+        response.getWriter().write(mapper.writeValueAsString(exceptionResponse));
         response.getWriter().flush();
     }
 }

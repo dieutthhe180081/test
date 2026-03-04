@@ -86,4 +86,16 @@ public class Volunteer {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", referencedColumnName = "id")
     private SystemAdmin createdBy;
+
+    @Column(name = "credit_score", nullable = false)
+    private Short creditScore = 0;
+
+    @Column(name = "honor_score", nullable = false)
+    private Short honorScore = 0;
+
+    @PrePersist
+    void prePersist() {
+        if (creditScore == null) creditScore = 0;
+        if (honorScore == null) honorScore = 0;
+    }
 }

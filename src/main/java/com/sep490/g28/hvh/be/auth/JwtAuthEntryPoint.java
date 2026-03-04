@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 /**
  * Handles authentication failures for JWT-based security.
@@ -37,20 +38,23 @@ public class JwtAuthEntryPoint implements AuthenticationEntryPoint {
     ) throws IOException, ServletException {
         log.info("JWT Authentication Failed, go to JwtAutEntryPoint");
 
-        String moreInfor = "Unauthenticated";
-        if (authException.getCause() instanceof JwtException jwtEx) {
-            moreInfor = jwtEx.getMessage(); // expired, invalid signature, etc.
-        }
+//        String moreInfor = "Unauthenticated";
+//        if (authException.getCause() instanceof JwtException jwtEx) {
+//            moreInfor = jwtEx.getMessage(); // expired, invalid signature, etc.
+//        }
 
         AppCommonErrorCode errorCode = AppCommonErrorCode.UNAUTHENTICATED;
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE); //set header content type
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
-        ExceptionResponse<String> apiResponse = new ExceptionResponse<>(errorCode.getCode(), errorCode.getMessage(), moreInfor);
+        ExceptionResponse exceptionResponse = new ExceptionResponse();
+        exceptionResponse.setCode(errorCode.getCode());
+        exceptionResponse.setMessage(errorCode.name());
+        exceptionResponse.setMoreInfo(Map.of("auth", errorCode.getMessage()));
 
         ObjectMapper mapper = new ObjectMapper();
-        response.getWriter().write(mapper.writeValueAsString(apiResponse));
+        response.getWriter().write(mapper.writeValueAsString(exceptionResponse));
         response.getWriter().flush();
 
     }

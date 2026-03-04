@@ -1,6 +1,10 @@
 package com.sep490.g28.hvh.be.service;
 
-import com.sep490.g28.hvh.be.dto.organization.*;
+import com.sep490.g28.hvh.be.dto.organization.request.OrganizationRegistrationVerifyRequest;
+import com.sep490.g28.hvh.be.dto.organization.request.RegisterOrganizationRequest;
+import com.sep490.g28.hvh.be.dto.organization.response.OrganizationRegistrationDetailsResponse;
+import com.sep490.g28.hvh.be.dto.organization.response.OrganizationRegistrationSimpleResponse;
+import com.sep490.g28.hvh.be.dto.organization.response.RegisterOrganizationResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import org.springframework.data.domain.Page;

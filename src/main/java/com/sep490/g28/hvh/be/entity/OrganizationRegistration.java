@@ -59,6 +59,9 @@ public class OrganizationRegistration {
     @Column(name = "manager_cid_holding", nullable = false)
     private String managerCidHolding;
 
+    @Column(name = "legal_document", nullable = false)
+    private String legalDocument;
+
     @Column(name = "other_evidences", length = 500)
     private String otherEvidences;
 

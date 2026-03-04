@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.util.Map;
+
 /**
  * Global exception handler for REST controllers.
  *
@@ -27,11 +29,12 @@ public class GlobalExceptionHandler {
      * @return standardized error response
      */
     @ExceptionHandler(AppException.class)
-    ResponseEntity<ExceptionResponse<String>> appExceptionHandler(AppException e) {
+    ResponseEntity<ExceptionResponse> appExceptionHandler(AppException e) {
         log.info("Exception is catch by appExceptionHandler, exception: {}", e.getMessage());
-        var response = new ExceptionResponse<String>();
+        var response = new ExceptionResponse();
         response.setCode(e.getCode());
-        response.setMessage(e.getMessage());
+        response.setMessage(e.getResponseMessage());
+        response.setMoreInfo(Map.of("business", e.getMessage()));
         return ResponseEntity
                 .status(e.getHttpStatus())
                 .body(response);

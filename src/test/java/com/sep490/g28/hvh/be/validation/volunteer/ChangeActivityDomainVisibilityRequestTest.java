@@ -1,7 +1,6 @@
 package com.sep490.g28.hvh.be.validation.volunteer;
 
-import com.sep490.g28.hvh.be.dto.activityDomain.ChangeActivityDomainVisibilityRequest;
-import com.sep490.g28.hvh.be.dto.activityDomain.UpdateActivitySubDomainRequest;
+import com.sep490.g28.hvh.be.dto.activityDomain.request.ChangeActivityDomainVisibilityRequest;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.ValidationErrorCode;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
