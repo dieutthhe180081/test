@@ -15,9 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Handles validation-related exceptions with highest precedence.
@@ -58,11 +56,12 @@ public class ValidationExceptionHandler {
      * @return response containing field-level error messages
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ExceptionResponse<Map<String, String>>> handleValidationException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ExceptionResponse> handleValidationException(MethodArgumentNotValidException ex) {
         log.info("Exception is catch by handleValidationException");
         log.info(ex.getMessage());
 
         Map<String, String> errors = new HashMap<>();
+        errors.put("business", ValidationErrorCode.VALIDATION_ERROR.getMessage());
 
         //get the error from the validation error to create error message
         ex.getBindingResult()
@@ -88,7 +87,13 @@ public class ValidationExceptionHandler {
                         }
                 );
 
-        return ResponseEntity.badRequest().body(new ExceptionResponse<>(4000, "Validation error", errors));
+        return ResponseEntity.badRequest().body(
+                new ExceptionResponse(
+                        ValidationErrorCode.VALIDATION_ERROR.getCode(),
+                        ValidationErrorCode.VALIDATION_ERROR.name(),
+                        errors
+                )
+        );
     }
 
     /**
@@ -101,11 +106,12 @@ public class ValidationExceptionHandler {
      * @return response containing validation errors
      */
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ExceptionResponse<Map<String, String>>> handleConstraintViolationException(ConstraintViolationException ex) {
+    public ResponseEntity<ExceptionResponse> handleConstraintViolationException(ConstraintViolationException ex) {
         log.info("Exception is caught by handleConstraintViolationException");
         log.info(ex.getMessage());
 
         Map<String, String> errors = new HashMap<>();
+        errors.put("business", ValidationErrorCode.VALIDATION_ERROR.getMessage());
 
         ex.getConstraintViolations().forEach(violation -> {
             // get field từ propertyPath (vd: "registerAccountRequest.email")
@@ -124,12 +130,18 @@ public class ValidationExceptionHandler {
                 errors.put(field, message);
 
             } catch (IllegalArgumentException exception) { // error code không tồn tại
-                log.error("Invalid error code");
-                errors.put(field, "Invalid data input");
+                log.error("Invalid error code in validation annotation, check spelling mistake: {}", exception.getMessage());
+                errors.put(field, "Invalid data input (CHECK SPELLING IN VALIDATION ANNOTATION)");
             }
         });
 
-        return ResponseEntity.badRequest().body(new ExceptionResponse<>(4000, "Validation error", errors));
+        return ResponseEntity.badRequest().body(
+                new ExceptionResponse(
+                        ValidationErrorCode.VALIDATION_ERROR.getCode(),
+                        ValidationErrorCode.VALIDATION_ERROR.getMessage(),
+                        errors
+                )
+        );
     }
 
     /**
@@ -164,12 +176,13 @@ public class ValidationExceptionHandler {
      * @return standardized error response
      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ExceptionResponse<String>> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
+    public ResponseEntity<ExceptionResponse> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
         log.info("Exception is caught by handleTypeMismatchException");
         log.warn("Type mismatch: {}", e.getMessage());
-        var response = new ExceptionResponse<String>();
+        var response = new ExceptionResponse();
         response.setCode(ValidationErrorCode.INVALID_DATA_TYPE.getCode());
-        response.setMessage(ValidationErrorCode.INVALID_DATA_TYPE.getMessage() + e.getName());
+        response.setMessage(ValidationErrorCode.INVALID_DATA_TYPE.name());
+        response.setMoreInfo(Map.of(e.getName(), ValidationErrorCode.INVALID_DATA_TYPE.getMessage()));
         return ResponseEntity.status(ValidationErrorCode.INVALID_DATA_TYPE.getHttpStatus()).body(response);
     }
 
@@ -182,12 +195,13 @@ public class ValidationExceptionHandler {
      * @return standardized error response
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ExceptionResponse<String>> handleHttpMessageNotReadable(HttpMessageNotReadableException e) {
+    public ResponseEntity<ExceptionResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException e) {
         log.info("Exception is caught by handleHttpMessageNotReadableException");
         log.warn("Invalid request body: {}", e.getMessage());
-        var response = new ExceptionResponse<String>();
+        var response = new ExceptionResponse();
         response.setCode(ValidationErrorCode.INVALID_REQUEST_FORMAT.getCode());
-        response.setMessage(ValidationErrorCode.INVALID_REQUEST_FORMAT.getMessage());
+        response.setMessage(ValidationErrorCode.INVALID_REQUEST_FORMAT.name());
+        response.setMoreInfo(Map.of("format", ValidationErrorCode.INVALID_REQUEST_FORMAT.getMessage()));
         return ResponseEntity.status(ValidationErrorCode.INVALID_REQUEST_FORMAT.getHttpStatus()).body(response);
     }
 
@@ -198,18 +212,17 @@ public class ValidationExceptionHandler {
      * @return standardized error response
      */
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<ExceptionResponse<String>> handleMissingRequestParam(
+    public ResponseEntity<ExceptionResponse> handleMissingRequestParam(
             MissingServletRequestParameterException e
     ) {
         log.info("Exception is caught by handleMissingRequestParam");
         log.warn("Missing request parameter: {}", e.getMessage());
 
-        var response = new ExceptionResponse<String>();
+        var response = new ExceptionResponse();
         response.setCode(ValidationErrorCode.MISSING_QUERY_PARAM.getCode());
-        response.setMessage(
-                ValidationErrorCode.MISSING_QUERY_PARAM.getMessage()
-                        + e.getParameterName()
-        );
+        response.setMessage(ValidationErrorCode.MISSING_QUERY_PARAM.name());
+        response.setMoreInfo(Map.of(e.getParameterName(), ValidationErrorCode.INVALID_REQUEST_FORMAT.getMessage()));
+
         return ResponseEntity
                 .status(ValidationErrorCode.MISSING_QUERY_PARAM.getHttpStatus())
                 .body(response);

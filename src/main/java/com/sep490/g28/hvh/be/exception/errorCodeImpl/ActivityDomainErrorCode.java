@@ -22,4 +22,10 @@ public enum ActivityDomainErrorCode implements ErrorCode {
     private final int code;
     private final String message;
     private final HttpStatus httpStatus;
+
+    @Override
+    public String getName() {
+        return this.name();
+    }
+
 }
