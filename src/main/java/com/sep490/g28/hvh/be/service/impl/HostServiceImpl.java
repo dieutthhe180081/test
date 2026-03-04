@@ -2,7 +2,7 @@ package com.sep490.g28.hvh.be.service.impl;
 
 import com.sep490.g28.hvh.be.auth.CurrentUserProvider;
 import com.sep490.g28.hvh.be.constant.ERole;
-import com.sep490.g28.hvh.be.dto.host.CreateHostAccountRequest;
+import com.sep490.g28.hvh.be.dto.host.request.CreateHostAccountRequest;
 import com.sep490.g28.hvh.be.entity.Host;
 import com.sep490.g28.hvh.be.entity.OrganizationManager;
 import com.sep490.g28.hvh.be.exception.AppException;

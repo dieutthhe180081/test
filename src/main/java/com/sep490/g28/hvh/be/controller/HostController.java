@@ -1,6 +1,6 @@
 package com.sep490.g28.hvh.be.controller;
 
-import com.sep490.g28.hvh.be.dto.host.CreateHostAccountRequest;
+import com.sep490.g28.hvh.be.dto.host.request.CreateHostAccountRequest;
 import com.sep490.g28.hvh.be.service.HostService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;

@@ -1,4 +1,4 @@
-package com.sep490.g28.hvh.be.dto.host;
+package com.sep490.g28.hvh.be.dto.host.request;
 
 import com.sep490.g28.hvh.be.validation.ValidAge;
 import jakarta.validation.constraints.Email;

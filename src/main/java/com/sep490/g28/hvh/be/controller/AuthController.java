@@ -1,6 +1,6 @@
 package com.sep490.g28.hvh.be.controller;
 
-import com.sep490.g28.hvh.be.dto.auth.ForgotPasswordRequest;
+import com.sep490.g28.hvh.be.dto.auth.request.ForgotPasswordRequest;
 import com.sep490.g28.hvh.be.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;

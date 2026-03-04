@@ -1,4 +1,4 @@
-package com.sep490.g28.hvh.be.dto.auth;
+package com.sep490.g28.hvh.be.dto.auth.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

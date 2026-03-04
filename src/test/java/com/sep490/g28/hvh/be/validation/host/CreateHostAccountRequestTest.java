@@ -1,6 +1,6 @@
 package com.sep490.g28.hvh.be.validation.host;
 
-import com.sep490.g28.hvh.be.dto.host.CreateHostAccountRequest;
+import com.sep490.g28.hvh.be.dto.host.request.CreateHostAccountRequest;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.ValidationErrorCode;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;

@@ -1,6 +1,6 @@
 package com.sep490.g28.hvh.be.service;
 
-import com.sep490.g28.hvh.be.dto.auth.ForgotPasswordRequest;
+import com.sep490.g28.hvh.be.dto.auth.request.ForgotPasswordRequest;
 import com.sep490.g28.hvh.be.entity.User;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.AppCommonErrorCode;
