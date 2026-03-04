@@ -9,6 +9,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -17,28 +18,29 @@ public class NotificationPublisher {
     private final RabbitTemplate rabbitTemplate;
     private final RabbitMqNotificationProperties properties;
 
-    public void enqueueNotification(Notification notification) {
+    //todo vieets doc su dung
+    public void enqueueNotification(Notification notification, UUID targetUserId) {
         SendNotificationMessage payload = SendNotificationMessage.builder()
                 .notificationId(notification.getId())
-                .userId(notification.getUser() != null
-                        ? notification.getUser().getId()
-                        : null)
+                .userId(targetUserId)
                 .topic(notification.getTopic())
                 .title(notification.getTitle())
                 .body(notification.getBody())
                 .data(notification.getData())
                 .build();
 
-        if (notification.getUser() != null) {
-            rabbitTemplate.convertAndSend(
-                    properties.exchange(),
-                    properties.routing().sendUser(),
-                    payload
-            );
-        } else if (notification.getTopic() != null) {
+        if (notification.getTopic() != null && !notification.getTopic().isBlank()) {
+            //put message to queue send user
             rabbitTemplate.convertAndSend(
                     properties.exchange(),
                     properties.routing().sendTopic(),
+                    payload
+            );
+        } else if (targetUserId != null) {
+            //put message to queue send topic
+            rabbitTemplate.convertAndSend(
+                    properties.exchange(),
+                    properties.routing().sendUser(),
                     payload
             );
         } else throw new IllegalArgumentException("Missing target in notification, check your code");

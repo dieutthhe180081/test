@@ -5,8 +5,10 @@ import com.sep490.g28.hvh.be.constant.ENotificationType;
 import com.sep490.g28.hvh.be.entity.Event;
 import com.sep490.g28.hvh.be.entity.User;
 import com.sep490.g28.hvh.be.notification.entity.Notification;
+import com.sep490.g28.hvh.be.notification.entity.UserNotification;
 import com.sep490.g28.hvh.be.notification.entity.NotificationToken;
 import com.sep490.g28.hvh.be.notification.messageque.NotificationPublisher;
+import com.sep490.g28.hvh.be.notification.repository.UserNotificationRepository;
 import com.sep490.g28.hvh.be.notification.repository.NotificationRepository;
 import com.sep490.g28.hvh.be.notification.repository.NotificationTokenRepository;
 import com.sep490.g28.hvh.be.notification.dto.RegisterNotificationTokenRequest;
@@ -16,8 +18,11 @@ import com.sep490.g28.hvh.be.repository.UserRepository;
 import com.sep490.g28.hvh.be.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -43,6 +48,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     private static final String DATA_REF_ID_KEY = "refId";
     private static final String DATA_NOTIFICATION_TYPE = "type";
+    private final UserNotificationRepository userNotificationRepository;
 
     @Override
     public void registerNotificationToken(RegisterNotificationTokenRequest request) {
@@ -92,6 +98,18 @@ public class NotificationServiceImpl implements NotificationService {
 
     }
 
+//    @Override
+//    public List<UserNotification> getLatestNotification(OffsetDateTime cursor) {
+//        UUID currentUserId = currentUserProvider.getId();
+//        Pageable pageable = PageRequest.of(0, 20);
+//
+//        if (cursor == null) {
+//            return userNotificationRepository.findFirstPage(currentUserId, pageable);
+//        }
+//
+//        return userNotificationRepository.findNextPage(currentUserId, cursor, pageable);
+//    }
+
     public void unregisterNotificationTokenInternal(String token) {
         notificationTokenTxService.deleteToken(token);
         log.info("Unregistered notification token: {}", token);
@@ -106,8 +124,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void sendVerifyEventByOrgManagerNotification(Event event, boolean approved) {
         Notification notification = new Notification();
-        User user = userRepository.getReferenceById(event.getHost().getId());
-        notification.setUser(user);
+        User host = userRepository.getReferenceById(event.getHost().getId());
 
         if (approved) {
             notification.setTitle("Sự kiện đã được Quản lí tổ chức phê duyệt");
@@ -127,8 +144,16 @@ public class NotificationServiceImpl implements NotificationService {
             notification.setType(ENotificationType.EVENT_REJECTED_BY_MNG);
         }
 
-        notificationRepository.save(notification);
+        //save notification
+        notification = notificationRepository.save(notification);
 
-        notificationPublisher.enqueueNotification(notification);
+        //link the notification to user in the db
+        UserNotification userNotification = new UserNotification();
+        userNotification.setNotification(notification);
+        userNotification.setUser(host);
+
+        userNotificationRepository.save(userNotification);
+
+        notificationPublisher.enqueueNotification(notification, host.getId());
     }
 }

@@ -17,7 +17,10 @@ import java.util.UUID;
  * The notification sent
  */
 @Entity
-@Table(name = "notifications")
+@Table(name = "notifications",
+        indexes = {
+                @Index(name = "idx_notification_created", columnList = "created_at DESC")
+        })
 @Getter
 @Setter
 @ToString
@@ -30,19 +33,16 @@ public class Notification {
     @GeneratedValue
     UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    User user;
-
     String topic;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     ENotificationType type;
 
     @Column(nullable = false)
     String title;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "text")
     String body;
 
     @Type(JsonType.class)   // Hibernate 6
