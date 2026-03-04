@@ -10,7 +10,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -21,16 +20,8 @@ import java.util.Map;
 /**
  * Firebase Cloud Messaging (FCM) implementation of {@link PushNotificationSender}.
  *
- * <p>Handles sending notifications to tokens, multicast batches,
- * and topics using the Firebase Admin SDK.</p>
- *
- * <p>Responsibilities:</p>
- * <ul>
- *   <li>Respect FCM batch size limits (500 tokens/request)</li>
- *   <li>Handle and classify {@link FirebaseMessagingException}</li>
- *   <li>Clean up invalid or expired FCM tokens from persistence</li>
- *   <li>Support async delivery for single-token messages</li>
- * </ul>
+ * <p>Responsible for delivering push notifications and managing topic
+ * subscriptions using the Firebase Admin SDK.</p>
  */
 @Slf4j
 @Component
@@ -43,6 +34,16 @@ public class FcmPushNotificationSender implements PushNotificationSender {
     private static final int BATCH_SIZE = 500;
     private final NotificationTokenRepository notificationTokenRepository;
 
+    /**
+     * Classify {@link FirebaseMessagingException} into retryable or non-retryable.
+     *
+     * <p>Also removes permanently invalid tokens (UNREGISTERED,
+     * SENDER_ID_MISMATCH, INVALID_ARGUMENT).</p>
+     *
+     * @param e     Firebase exception
+     * @param token related token (nullable)
+     * @return failure classification
+     */
     public EFcmFailureType classifyFcmFailureType(FirebaseMessagingException e, String token) {
 
         MessagingErrorCode code = e.getMessagingErrorCode();
@@ -66,16 +67,14 @@ public class FcmPushNotificationSender implements PushNotificationSender {
     }
 
     /**
-     * Send a notification to multiple device tokens asynchronously.
+     * Send notification to all tokens belonging to a specific user.
      *
-     * <p>Splits the token list into batches of {@code BATCH_SIZE} to comply with
-     * Firebase Cloud Messaging limits (max 500 tokens per request).</p>
+     * <p>Tokens are fetched from database and split into batches of
+     * {@code BATCH_SIZE} (max 500 tokens per FCM request).</p>
      *
-     * <p>After sending, failed responses are inspected and permanently invalid
-     * tokens (UNREGISTERED, INVALID_ARGUMENT, SENDER_ID_MISMATCH) are removed
-     * from the database.</p>
+     * <p>Invalid tokens detected in batch response are removed.</p>
      *
-     * @param notification notification content and custom data
+     * @param notification notification message payload
      */
     @Override
     public void sendMulticast(SendNotificationMessage notification) {
@@ -136,13 +135,12 @@ public class FcmPushNotificationSender implements PushNotificationSender {
     }
 
     /**
-     * Extract permanently invalid FCM tokens from a multicast response.
+     * Extract permanently invalid tokens from FCM batch response.
      *
-     * <p>Only non-retryable errors are considered invalid and eligible
-     * for removal.</p>
+     * <p>Only non-retryable error codes are considered invalid.</p>
      *
      * @param tokens   original token list (same order as request)
-     * @param response Firebase batch response
+     * @param response FCM batch response
      * @return list of invalid tokens
      */
     private static List<String> getInvalidTokens(List<String> tokens, BatchResponse response) {
@@ -163,9 +161,9 @@ public class FcmPushNotificationSender implements PushNotificationSender {
     }
 
     /**
-     * Asynchronously send a notification to all devices subscribed to a topic.
+     * Send notification to a specific FCM topic.
      *
-     * @param notification notification content and custom data
+     * @param notification notification message payload
      */
     @Override
     public void sendToTopic(SendNotificationMessage notification) {
@@ -204,6 +202,12 @@ public class FcmPushNotificationSender implements PushNotificationSender {
         }
     }
 
+    /**
+     * Subscribe a device token to multiple topics.
+     *
+     * @param token  device token
+     * @param topics collection of topic names
+     */
     @Override
     public void subscribeToTopics(String token, Collection<String> topics) {
         if (token == null || topics == null || topics.isEmpty()) return;
@@ -226,6 +230,12 @@ public class FcmPushNotificationSender implements PushNotificationSender {
         }
     }
 
+    /**
+     * Unsubscribe a device token from multiple topics.
+     *
+     * @param token  device token
+     * @param topics collection of topic names
+     */
     @Override
     public void unsubscribeFromTopics(String token, Collection<String> topics) {
         if (token == null || topics == null || topics.isEmpty()) return;

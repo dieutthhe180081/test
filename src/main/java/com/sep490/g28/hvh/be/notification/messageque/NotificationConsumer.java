@@ -17,6 +17,27 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * RabbitMQ consumer responsible for processing notification-related messages.
+ *
+ * <p>This component listens to multiple queues for:
+ * <ul>
+ *   <li>Sending notifications to users</li>
+ *   <li>Sending notifications to topics</li>
+ *   <li>Subscribing tokens to topics</li>
+ *   <li>Unsubscribing tokens from topics</li>
+ * </ul>
+ *
+ * <p>It implements a retry mechanism using RabbitMQ dead-letter exchanges (DLX)
+ * and the {@code x-death} header to track retry attempts.</p>
+ *
+ * <p>Behavior rules:</p>
+ * <ul>
+ *   <li>Retry until {@code maxAttempts} is reached</li>
+ *   <li>Immediately route to DLQ on {@link NonRetryableFcmException}</li>
+ *   <li>Log permanently failed messages in DLQ consumers</li>
+ * </ul>
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -26,13 +47,13 @@ public class NotificationConsumer {
     private final RabbitMqNotificationProperties properties;
     private final RabbitTemplate rabbitTemplate;
 
-
     /**
-     * Extract the times the message is retried in queue
+     * Extract total retry attempts for a specific queue using the
+     * {@code x-death} header provided by RabbitMQ.
      *
-     * @param message raw AMQP message (headers, metadata)
-     * @param queueName the name of the queue
-     * @return int as number of retry times
+     * @param message   raw AMQP message
+     * @param queueName queue to inspect
+     * @return total retry count for that queue
      */
     private int getRetryCountForQueue(Message message, String queueName) {
 
@@ -53,6 +74,15 @@ public class NotificationConsumer {
     }
 
 // =========================================================
+    /**
+     * Consume user-targeted notification messages.
+     *
+     * <p>Retries on generic exceptions. Moves message to DLQ if:
+     * <ul>
+     *   <li>Max retry attempts exceeded</li>
+     *   <li>{@link NonRetryableFcmException} is thrown</li>
+     * </ul>
+     */
     @RabbitListener(queues = "${rabbitmq.notification.queue.send-user}")
     public void consumeSendUser(
             Message message,
@@ -86,6 +116,11 @@ public class NotificationConsumer {
         }
     }
 
+    /**
+     * Consume dead-lettered user notification messages.
+     *
+     * <p>Logs final failure after all retry attempts.</p>
+     */
     @RabbitListener(queues = "${rabbitmq.notification.queue.dlq-user}")
     public void consumeDlqUser(Message message, SendNotificationMessage notification) {
         MessageProperties props = message.getMessageProperties();
@@ -100,6 +135,15 @@ public class NotificationConsumer {
         log.error("DLQ MESSAGE: notification={}", notification);
     }
 
+    /**
+     * Consume topic-targeted notification messages.
+     *
+     * <p>Retries on generic exceptions. Moves message to DLQ if:
+     * <ul>
+     *   <li>Max retry attempts exceeded</li>
+     *   <li>{@link NonRetryableFcmException} is thrown</li>
+     * </ul>
+     */
     @RabbitListener(queues = "${rabbitmq.notification.queue.send-topic}")
     public void consumeSendTopic(
             Message message,
@@ -132,6 +176,11 @@ public class NotificationConsumer {
         }
     }
 
+    /**
+     * Consume dead-lettered topic notification messages.
+     *
+     * <p>Logs permanent failure information.</p>
+     */
     @RabbitListener(queues = "${rabbitmq.notification.queue.dlq-topic}")
     public void consumeDlqTopic(Message message, SendNotificationMessage notification) {
         MessageProperties props = message.getMessageProperties();
@@ -148,6 +197,15 @@ public class NotificationConsumer {
 
 
     //    =====================================================
+    /**
+     * Consume topic subscription requests.
+     *
+     * <p>Retries on transient errors and routes to DLQ on:
+     * <ul>
+     *   <li>Non-retryable FCM errors</li>
+     *   <li>Exceeded retry attempts</li>
+     * </ul>
+     */
     @RabbitListener(queues = "${rabbitmq.notification.queue.subscribe}")
     public void consumeSubscribe(
             Message message,
@@ -180,6 +238,11 @@ public class NotificationConsumer {
         }
     }
 
+    /**
+     * Consume dead-lettered subscription messages.
+     *
+     * <p>Logs final failure after retries exhausted.</p>
+     */
     @RabbitListener(queues = "${rabbitmq.notification.queue.subscribe-dlq}")
     public void consumeDlqSubscribe(Message message, TopicSubscriptionMessage msg) {
         MessageProperties props = message.getMessageProperties();
@@ -196,6 +259,15 @@ public class NotificationConsumer {
 
 
     //    =====================================================
+    /**
+     * Consume topic unsubscription requests.
+     *
+     * <p>Retries on transient errors and routes to DLQ on:
+     * <ul>
+     *   <li>Non-retryable FCM errors</li>
+     *   <li>Exceeded retry attempts</li>
+     * </ul>
+     */
     @RabbitListener(queues = "${rabbitmq.notification.queue.unsubscribe}")
     public void consumeUnsubscribe(
             Message message,
@@ -228,6 +300,11 @@ public class NotificationConsumer {
         }
     }
 
+    /**
+     * Consume dead-lettered unsubscription messages.
+     *
+     * <p>Logs permanent failure information.</p>
+     */
     @RabbitListener(queues = "${rabbitmq.notification.queue.unsubscribe-dlq}")
     public void consumeDlqUnsubscribe(Message message, TopicSubscriptionMessage msg) {
         MessageProperties props = message.getMessageProperties();

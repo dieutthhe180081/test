@@ -8,6 +8,9 @@ import lombok.experimental.FieldDefaults;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+/**
+ * Link notification sent to user
+ */
 @Entity
 @Table(
         name = "user_notifications",
