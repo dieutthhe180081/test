@@ -78,7 +78,7 @@ public class EventServiceImpl implements EventService {
                                 } catch (CompletionException ex) {
                                     Throwable cause = ex.getCause();
                                     if (cause instanceof AppException ae) {
-
+                                        //todo: handle app exception in viewEventFeeds
                                     } else {
                                         throw cause instanceof RuntimeException re ? re : ex;
                                     }
