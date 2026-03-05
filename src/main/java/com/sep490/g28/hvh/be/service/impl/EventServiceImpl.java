@@ -45,6 +45,7 @@ public class EventServiceImpl implements EventService {
                 Sort.by(Sort.Direction.ASC, "created_at")
         );
 
+        //Get the slice based on the current action is refresh (swipe up) or load more (scroll end)
         Slice<Event> slice;
 
         if (refresh) {
@@ -54,11 +55,13 @@ public class EventServiceImpl implements EventService {
             slice = eventRepository.search(name, address, startDate, endDate, activitySubDomains, pageable);
         }
 
+        //map the slice content (list of events) to EventSimpleResponse
         List<EventSimpleResponse> eventSimpleResponseList = Optional.of(slice.getContent())
                 .map(list -> list.stream().map(e -> {
 
                             String firstEventImageUrl = null;
 
+                            //get signed URL of file
                             if (e.getImages() != null) {
 
                                 String[] eventImages = e.getImages().split("\\s+");
@@ -93,6 +96,10 @@ public class EventServiceImpl implements EventService {
                 ).toList())
                 .orElse(Collections.emptyList());
 
+        // If after load the slice with n size,
+        // and slice.hasNext() is true (the slice will auto check this)
+        // , move the cursor to the next page, which will load more content of the slice
+        // (equivalent to call the api one more time)
         return new EventFeedResponse(
                 eventSimpleResponseList,
                 slice.hasNext() ? String.valueOf(pageNumber + 1) : null,
