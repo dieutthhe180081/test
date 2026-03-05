@@ -16,14 +16,15 @@ import java.util.UUID;
 public interface EventRepository extends JpaRepository<Event, UUID> {
 
     @Query(value = """
-            SELECT e
-            FROM Event e
-            JOIN FETCH ActivitySubDomain asd
-            WHERE (:name IS NULL OR e.name ILIKE CONCAT('%', CAST(:name AS string), '%'))
-            AND (:address IS NULL OR e.address ILIKE CONCAT('%', CAST(:address AS string), '%'))
-            AND (:startDate IS NULL OR e.startDate >= :startDate)
-            AND (:endDate IS NULL OR e.startDate <= :endDate)
-            AND (:activitySubDomains IS NULL OR e.activitySubDomain.name IN :activitySubDomains)
+            SELECT e.*
+            FROM events e
+            LEFT JOIN activity_sub_domains asd 
+                ON e.activity_sub_domain_id = asd.id
+            WHERE (:name IS NULL OR e.name ILIKE CONCAT('%', :name, '%'))
+            AND (:address IS NULL OR e.address ILIKE CONCAT('%', :address, '%'))
+            AND (CAST(:startDate AS DATE) IS NULL OR e.start_date >= :startDate)
+            AND (CAST(:endDate AS DATE) IS NULL OR e.start_date <= :endDate)
+            AND (asd.id IN (:activitySubDomainIds))
             -- #pageable
             """,
             nativeQuery = true)
@@ -32,20 +33,20 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
             @Param("address") String address,
             @Param("startDate")LocalDate startDate,
             @Param("endDate") LocalDate endDate,
-            @Param("activitySubDomains") List<String> activitySubDomains,
+            @Param("activitySubDomainIds") List<Short> activitySubDomainIds,
             Pageable pageable);
 
     @Query(value = """
-            SELECT e
-            FROM Event e
-            JOIN FETCH ActivitySubDomain asd
-            WHERE (:name IS NULL OR e.name ILIKE CONCAT('%', CAST(:name AS string), '%'))
-            AND (:address IS NULL OR e.address ILIKE CONCAT('%', CAST(:address AS string), '%'))
-            AND (:startDate IS NULL OR e.startDate >= :startDate)
-            AND (:endDate IS NULL OR e.startDate <= :endDate)
-            AND (:activitySubDomains IS NULL OR e.activitySubDomain.name IN :activitySubDomains)
-            AND e.createdAt > :since
-            ORDER BY RAND()
+            SELECT e.*
+            FROM events e
+            LEFT JOIN activity_sub_domains asd 
+                ON e.activity_sub_domain_id = asd.id
+            WHERE (:name IS NULL OR e.name ILIKE CONCAT('%', :name, '%'))
+            AND (:address IS NULL OR e.address ILIKE CONCAT('%', :address, '%'))
+            AND (:startDate IS NULL OR e.start_date >= :startDate)
+            AND (:endDate IS NULL OR e.start_date <= :endDate)
+            AND (asd.id IN (:activitySubDomainIds))
+            AND e.created_at > :since
             -- #pageable
             """,
             nativeQuery = true)
@@ -54,7 +55,7 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
             @Param("address") String address,
             @Param("startDate")LocalDate startDate,
             @Param("endDate") LocalDate endDate,
-            @Param("activitySubDomains") List<String> activitySubDomains,
+            @Param("activitySubDomainIds") List<Short> activitySubDomainIds,
             OffsetDateTime since,
             Pageable pageable);
 }
