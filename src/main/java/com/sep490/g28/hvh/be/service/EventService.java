@@ -15,5 +15,5 @@ public interface EventService {
                                     String address,
                                     LocalDate startDate,
                                     LocalDate endDate,
-                                    List<String> activitySubDomains);
+                                    List<Short> activitySubDomains);
 }

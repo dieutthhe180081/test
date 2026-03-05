@@ -37,12 +37,12 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFeedResponse getEventFeeds(int pageNumber, int pageSize, boolean refresh,
                                            String name, String address, LocalDate startDate,
-                                           LocalDate endDate, List<String> activitySubDomains) {
+                                           LocalDate endDate, List<Short> activitySubDomains) {
 
         Pageable pageable = PageRequest.of(
                 pageNumber,
                 pageSize,
-                Sort.by(Sort.Direction.ASC, "createdAt")
+                Sort.by(Sort.Direction.ASC, "created_at")
         );
 
         Slice<Event> slice;
@@ -61,7 +61,7 @@ public class EventServiceImpl implements EventService {
 
                             if (e.getImages() != null) {
 
-                                String[] eventImages = e.getImages().split(",");
+                                String[] eventImages = e.getImages().split("\\s+");
                                 List<String> eventImageList = new ArrayList<>(Arrays.asList(eventImages));
 
                                 CompletableFuture<String> firstEventImageFuture =

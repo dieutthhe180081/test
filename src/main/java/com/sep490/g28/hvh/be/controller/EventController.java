@@ -26,7 +26,7 @@ public class EventController {
 
     EventService eventService;
 
-    @GetMapping("/event/new-feeds")
+    @GetMapping("/new-feeds")
     public ResponseEntity<EventFeedResponse> getEventNewFeeds(
             @RequestParam(defaultValue = "0")
             @Min(value = 0, message = "INVALID_PAGE_NUMBER") int pageNumber,
@@ -38,8 +38,8 @@ public class EventController {
             @RequestParam(required = false) String address,
             @RequestParam(required = false) LocalDate startDate,
             @RequestParam(required = false) LocalDate endDate,
-            @RequestParam(required = false) List<String> activitySubDomains
+            @RequestParam(required = false) List<Short> activitySubDomainIds
     ) {
-        return ResponseEntity.ok(eventService.getEventFeeds(pageNumber, pageSize, refresh, name, address, startDate, endDate, activitySubDomains));
+        return ResponseEntity.ok(eventService.getEventFeeds(pageNumber, pageSize, refresh, name, address, startDate, endDate, activitySubDomainIds));
     }
 }
