@@ -20,7 +20,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventImage {
-    //todo flyway migration
     @Id
     private UUID id;
 

@@ -41,7 +41,6 @@ public class Event {
     @Column(nullable = false)
     private String name;
 
-    //todo, flyway migration
     @OneToMany(
             mappedBy = "event",
             fetch = FetchType.LAZY,
