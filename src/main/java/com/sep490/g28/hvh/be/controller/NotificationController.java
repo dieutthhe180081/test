@@ -51,24 +51,24 @@ public class NotificationController {
 //        notification.setBody("test-notification body muhaha");
 //        notification.setData(Map.of("action", "OPEN"));
 //        notification.setType(ENotificationType.EVENT_REJECTED_BY_MNG);
-//        notificationPublisher.enqueueNotification(notification);
+//        notificationPublisher.enqueueNotification(notification, null);
 //        return ResponseEntity.ok().build();
 //    }
 //
 //    @PostMapping("/send-to-user")
 //    public ResponseEntity<Void> sendNotiToUser() {
-//        User user = userRepository.getReferenceById(UUID.fromString("57fa7839-375d-4298-a319-cbea49d22ce7"));
+//        UUID userId = UUID.fromString("57fa7839-375d-4298-a319-cbea49d22ce7");
+////        UUID userId = UUID.fromString("a67dabdc-ea8e-4c58-8312-c9aec971a38a");
 //
 //        Notification notification = new Notification();
 //        notification.setId(UUID.randomUUID());
-//        notification.setUser(user);
 //        notification.setTitle("test-notification send to user");
 //        notification.setBody("test-notification body muhaha");
 //        notification.setData(Map.of("action", "OPEN"));
 //        notification.setType(ENotificationType.EVENT_REJECTED_BY_MNG);
 //
 //
-//        notificationPublisher.enqueueNotification(notification);
+//        notificationPublisher.enqueueNotification(notification, userId);
 //        return ResponseEntity.ok().build();
 //    }
 
