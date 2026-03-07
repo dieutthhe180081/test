@@ -35,7 +35,6 @@ public class CheckInPlace {
     @GeneratedValue
     private UUID id;
 
-    //todo flyway migration
     private String name;
 
     /**
@@ -49,7 +48,6 @@ public class CheckInPlace {
     )
     private Point location;
 
-    //todo flyway migration
     @Column(name = "accuracy_meters", nullable = false)
     private Double accuracyMeters;
 
