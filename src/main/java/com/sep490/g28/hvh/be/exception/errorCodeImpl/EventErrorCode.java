@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum EventErrorCode implements ErrorCode {
 
-    EVENT_NOT_FOUND(404, "Event not found", HttpStatus.NOT_FOUND),
+    EVENT_NOT_EXISTED(7001, "Sự kiện tình nguyện không tồn tại", HttpStatus.NOT_FOUND),
     ;
 
     private final int code;

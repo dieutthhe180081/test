@@ -1,9 +1,11 @@
 package com.sep490.g28.hvh.be.service.impl;
 
+import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponse;
 import com.sep490.g28.hvh.be.dto.event.response.EventFeedResponse;
 import com.sep490.g28.hvh.be.dto.event.response.EventSimpleResponse;
 import com.sep490.g28.hvh.be.entity.Event;
 import com.sep490.g28.hvh.be.exception.AppException;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.EventErrorCode;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
 import com.sep490.g28.hvh.be.repository.EventRepository;
 import com.sep490.g28.hvh.be.service.EventService;
@@ -107,5 +109,75 @@ public class EventServiceImpl implements EventService {
                 slice.hasNext() ? String.valueOf(pageNumber + 1) : null,
                 slice.hasNext()
         );
+    }
+
+    @Override
+    public EventDetailsResponse getEventDetails(UUID id) {
+        //check id exist
+        Event event = eventRepository.findById(id).orElseThrow(
+                () -> new AppException(EventErrorCode.EVENT_NOT_EXISTED)
+        );
+
+        //get signed URL of file
+        List<CompletableFuture<String>> imagesFutures = new ArrayList<>();
+        if(event.getImages() != null) {
+            String[] images = event.getImages().split("\\s+");
+            List<String> imagesList = new ArrayList<>(Arrays.asList(images));
+            for (String image : imagesList) {
+                CompletableFuture<String> imageFuture =
+                        storageService.getSignedUrlAsync(image);
+                imagesFutures.add(imageFuture);
+            }
+        }
+
+        List<String> imagesUrls = new ArrayList<>();
+        try {
+
+            CompletableFuture.allOf(imagesFutures.toArray(new CompletableFuture[0])).join();
+            for (CompletableFuture<String> otherEvidenceFuture : imagesFutures) {
+                imagesUrls.add(otherEvidenceFuture.join());
+            }
+
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof AppException ae) {
+                //todo: handle exception at getEventDetails
+            } else {
+                throw cause instanceof RuntimeException re ? re : e;
+            }
+        }
+
+        String hostPhone = "";
+        if(event.getHost() != null) {
+            hostPhone = event.getHost().getPhone();
+        }
+
+        String orgName = "";
+        if(event.getOrganization() != null) {
+            orgName = event.getOrganization().getName();
+        }
+
+        String activitySubDomainName = "";
+        if(event.getActivitySubDomain() != null) {
+            activitySubDomainName = event.getActivitySubDomain().getName();
+        }
+
+        return EventDetailsResponse.builder()
+                .id(event.getId())
+                .name(event.getName())
+                .imageUrls(imagesUrls)
+                .description(event.getDescription())
+                .address(event.getAddress())
+                .activitySubDomain(activitySubDomainName)
+                .expectedVolAmount(event.getExpectedVolAmount())
+                .expectedSerAmount(event.getExpectedSerAmount())
+                .servedTarget(event.getServedTarget())
+                .servingPlaceType(event.getServingPlaceType())
+                .startDate(event.getStartDate())
+                .endDate(event.getEndDate())
+                .recruitmentEndDate(event.getRecruitmentEndDate())
+                .hostPhone(hostPhone)
+                .orgName(orgName)
+                .build();
     }
 }
