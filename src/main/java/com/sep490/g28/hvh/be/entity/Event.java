@@ -18,6 +18,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "events")
+//todo, có khi thêm index tren satus nua, search cho nhanh
 @Getter
 @Setter
 @NoArgsConstructor
@@ -40,8 +41,14 @@ public class Event {
     @Column(nullable = false)
     private String name;
 
-    @Column(name = "images", length = 500)
-    private String images;
+    @OneToMany(
+            mappedBy = "event",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<EventImage> images;
+
 
     @Column(name = "description", columnDefinition = "text", nullable = false)
     private String description;

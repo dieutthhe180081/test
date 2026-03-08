@@ -35,6 +35,8 @@ public class CheckInPlace {
     @GeneratedValue
     private UUID id;
 
+    private String name;
+
     /**
      * geography(Point, 4326)
      * Save using PostGIS
@@ -47,7 +49,7 @@ public class CheckInPlace {
     private Point location;
 
     @Column(name = "accuracy_meters", nullable = false)
-    private Float accuracyMeters;
+    private Double accuracyMeters;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id", referencedColumnName = "id", nullable = false)
