@@ -1,9 +1,14 @@
 package com.sep490.g28.hvh.be.service;
 
+import com.sep490.g28.hvh.be.constant.EEventStatus;
+import com.sep490.g28.hvh.be.constant.EServedTarget;
+import com.sep490.g28.hvh.be.constant.EServingPlaceType;
+import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponse;
 import com.sep490.g28.hvh.be.dto.event.response.EventFeedResponse;
-import com.sep490.g28.hvh.be.entity.Event;
-import com.sep490.g28.hvh.be.entity.EventImage;
-import com.sep490.g28.hvh.be.entity.Organization;
+import com.sep490.g28.hvh.be.entity.*;
+import com.sep490.g28.hvh.be.exception.AppException;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.AppCommonErrorCode;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.EventErrorCode;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
 import com.sep490.g28.hvh.be.repository.EventRepository;
 import com.sep490.g28.hvh.be.service.impl.EventServiceImpl;
@@ -19,6 +24,8 @@ import org.springframework.data.domain.SliceImpl;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -36,34 +43,54 @@ public class EventServiceTest {
 
     EventServiceImpl eventService;
 
+    UUID eventId;
+
     @BeforeEach
     void setup() {
         eventService = new EventServiceImpl(
                 eventRepository,
                 storageService
         );
+        eventId = UUID.randomUUID();
     }
 
     private Event mockEvent() {
-        Event e = new Event();
+
+        Event event = new Event();
+        event.setId(eventId);
+        event.setName("Charity Event");
+        event.setDescription("Helping people");
+        event.setAddress("Hanoi");
+        event.setExpectedVolAmount(10);
+        event.setExpectedSerAmount(20);
+        event.setServedTarget(EServedTarget.CHILDREN);
+        event.setServingPlaceType(EServingPlaceType.CEMETERY);
+        event.setStartDate(LocalDate.now());
+        event.setEndDate(LocalDate.now().plusDays(1));
+        event.setRecruitmentEndDate(LocalDate.now().minusDays(1));
+        event.setStatus(EEventStatus.RECRUITING);
 
         Organization org = new Organization();
-        org.setName("Test Organization");
+        org.setName("Volunteer Org");
+        event.setOrganization(org);
 
-        EventImage image1 = new EventImage();
-        image1.setImagePath("img1");
+        Host host = new Host();
+        host.setPhone("0901234567");
+        event.setHost(host);
 
-        EventImage image2 = new EventImage();
-        image2.setImagePath("img2");
+        ActivitySubDomain subDomain = new ActivitySubDomain();
+        subDomain.setName("Education");
+        event.setActivitySubDomain(subDomain);
 
-        e.setOrganization(org);
-        e.setName("Event A");
-        e.setAddress("Hanoi");
-        e.setImages(List.of(image1, image2));
-        e.setStartDate(LocalDate.now());
-        e.setRecruitmentEndDate(LocalDate.now().plusDays(5));
+        EventImage img1 = new EventImage();
+        img1.setImagePath("img1");
 
-        return e;
+        EventImage img2 = new EventImage();
+        img2.setImagePath("img2");
+
+        event.setImages(List.of(img1, img2));
+
+        return event;
     }
 
     // ==== registerOrganization ===================================
@@ -222,5 +249,88 @@ public class EventServiceTest {
 
         assertFalse(response.isHasMore());
         assertNull(response.getNextCursor());
+    }
+
+    // ==== getEventDetails ===================================
+    // ===== TC1 =====
+    @Test
+    void getEventDetails_success() {
+
+        Event event = mockEvent();
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        when(storageService.getSignedUrlAsync("img1"))
+                .thenReturn(CompletableFuture.completedFuture("url1"));
+
+        when(storageService.getSignedUrlAsync("img2"))
+                .thenReturn(CompletableFuture.completedFuture("url2"));
+
+        EventDetailsResponse response = eventService.getEventDetails(eventId);
+
+        assertEquals(eventId, response.getId());
+        assertEquals("Charity Event", response.getName());
+        assertEquals(2, response.getImageUrls().size());
+        assertEquals("Volunteer Org", response.getOrgName());
+        assertEquals("0901234567", response.getHostPhone());
+        assertEquals("Education", response.getActivitySubDomain());
+
+        verify(eventRepository).findById(eventId);
+    }
+
+    // ===== TC2 =====
+    @Test
+    void getEventDetails_event_not_exist() {
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(
+                AppException.class,
+                () -> eventService.getEventDetails(eventId)
+        );
+
+        assertEquals(EventErrorCode.EVENT_NOT_EXISTED.getCode(), ex.getCode());
+
+        verify(eventRepository).findById(eventId);
+    }
+
+    // ===== TC3 =====
+    @Test
+    void getEventDetails_event_without_images() {
+
+        Event event = mockEvent();
+        event.setImages(null);
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        EventDetailsResponse response = eventService.getEventDetails(eventId);
+
+        assertTrue(response.getImageUrls().isEmpty());
+    }
+
+    // ===== TC4 =====
+    @Test
+    void getEventDetails_null_host_and_org() {
+
+        Event event = mockEvent();
+
+        event.setHost(null);
+        event.setOrganization(null);
+        event.setActivitySubDomain(null);
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        when(storageService.getSignedUrlAsync(any()))
+                .thenReturn(CompletableFuture.completedFuture("url"));
+
+        EventDetailsResponse response = eventService.getEventDetails(eventId);
+
+        assertEquals("", response.getHostPhone());
+        assertEquals("", response.getOrgName());
+        assertEquals("", response.getActivitySubDomain());
     }
 }
