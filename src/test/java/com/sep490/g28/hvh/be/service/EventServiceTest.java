@@ -2,6 +2,7 @@ package com.sep490.g28.hvh.be.service;
 
 import com.sep490.g28.hvh.be.dto.event.response.EventFeedResponse;
 import com.sep490.g28.hvh.be.entity.Event;
+import com.sep490.g28.hvh.be.entity.EventImage;
 import com.sep490.g28.hvh.be.entity.Organization;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
 import com.sep490.g28.hvh.be.repository.EventRepository;
@@ -49,10 +50,16 @@ public class EventServiceTest {
         Organization org = new Organization();
         org.setName("Test Organization");
 
+        EventImage image1 = new EventImage();
+        image1.setImagePath("img1");
+
+        EventImage image2 = new EventImage();
+        image2.setImagePath("img2");
+
         e.setOrganization(org);
         e.setName("Event A");
         e.setAddress("Hanoi");
-        e.setImages("img1 img2");
+        e.setImages(List.of(image1, image2));
         e.setStartDate(LocalDate.now());
         e.setRecruitmentEndDate(LocalDate.now().plusDays(5));
 

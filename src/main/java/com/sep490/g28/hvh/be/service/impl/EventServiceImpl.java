@@ -1,9 +1,11 @@
 package com.sep490.g28.hvh.be.service.impl;
 
+import com.sep490.g28.hvh.be.constant.EEventStatus;
 import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponse;
 import com.sep490.g28.hvh.be.dto.event.response.EventFeedResponse;
 import com.sep490.g28.hvh.be.dto.event.response.EventSimpleResponse;
 import com.sep490.g28.hvh.be.entity.Event;
+import com.sep490.g28.hvh.be.entity.EventImage;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.EventErrorCode;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
@@ -61,18 +63,18 @@ public class EventServiceImpl implements EventService {
 
         //map the slice content (list of events) to EventSimpleResponse
         List<EventSimpleResponse> eventSimpleResponseList = Optional.of(slice.getContent())
-                .map(list -> list.stream().map(e -> {
+                .map(list -> list.stream().filter(e -> e.getStatus().equals(EEventStatus.RECRUITING))
+                        .map(e -> {
 
                             String firstEventImageUrl = null;
 
                             //get signed URL of file
                             if (e.getImages() != null) {
 
-                                String[] eventImages = e.getImages().split("\\s+");
-                                List<String> eventImageList = new ArrayList<>(Arrays.asList(eventImages));
+                                List<EventImage> eventImageList =e.getImages();
 
                                 CompletableFuture<String> firstEventImageFuture =
-                                        storageService.getSignedUrlAsync(eventImageList.getFirst());
+                                        storageService.getSignedUrlAsync(eventImageList.getFirst().getImagePath());
 
                                 try {
                                     CompletableFuture.allOf(firstEventImageFuture).join();
@@ -121,11 +123,10 @@ public class EventServiceImpl implements EventService {
         //get signed URL of file
         List<CompletableFuture<String>> imagesFutures = new ArrayList<>();
         if(event.getImages() != null) {
-            String[] images = event.getImages().split("\\s+");
-            List<String> imagesList = new ArrayList<>(Arrays.asList(images));
-            for (String image : imagesList) {
+            List<EventImage> imagesList = event.getImages();
+            for (EventImage image : imagesList) {
                 CompletableFuture<String> imageFuture =
-                        storageService.getSignedUrlAsync(image);
+                        storageService.getSignedUrlAsync(image.getImagePath());
                 imagesFutures.add(imageFuture);
             }
         }
