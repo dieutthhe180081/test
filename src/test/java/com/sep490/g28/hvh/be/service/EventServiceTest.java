@@ -1,16 +1,21 @@
 package com.sep490.g28.hvh.be.service;
 
+import com.sep490.g28.hvh.be.auth.CurrentUserProvider;
 import com.sep490.g28.hvh.be.constant.EEventStatus;
 import com.sep490.g28.hvh.be.constant.EServedTarget;
 import com.sep490.g28.hvh.be.constant.EServingPlaceType;
+import com.sep490.g28.hvh.be.dto.event.request.SaveEventRequest;
 import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponse;
 import com.sep490.g28.hvh.be.dto.event.response.EventFeedResponse;
 import com.sep490.g28.hvh.be.entity.*;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.AppCommonErrorCode;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.EventErrorCode;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.VolunteerErrorCode;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
 import com.sep490.g28.hvh.be.repository.EventRepository;
+import com.sep490.g28.hvh.be.repository.VolunteerRepository;
+import com.sep490.g28.hvh.be.repository.VolunteerSavedEventRepository;
 import com.sep490.g28.hvh.be.service.impl.EventServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,18 +44,32 @@ public class EventServiceTest {
     EventRepository eventRepository;
 
     @Mock
+    VolunteerRepository volunteerRepository;
+
+    @Mock
+    VolunteerSavedEventRepository volunteerSavedEventRepository;
+
+    @Mock
     StorageService storageService;
+
+    @Mock
+    CurrentUserProvider currentUserProvider;
 
     EventServiceImpl eventService;
 
+    UUID volunteerId;
     UUID eventId;
 
     @BeforeEach
     void setup() {
         eventService = new EventServiceImpl(
                 eventRepository,
-                storageService
+                volunteerRepository,
+                volunteerSavedEventRepository,
+                storageService,
+                currentUserProvider
         );
+        volunteerId = UUID.randomUUID();
         eventId = UUID.randomUUID();
     }
 
@@ -91,6 +110,12 @@ public class EventServiceTest {
         event.setImages(List.of(img1, img2));
 
         return event;
+    }
+
+    private SaveEventRequest validSaveEventRequest() {
+        SaveEventRequest req = new SaveEventRequest();
+        req.setEventId(eventId.toString());
+        return req;
     }
 
     // ==== registerOrganization ===================================
@@ -332,5 +357,89 @@ public class EventServiceTest {
         assertEquals("", response.getHostPhone());
         assertEquals("", response.getOrgName());
         assertEquals("", response.getActivitySubDomain());
+    }
+
+    // ==== saveEvent ===================================
+    // ===== TC1 =====
+    @Test
+    void saveEvent_success() {
+
+        SaveEventRequest request = validSaveEventRequest();
+
+        Volunteer volunteer = new Volunteer();
+        volunteer.setId(volunteerId);
+
+        Event event = new Event();
+        event.setId(eventId);
+
+        when(currentUserProvider.getId()).thenReturn(volunteerId);
+
+        when(volunteerRepository.findById(volunteerId))
+                .thenReturn(Optional.of(volunteer));
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        eventService.saveEvent(request);
+
+        verify(volunteerSavedEventRepository)
+                .save(any(VolunteerSavedEvent.class));
+
+        verify(volunteerRepository).findById(volunteerId);
+        verify(eventRepository).findById(eventId);
+    }
+
+    // ===== TC2 =====
+    @Test
+    void saveEvent_fail_volunteer_not_exist() {
+
+        SaveEventRequest request = validSaveEventRequest();
+
+        when(currentUserProvider.getId()).thenReturn(volunteerId);
+
+        when(volunteerRepository.findById(volunteerId))
+                .thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(
+                AppException.class,
+                () -> eventService.saveEvent(request)
+        );
+
+        assertEquals(
+                VolunteerErrorCode.VOLUNTEER_NOT_EXISTED.getCode(),
+                ex.getCode()
+        );
+
+        verify(volunteerSavedEventRepository, never()).save(any());
+    }
+
+    // ===== TC3 =====
+    @Test
+    void saveEvent_fail_event_not_exist() {
+
+        SaveEventRequest request = validSaveEventRequest();
+
+        Volunteer volunteer = new Volunteer();
+        volunteer.setId(volunteerId);
+
+        when(currentUserProvider.getId()).thenReturn(volunteerId);
+
+        when(volunteerRepository.findById(volunteerId))
+                .thenReturn(Optional.of(volunteer));
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(
+                AppException.class,
+                () -> eventService.saveEvent(request)
+        );
+
+        assertEquals(
+                EventErrorCode.EVENT_NOT_EXISTED.getCode(),
+                ex.getCode()
+        );
+
+        verify(volunteerSavedEventRepository, never()).save(any());
     }
 }

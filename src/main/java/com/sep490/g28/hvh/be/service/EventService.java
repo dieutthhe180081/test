@@ -1,5 +1,6 @@
 package com.sep490.g28.hvh.be.service;
 
+import com.sep490.g28.hvh.be.dto.event.request.SaveEventRequest;
 import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponse;
 import com.sep490.g28.hvh.be.dto.event.response.EventFeedResponse;
 import org.springframework.data.repository.query.Param;
@@ -20,4 +21,6 @@ public interface EventService {
                                     List<Short> activitySubDomains);
 
     EventDetailsResponse getEventDetails(UUID id);
+
+    void saveEvent(SaveEventRequest saveEventRequest);
 }

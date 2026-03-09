@@ -1,9 +1,11 @@
 package com.sep490.g28.hvh.be.controller;
 
+import com.sep490.g28.hvh.be.dto.event.request.SaveEventRequest;
 import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponse;
 import com.sep490.g28.hvh.be.dto.event.response.EventFeedResponse;
 import com.sep490.g28.hvh.be.dto.organization.response.OrganizationRegistrationDetailsResponse;
 import com.sep490.g28.hvh.be.service.EventService;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.AccessLevel;
@@ -49,5 +51,11 @@ public class EventController {
     ) {
         java.util.UUID id = java.util.UUID.fromString(inputId);
         return ResponseEntity.ok(eventService.getEventDetails(id));
+    }
+
+    @PostMapping("/save-event")
+    public ResponseEntity<String> saveEvent(@Valid @RequestBody SaveEventRequest request) {
+        eventService.saveEvent(request);
+        return ResponseEntity.ok().build();
     }
 }

@@ -1,15 +1,22 @@
 package com.sep490.g28.hvh.be.service.impl;
 
+import com.sep490.g28.hvh.be.auth.CurrentUserProvider;
 import com.sep490.g28.hvh.be.constant.EEventStatus;
+import com.sep490.g28.hvh.be.dto.event.request.SaveEventRequest;
 import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponse;
 import com.sep490.g28.hvh.be.dto.event.response.EventFeedResponse;
 import com.sep490.g28.hvh.be.dto.event.response.EventSimpleResponse;
 import com.sep490.g28.hvh.be.entity.Event;
 import com.sep490.g28.hvh.be.entity.EventImage;
+import com.sep490.g28.hvh.be.entity.Volunteer;
+import com.sep490.g28.hvh.be.entity.VolunteerSavedEvent;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.EventErrorCode;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.VolunteerErrorCode;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
 import com.sep490.g28.hvh.be.repository.EventRepository;
+import com.sep490.g28.hvh.be.repository.VolunteerRepository;
+import com.sep490.g28.hvh.be.repository.VolunteerSavedEventRepository;
 import com.sep490.g28.hvh.be.service.EventService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +29,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -36,7 +41,10 @@ import java.util.stream.Collectors;
 public class EventServiceImpl implements EventService {
 
     EventRepository eventRepository;
+    VolunteerRepository volunteerRepository;
+    VolunteerSavedEventRepository volunteerSavedEventRepository;
     StorageService storageService;
+    CurrentUserProvider currentUserProvider;
 
     @Override
     public EventFeedResponse getEventFeeds(int pageNumber, int pageSize, boolean refresh,
@@ -180,5 +188,31 @@ public class EventServiceImpl implements EventService {
                 .hostPhone(hostPhone)
                 .orgName(orgName)
                 .build();
+    }
+
+    @Override
+    public void saveEvent(SaveEventRequest request) {
+
+        UUID volunteerId = currentUserProvider.getId();
+        UUID eventId = UUID.fromString(request.getEventId());
+
+
+        //get volunteer from id
+        Volunteer volunteer = volunteerRepository.findById(volunteerId).orElseThrow(
+                () -> new AppException(VolunteerErrorCode.VOLUNTEER_NOT_EXISTED)
+        );
+
+
+        //get event from id
+        Event event = eventRepository.findById(eventId).orElseThrow(
+                () -> new AppException(EventErrorCode.EVENT_NOT_EXISTED)
+        );
+
+        //create volunteerSavedEvent in db
+        VolunteerSavedEvent volunteerSavedEvent = new VolunteerSavedEvent();
+        volunteerSavedEvent.setVolunteer(volunteer);
+        volunteerSavedEvent.setEvent(event);
+
+        volunteerSavedEventRepository.save(volunteerSavedEvent);
     }
 }
