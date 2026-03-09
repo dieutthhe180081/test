@@ -3,10 +3,10 @@ package com.sep490.g28.hvh.be.service.impl;
 import com.sep490.g28.hvh.be.auth.CurrentUserProvider;
 import com.sep490.g28.hvh.be.constant.EEventStatus;
 import com.sep490.g28.hvh.be.constant.EUpdateAction;
-import com.sep490.g28.hvh.be.dto.checkinplace.request.UpdateCheckInPlaceRequest;
-import com.sep490.g28.hvh.be.dto.event.response.CreateEventRequestResponse;
-import com.sep490.g28.hvh.be.dto.event.request.CreateEventRequest;
-import com.sep490.g28.hvh.be.dto.eventImage.request.UpdateEventImageRequest;
+import com.sep490.g28.hvh.be.dto.checkinplace.request.EditCheckInPlaceRequest;
+import com.sep490.g28.hvh.be.dto.event.response.EditEventResponse;
+import com.sep490.g28.hvh.be.dto.event.request.EditEventRequest;
+import com.sep490.g28.hvh.be.dto.eventimage.request.EditEventImageRequest;
 import com.sep490.g28.hvh.be.entity.*;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.ActivityDomainErrorCode;
@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -47,60 +48,65 @@ public class EventServiceImpl implements EventService {
     private static final int MAX_PLACES = 10;
     private final StorageService storageService;
 
-    @Override
+    /*
+    draft -> create
+           -> edit
+    submit -> create
+            -> edit
+     */
+
     @Transactional
-    public CreateEventRequestResponse editEvent(CreateEventRequest request) {
-
-        Event event = new Event();
-        CreateEventRequestResponse response = new CreateEventRequestResponse();
-
+    public EditEventResponse draftEvent(EditEventRequest request) {
         if (request.getEventId() != null) {
             //event has been saved as drafted
             //get event from db
-            event = eventRepository.findById(request.getEventId()).orElseThrow(
+            Event event = eventRepository.findById(request.getEventId()).orElseThrow(
                     () -> new AppException(EventErrorCode.EVENT_NOT_FOUND)
             );
-
-            if (EEventStatus.editable(event.getStatus())) {
-                //event ís editable
-                //edit check in places
-                updateCheckInPlaces(event, request.getCheckInPlaces());
-
-                //edit event's images
-                List<String> uploadUrls = updateEventImages(event, request.getUpdateImages());
-                response.setUploadUrls(uploadUrls);
-            } else
-                //event is not edit table
-                throw new AppException(EventErrorCode.EVENT_NOT_EDITABLE);
+                return editEvent(request, event, EEventStatus.EDITING);
         } else {
-            //the event is completely new
-            //check request: valid add image amount?
-            int countAddImages = (int) request.getUpdateImages().stream()
-                    .filter(r -> r.getUpdateAction() == EUpdateAction.ADD)
-                    .count();
-            if (countAddImages > MAX_IMAGES) {
-                throw new AppException(EventErrorCode.INVALID_IMAGES_AMOUNT);
-            }
+            return createEvent(request, EEventStatus.EDITING);
+        }
+    }
 
-            //check request: valid add place amount?
-            int countAddPlaces = (int) request.getCheckInPlaces().stream()
-                    .filter(r -> r.getUpdateAction() == EUpdateAction.ADD)
-                    .count();
-            if (countAddPlaces < 1 || countAddPlaces > MAX_PLACES) {
-                throw new AppException(EventErrorCode.INVALID_CHECKIN_PLACES_AMOUNT);
-            }
+    @Transactional
+    public EditEventResponse submitEvent(EditEventRequest request) {
+        if (request.getEventId() != null) {
+            //event has been saved as drafted
+            //get event from db
+            Event event = eventRepository.findById(request.getEventId()).orElseThrow(
+                    () -> new AppException(EventErrorCode.EVENT_NOT_FOUND)
+            );
+            return editEvent(request, event, EEventStatus.SUMMITED);
+        } else {
+            return createEvent(request, EEventStatus.SUMMITED);
+        }
+    }
+
+    private EditEventResponse createEvent(EditEventRequest request, EEventStatus eventStatus) {
+
+        Event event = new Event();
+        EditEventResponse response = new EditEventResponse();
+        //the event is completely new
+        //check request: valid add image amount?
+        int countAddImages = (int) request.getUpdateImages().stream()
+                .filter(r -> r.getUpdateAction() == EUpdateAction.ADD)
+                .count();
+        if (countAddImages > MAX_IMAGES) {
+            throw new AppException(EventErrorCode.INVALID_IMAGES_AMOUNT);
+        }
+
+        //check request: valid add place amount?
+        int countAddPlaces = (int) request.getCheckInPlaces().stream()
+                .filter(r -> r.getUpdateAction() == EUpdateAction.ADD)
+                .count();
+        if (countAddPlaces < 1 || countAddPlaces > MAX_PLACES) {
+            throw new AppException(EventErrorCode.INVALID_CHECKIN_PLACES_AMOUNT);
         }
 
         //set event's information
         mapEventSimpleField(request, event);
-
-        if (Boolean.TRUE.equals(request.getSubmit())) {
-            //host confirm submit event
-            event.setStatus(EEventStatus.SUMMITED);
-        } else {
-            //the event still is draft
-            event.setStatus(EEventStatus.EDITING);
-        }
+        event.setStatus(eventStatus);
 
         //save event
         event = eventRepository.save(event);
@@ -113,20 +119,44 @@ public class EventServiceImpl implements EventService {
         addCheckInPlaces(event, request.getCheckInPlaces(), MAX_PLACES);
 
         //after finish all things to do with repo or other services, send notification to host if the event is submitted
-        if (Boolean.TRUE.equals(request.getSubmit())) {
-            notificationService.sendEventSubmited();
-        }
+            //todo
+//            notificationService.sendEventSubmited();
 
         return response;
     }
 
-    private void mapEventSimpleField(CreateEventRequest request, Event event) {
+    private EditEventResponse editEvent(EditEventRequest request, Event event, EEventStatus eventStatus) {
+        EditEventResponse response = new EditEventResponse();
+        if (!EEventStatus.editable(event.getStatus()))
+            //event is not edit table
+            throw new AppException(EventErrorCode.EVENT_NOT_EDITABLE);
+
+        //event ís editable
+        //edit check in places
+        updateCheckInPlaces(event, request.getCheckInPlaces());
+
+        //edit event's images
+        List<String> uploadUrls = updateEventImages(event, request.getUpdateImages());
+        response.setUploadUrls(uploadUrls);
+
+        //set event's information
+        mapEventSimpleField(request, event);
+        event.setStatus(eventStatus);
+
+        //save event
+        eventRepository.save(event);
+
+        return response;
+    }
+
+    private void mapEventSimpleField(EditEventRequest request, Event event) {
         Host host = hostRepository.getReferenceById(currentUserProvider.getId());
         Organization organization = host.getOrganization();
 
         ActivitySubDomain activitySubDomain = activitySubDomainRepository.findById(request.getActivitySubDomainId())
                 .orElseThrow(() -> new AppException(ActivityDomainErrorCode.SUBDOMAIN_NOT_EXISTED));
         event.setActivitySubDomain(activitySubDomain);
+        //todo, còn phải check event time nữa
 
         event.setHost(host);
         event.setCreateBy(host);
@@ -151,10 +181,11 @@ public class EventServiceImpl implements EventService {
     }
 
 
-    private List<String> addEventImages(Event event, List<UpdateEventImageRequest> addImages, int limitAddingAmount) {
+    private List<String> addEventImages(Event event, List<EditEventImageRequest> addImages, int limitAddingAmount) {
         List<CompletableFuture<String>> urlFutures = new ArrayList<>();
         //go through add list to create object EventImage and get upload url
         List<EventImage> toAdd = addImages.stream()
+                .filter(r -> r.getUpdateAction() == EUpdateAction.ADD)
                 .limit(limitAddingAmount)
                 .map(r -> {
                     UUID imageId = UUID.randomUUID();
@@ -165,9 +196,7 @@ public class EventServiceImpl implements EventService {
                     image.setImagePath(path);
 
                     // generate upload url
-                    CompletableFuture<String> urlFuture =
-                            storageService.getUploadUrlAsync(path);
-                    urlFutures.add(urlFuture);
+                    urlFutures.add(storageService.getUploadUrlAsync(path));
 
                     return image;
                 })
@@ -175,29 +204,29 @@ public class EventServiceImpl implements EventService {
 
         eventImageRepository.saveAll(toAdd);
 
-        //turn upload url into list
-        CompletableFuture<Void> all =
-                CompletableFuture.allOf(urlFutures.toArray(new CompletableFuture[0]));
+        try {
+            CompletableFuture.allOf(urlFutures.toArray(new CompletableFuture[0])).join();
+        } catch (CompletionException e) {
+            //todo handle this exception
+            throw new RuntimeException("Cannot generate upload url", e.getCause());
+        }
 
-        //return upload urls
-        return all.thenApply(v ->
-                urlFutures.stream()
-                        .map(CompletableFuture::join)
-                        .toList()
-        ).join();
+        return urlFutures.stream()
+                .map(CompletableFuture::join)
+                .toList();
     }
 
-    private List<String> updateEventImages(Event event, List<UpdateEventImageRequest> reqImages) {
+    private List<String> updateEventImages(Event event, List<EditEventImageRequest> reqImages) {
         //request image empty, don't need to update
         if (reqImages == null || reqImages.isEmpty()) return Collections.emptyList();
 
         List<EventImage> existingImages = event.getImages();
 
         //categorize update image request base on action
-        List<UpdateEventImageRequest> removes = new ArrayList<>();
-        List<UpdateEventImageRequest> adds = new ArrayList<>();
+        List<EditEventImageRequest> removes = new ArrayList<>();
+        List<EditEventImageRequest> adds = new ArrayList<>();
 
-        for (UpdateEventImageRequest r : reqImages) {
+        for (EditEventImageRequest r : reqImages) {
             if (r.getUpdateAction().equals(EUpdateAction.REMOVE)) {
                 removes.add(r);
             } else
@@ -217,17 +246,35 @@ public class EventServiceImpl implements EventService {
 
         //remove
         if (!removes.isEmpty()) {
+
             Set<UUID> removeIds = removes.stream()
-                    .map(UpdateEventImageRequest::getImageId)
+                    .map(EditEventImageRequest::getImageId)
                     .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
 
+            // get path to delete
+            List<String> pathsToDelete = existingImages.stream()
+                    .filter(img -> removeIds.contains(img.getId()))
+                    .map(EventImage::getImagePath)
+                    .toList();
+
+            // delete DB
             eventImageRepository.deleteAllById(removeIds);
+
+            // remove from collection in Event
+            event.getImages().removeIf(img -> removeIds.contains(img.getId()));
+
+            // delete file async
+            List<CompletableFuture<Void>> futures = pathsToDelete.stream()
+                    .map(storageService::deleteFileAsync)
+                    .toList();
+
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
         }
 
         //add
         if (!adds.isEmpty()) {
-            int remainingSlots = MAX_PLACES - (existingCount - removeCount);
+            int remainingSlots = MAX_IMAGES - (existingCount - removeCount);
 
             return addEventImages(event, adds, remainingSlots);
         }
@@ -235,9 +282,7 @@ public class EventServiceImpl implements EventService {
         return Collections.emptyList();
     }
 
-
-
-    private void updateCheckInPlaces(Event event, List<UpdateCheckInPlaceRequest> reqPlaces) {
+    private void updateCheckInPlaces(Event event, List<EditCheckInPlaceRequest> reqPlaces) {
 
         //request place empty, don't need to update
         if (reqPlaces == null || reqPlaces.isEmpty()) return;
@@ -245,11 +290,11 @@ public class EventServiceImpl implements EventService {
         List<CheckInPlace> existingPlaces = checkInPlaceRepository.findByEventId(event.getId());
 
         //categorize update place request base on action
-        List<UpdateCheckInPlaceRequest> removes = new ArrayList<>();
-        List<UpdateCheckInPlaceRequest> edits = new ArrayList<>();
-        List<UpdateCheckInPlaceRequest> adds = new ArrayList<>();
+        List<EditCheckInPlaceRequest> removes = new ArrayList<>();
+        List<EditCheckInPlaceRequest> edits = new ArrayList<>();
+        List<EditCheckInPlaceRequest> adds = new ArrayList<>();
 
-        for (UpdateCheckInPlaceRequest r : reqPlaces) {
+        for (EditCheckInPlaceRequest r : reqPlaces) {
             switch (r.getUpdateAction()) {
                 case REMOVE -> removes.add(r);
                 case EDIT -> edits.add(r);
@@ -271,20 +316,23 @@ public class EventServiceImpl implements EventService {
         //remove
         if (!removes.isEmpty()) {
             Set<UUID> removeIds = removes.stream()
-                    .map(UpdateCheckInPlaceRequest::getCheckInPlaceId)
+                    .map(EditCheckInPlaceRequest::getCheckInPlaceId)
                     .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
 
             checkInPlaceRepository.deleteAllById(removeIds);
+
+            //remove deleted EventImage from Event
+            event.getCheckInPlaces().removeIf(place -> removeIds.contains(place.getId()));
         }
 
         //edit
         if (!edits.isEmpty()) {
 
             //map using Id
-            Map<UUID, UpdateCheckInPlaceRequest> editMap = edits.stream()
+            Map<UUID, EditCheckInPlaceRequest> editMap = edits.stream()
                     .collect(Collectors.toMap(
-                            UpdateCheckInPlaceRequest::getCheckInPlaceId,
+                            EditCheckInPlaceRequest::getCheckInPlaceId,
                             r -> r
                     ));
 
@@ -295,7 +343,7 @@ public class EventServiceImpl implements EventService {
 
             //update
             for (CheckInPlace place : toUpdate) {
-                UpdateCheckInPlaceRequest r = editMap.get(place.getId());
+                EditCheckInPlaceRequest r = editMap.get(place.getId());
 
                 place.setLocation(GeoUtils.toPoint(r.getLat(), r.getLng()));
                 place.setAccuracyMeters(((double) r.getAccuracyMeters()));
@@ -312,8 +360,9 @@ public class EventServiceImpl implements EventService {
         }
     }
 
-    private void addCheckInPlaces(Event event, List<UpdateCheckInPlaceRequest> addRequest, int limitAddingAmount) {
+    private void addCheckInPlaces(Event event, List<EditCheckInPlaceRequest> addRequest, int limitAddingAmount) {
         List<CheckInPlace> toAdd = addRequest.stream()
+                .filter(r -> r.getUpdateAction() == EUpdateAction.ADD)
                 .limit(limitAddingAmount)
                 .map(r -> {
                     CheckInPlace cp = new CheckInPlace();

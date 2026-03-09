@@ -44,6 +44,19 @@ public enum ValidationErrorCode implements ErrorCode {
     INVALID_SUBDOMAIN_UPDATE(2024, "Dữ liệu cập nhật lĩnh vực tình nguyện con không hợp lệ" +
             ", cần tuân thủ theo: EDIT: id + name, DELETE: id, ADD: name", HttpStatus.BAD_REQUEST),
     INVALID_STRING_LENGTH(2025, "Độ dài chuỗi ký tự không hợp lệ", HttpStatus.BAD_REQUEST),
+
+    //todo
+    INVALID_EVENT_AUTO_APPROVE(2026, "Sự kiện phải được phân loại là tự động phê duyệt hoặc không", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_SUBDOMAIN_ID(2026, "Sự kiện phải thuộc về 1 lĩnh vự hoạt động", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_EXPECTED_VOL_AMOUNT(2026, "Số lượng tình nguyện viên dự kiến không hợp lệ (>=0 và < 10000000)", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_EXPECTED_SER_AMOUNT(2026, "Số người được phục vụ dự kiến không hợp lệ (>=0 và < 10000000)", HttpStatus.BAD_REQUEST),
+//    INVALID_EVENT_EDIT_ACTION(2026, "Phải lựa chọn hành động sau khi edit là lưu bản nháp hay là gửi đi phê duyệt", HttpStatus.BAD_REQUEST),
+
+    INVALID_EVENT_DATE_TIME(2026, "Ngày và thời gian tổ chức sự kiện không hợp lệ.", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_RECRUIT_END_DATE(2026, "Ngày kết thúc tuyển người phải cách ngày hôm nay ít nhất 3 ngày và trước ngày bắt đầu sự kiện ít nhất 3 ngày.", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_START_DATE(2026, "Ngày bắt đầu tổ chức sự kiện phải cách ngày hôm nay ít nhất 15 ngày.", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_END_DATE(2026, "Ngày kết thúc sự kiện phải sau ngày bắt đầu sự kiện.", HttpStatus.BAD_REQUEST),
+
     ;
 
     private final int code;

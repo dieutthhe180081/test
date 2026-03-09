@@ -1,7 +1,6 @@
-package com.sep490.g28.hvh.be.dto.eventImage.request;
+package com.sep490.g28.hvh.be.dto.eventimage.request;
 
 import com.sep490.g28.hvh.be.constant.EUpdateAction;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -13,15 +12,13 @@ import java.util.UUID;
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UpdateEventImageRequest {
+public class EditEventImageRequest {
+//todo validate this class
 
     UUID imageId;
 
     @NotNull
     EUpdateAction updateAction;
-//todo
-//    @NotBlank
-//    String uri;
 
     String fileExtension;
 }

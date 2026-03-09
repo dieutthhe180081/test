@@ -12,8 +12,8 @@ import java.util.UUID;
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UpdateCheckInPlaceRequest {
-
+public class EditCheckInPlaceRequest {
+    //todo validate this class
     UUID checkInPlaceId;
 
     EUpdateAction updateAction;

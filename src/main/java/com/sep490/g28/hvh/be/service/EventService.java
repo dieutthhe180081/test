@@ -1,9 +1,11 @@
 package com.sep490.g28.hvh.be.service;
 
-import com.sep490.g28.hvh.be.dto.event.response.CreateEventRequestResponse;
-import com.sep490.g28.hvh.be.dto.event.request.CreateEventRequest;
+import com.sep490.g28.hvh.be.dto.event.response.EditEventResponse;
+import com.sep490.g28.hvh.be.dto.event.request.EditEventRequest;
 
 public interface EventService {
 
-    CreateEventRequestResponse editEvent(CreateEventRequest request);
+    EditEventResponse draftEvent(EditEventRequest request);
+
+    EditEventResponse submitEvent(EditEventRequest request);
 }
