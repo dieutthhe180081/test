@@ -11,9 +11,8 @@ import com.sep490.g28.hvh.be.entity.*;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.ActivityDomainErrorCode;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.EventErrorCode;
-import com.sep490.g28.hvh.be.integration.storage.StoragePathGenerator;
-import com.sep490.g28.hvh.be.integration.storage.StorageService;
 import com.sep490.g28.hvh.be.repository.*;
+import com.sep490.g28.hvh.be.service.EventImageService;
 import com.sep490.g28.hvh.be.service.EventService;
 import com.sep490.g28.hvh.be.service.NotificationService;
 import com.sep490.g28.hvh.be.util.GeoUtils;
@@ -25,8 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -35,18 +32,18 @@ import java.util.stream.Collectors;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EventServiceImpl implements EventService {
     private final HostRepository hostRepository;
-    private final CurrentUserProvider currentUserProvider;
     private final ActivitySubDomainRepository activitySubDomainRepository;
     private final EventRepository eventRepository;
 
+    private final CurrentUserProvider currentUserProvider;
+
+    private final EventImageService eventImageService;
     private final NotificationService notificationService;
+
     private final CheckInPlaceRepository checkInPlaceRepository;
-    private final StoragePathGenerator storagePathGenerator;
-    private final EventImageRepository eventImageRepository;
 
     private static final int MAX_IMAGES = 5;
     private static final int MAX_PLACES = 10;
-    private final StorageService storageService;
 
     /*
     draft -> create
@@ -112,7 +109,7 @@ public class EventServiceImpl implements EventService {
         event = eventRepository.save(event);
 
         //adding images
-        List<String> uploadUrls = addEventImages(event, request.getUpdateImages(), MAX_IMAGES);
+        List<String> uploadUrls = eventImageService.addEventImages(event, request.getUpdateImages());
         response.setUploadUrls(uploadUrls);
 
         //add CheckinPlace
@@ -134,7 +131,7 @@ public class EventServiceImpl implements EventService {
         updateCheckInPlaces(event, request.getCheckInPlaces());
 
         //edit event's images
-        List<String> uploadUrls = updateEventImages(event, request.getUpdateImages());
+        List<String> uploadUrls = eventImageService.updateEventImages(event, request.getUpdateImages());
         response.setUploadUrls(uploadUrls);
 
         //set event's information
@@ -178,107 +175,6 @@ public class EventServiceImpl implements EventService {
         event.setEndTime(request.getEndTime());
     }
 
-
-    private List<String> addEventImages(Event event, List<EditEventImageRequest> addImages, int limitAddingAmount) {
-        List<CompletableFuture<String>> urlFutures = new ArrayList<>();
-        //go through add list to create object EventImage and get upload url
-        List<EventImage> toAdd = addImages.stream()
-                .filter(r -> r.getUpdateAction() == EUpdateAction.ADD)
-                .limit(limitAddingAmount)
-                .map(r -> {
-                    UUID imageId = UUID.randomUUID();
-                    EventImage image = new EventImage();
-                    image.setId(imageId);
-                    image.setEvent(event);
-                    String path = storagePathGenerator.eventImage(event.getId(), imageId, r.getFileExtension());
-                    image.setImagePath(path);
-
-                    // generate upload url
-                    urlFutures.add(storageService.getUploadUrlAsync(path));
-
-                    return image;
-                })
-                .toList();
-
-        eventImageRepository.saveAll(toAdd);
-
-        try {
-            CompletableFuture.allOf(urlFutures.toArray(new CompletableFuture[0])).join();
-        } catch (CompletionException e) {
-            //todo handle this exception
-            throw new RuntimeException("Cannot generate upload url", e.getCause());
-        }
-
-        return urlFutures.stream()
-                .map(CompletableFuture::join)
-                .toList();
-    }
-
-    private List<String> updateEventImages(Event event, List<EditEventImageRequest> reqImages) {
-        //request image empty, don't need to update
-        if (reqImages == null || reqImages.isEmpty()) return Collections.emptyList();
-
-        List<EventImage> existingImages = event.getImages();
-
-        //categorize update image request base on action
-        List<EditEventImageRequest> removes = new ArrayList<>();
-        List<EditEventImageRequest> adds = new ArrayList<>();
-
-        for (EditEventImageRequest r : reqImages) {
-            if (r.getUpdateAction().equals(EUpdateAction.REMOVE)) {
-                removes.add(r);
-            } else
-                adds.add(r);
-        }
-
-        //check the amount
-        int existingCount = existingImages.size();
-        int removeCount = removes.size();
-        int addCount = adds.size();
-
-        //the amount of check in place after update
-        int finalCount = existingCount - removeCount + addCount;
-        if (finalCount > MAX_IMAGES) {
-            throw new AppException(EventErrorCode.INVALID_IMAGES_AMOUNT);
-        }
-
-        //remove
-        if (!removes.isEmpty()) {
-
-            Set<UUID> removeIds = removes.stream()
-                    .map(EditEventImageRequest::getImageId)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toSet());
-
-            // get path to delete
-            List<String> pathsToDelete = existingImages.stream()
-                    .filter(img -> removeIds.contains(img.getId()))
-                    .map(EventImage::getImagePath)
-                    .toList();
-
-            // delete DB
-            eventImageRepository.deleteAllById(removeIds);
-
-            // remove from collection in Event
-            event.getImages().removeIf(img -> removeIds.contains(img.getId()));
-
-            // delete file async
-            List<CompletableFuture<Void>> futures = pathsToDelete.stream()
-                    .map(storageService::deleteFileAsync)
-                    .toList();
-
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-        }
-
-        //add
-        if (!adds.isEmpty()) {
-            int remainingSlots = MAX_IMAGES - (existingCount - removeCount);
-
-            return addEventImages(event, adds, remainingSlots);
-        }
-
-        return Collections.emptyList();
-    }
 
     private void updateCheckInPlaces(Event event, List<EditCheckInPlaceRequest> reqPlaces) {
 
