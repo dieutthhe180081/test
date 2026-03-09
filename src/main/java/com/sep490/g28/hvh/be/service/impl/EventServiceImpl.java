@@ -119,9 +119,7 @@ public class EventServiceImpl implements EventService {
         addCheckInPlaces(event, request.getCheckInPlaces(), MAX_PLACES);
 
         //after finish all things to do with repo or other services, send notification to host if the event is submitted
-            //todo
-//            notificationService.sendEventSubmited();
-
+        notificationService.sendEventCreatedNotification(event, event.getHost());
         return response;
     }
 
