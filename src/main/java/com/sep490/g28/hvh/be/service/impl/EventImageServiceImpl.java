@@ -36,6 +36,13 @@ public class EventImageServiceImpl implements EventImageService {
 
 
     public List<String> addEventImages(Event event, List<EditEventImageRequest> addImages) {
+        //check request: valid add image amount?
+        int countAddImages = (int) addImages.stream()
+                .filter(r -> r.getUpdateAction() == EUpdateAction.ADD)
+                .count();
+        if (countAddImages > MAX_IMAGES) {
+            throw new AppException(EventErrorCode.INVALID_IMAGES_AMOUNT);
+        }
         return addEventImages(event, addImages, MAX_IMAGES);
     }
 

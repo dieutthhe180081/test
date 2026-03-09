@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -62,6 +63,12 @@ public class EventImageServiceTest {
         return r;
     }
 
+    private EditEventImageRequest removeReq() {
+        EditEventImageRequest r = new EditEventImageRequest();
+        r.setUpdateAction(EUpdateAction.REMOVE);
+        return r;
+    }
+
     private EventImage image(UUID id) {
         EventImage img = new EventImage();
         img.setId(id);
@@ -70,12 +77,9 @@ public class EventImageServiceTest {
         return img;
     }
 
-    // ==== addEventImages ===================================
-    // ===== TC01 add 1 image
+    // TC01 add 1 image
     @Test
-    void addEventImages_addOne_shouldReturnUrl() {
-
-        EditEventImageRequest r = addReq();
+    void addEventImages_oneAdd_shouldReturnUrl() {
 
         when(storagePathGenerator.eventImage(any(), any(), any()))
                 .thenReturn("path/img.jpg");
@@ -83,15 +87,96 @@ public class EventImageServiceTest {
         when(storageService.getUploadUrlAsync(any()))
                 .thenReturn(CompletableFuture.completedFuture("url"));
 
-        List<String> urls = service.addEventImages(event, List.of(r));
+        List<String> result = service.addEventImages(event, List.of(addReq()));
+
+        assertEquals(1, result.size());
 
         verify(eventImageRepository).saveAll(anyList());
-        assertEquals(1, urls.size());
     }
 
-    // ===== TC02 add multiple images within limit
+    // TC02 add exactly MAX_IMAGES
     @Test
-    void addEventImages_multiple_shouldReturnUrls() {
+    void addEventImages_exactMax_shouldSuccess() {
+
+        List<EditEventImageRequest> req = List.of(
+                addReq(), addReq(), addReq(), addReq(), addReq()
+        );
+
+        when(storagePathGenerator.eventImage(any(), any(), any()))
+                .thenReturn("path/img.jpg");
+
+        when(storageService.getUploadUrlAsync(any()))
+                .thenReturn(CompletableFuture.completedFuture("url"));
+
+        List<String> result = service.addEventImages(event, req);
+
+        assertEquals(5, result.size());
+    }
+
+    // TC03 list contains non ADD action
+    @Test
+    void addEventImages_nonAddAction_shouldIgnore() {
+
+        List<EditEventImageRequest> req = List.of(
+                addReq(),
+                removeReq(),
+                removeReq()
+        );
+
+        when(storagePathGenerator.eventImage(any(), any(), any()))
+                .thenReturn("path/img.jpg");
+
+        when(storageService.getUploadUrlAsync(any()))
+                .thenReturn(CompletableFuture.completedFuture("url"));
+
+        List<String> result = service.addEventImages(event, req);
+
+        assertEquals(1, result.size());
+    }
+
+    // TC04 add > MAX_IMAGES
+    @Test
+    void addEventImages_exceedMax_shouldThrow() {
+
+        List<EditEventImageRequest> req = Arrays.asList(
+                addReq(), addReq(), addReq(),
+                addReq(), addReq(), addReq()
+        );
+
+        assertThrows(AppException.class,
+                () -> service.addEventImages(event, req));
+    }
+
+    // ==== addEventImages (3 params) ===================================
+// TC01 add 1 image
+    @Test
+    void addEventImages_internal_oneAdd_shouldReturnUrl() throws Exception {
+
+        when(storagePathGenerator.eventImage(any(), any(), any()))
+                .thenReturn("path/img.jpg");
+
+        when(storageService.getUploadUrlAsync(any()))
+                .thenReturn(CompletableFuture.completedFuture("url"));
+
+        Method method = EventImageServiceImpl.class
+                .getDeclaredMethod("addEventImages", Event.class, List.class, int.class);
+
+        method.setAccessible(true);
+
+        List<String> result = (List<String>) method.invoke(
+                service,
+                event,
+                List.of(addReq()),
+                5
+        );
+
+        assertEquals(1, result.size());
+        verify(eventImageRepository).saveAll(anyList());
+    }
+
+    // TC02 multiple ADD
+    @Test
+    void addEventImages_internal_multipleAdd_shouldReturnUrls() throws Exception {
 
         List<EditEventImageRequest> req = List.of(
                 addReq(), addReq(), addReq()
@@ -103,16 +188,26 @@ public class EventImageServiceTest {
         when(storageService.getUploadUrlAsync(any()))
                 .thenReturn(CompletableFuture.completedFuture("url"));
 
-        List<String> urls = service.addEventImages(event, req);
+        Method method = EventImageServiceImpl.class
+                .getDeclaredMethod("addEventImages", Event.class, List.class, int.class);
 
-        assertEquals(3, urls.size());
+        method.setAccessible(true);
+
+        List<String> result = (List<String>) method.invoke(
+                service,
+                event,
+                req,
+                5
+        );
+
+        assertEquals(3, result.size());
     }
-    // ===== TC03 add > MAX_IMAGES
-    @Test
-    void addEventImages_exceedLimit_shouldOnlyAddFive() {
 
-        List<EditEventImageRequest> req = Arrays.asList(
-                addReq(), addReq(), addReq(),
+    // TC03 exceed remainingSlot
+    @Test
+    void addEventImages_internal_exceedSlot_shouldLimit() throws Exception {
+
+        List<EditEventImageRequest> req = List.of(
                 addReq(), addReq(), addReq(), addReq()
         );
 
@@ -122,9 +217,74 @@ public class EventImageServiceTest {
         when(storageService.getUploadUrlAsync(any()))
                 .thenReturn(CompletableFuture.completedFuture("url"));
 
-        List<String> urls = service.addEventImages(event, req);
+        Method method = EventImageServiceImpl.class
+                .getDeclaredMethod("addEventImages", Event.class, List.class, int.class);
 
-        assertEquals(5, urls.size());
+        method.setAccessible(true);
+
+        List<String> result = (List<String>) method.invoke(
+                service,
+                event,
+                req,
+                2
+        );
+
+        assertEquals(2, result.size());
+    }
+
+    // TC04 ignore non ADD
+    @Test
+    void addEventImages_internal_ignoreNonAdd() throws Exception {
+
+        List<EditEventImageRequest> req = List.of(
+                addReq(),
+                removeReq(),
+                removeReq()
+        );
+
+        when(storagePathGenerator.eventImage(any(), any(), any()))
+                .thenReturn("path/img.jpg");
+
+        when(storageService.getUploadUrlAsync(any()))
+                .thenReturn(CompletableFuture.completedFuture("url"));
+
+        Method method = EventImageServiceImpl.class
+                .getDeclaredMethod("addEventImages", Event.class, List.class, int.class);
+
+        method.setAccessible(true);
+
+        List<String> result = (List<String>) method.invoke(
+                service,
+                event,
+                req,
+                5
+        );
+
+        assertEquals(1, result.size());
+    }
+
+    // TC05 no ADD
+    @Test
+    void addEventImages_internal_noAdd_shouldReturnEmpty() throws Exception {
+
+        List<EditEventImageRequest> req = List.of(
+                removeReq(),
+                removeReq()
+        );
+
+        Method method = EventImageServiceImpl.class
+                .getDeclaredMethod("addEventImages", Event.class, List.class, int.class);
+
+        method.setAccessible(true);
+
+        List<String> result = (List<String>) method.invoke(
+                service,
+                event,
+                req,
+                5
+        );
+
+        assertTrue(result.isEmpty());
     }
 
     // ==== updateEventImages ===================================

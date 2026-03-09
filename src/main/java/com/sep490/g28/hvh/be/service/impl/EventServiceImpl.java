@@ -42,7 +42,6 @@ public class EventServiceImpl implements EventService {
 
     private final CheckInPlaceRepository checkInPlaceRepository;
 
-    private static final int MAX_IMAGES = 5;
     private static final int MAX_PLACES = 10;
 
     /*
@@ -85,13 +84,6 @@ public class EventServiceImpl implements EventService {
         Event event = new Event();
         EditEventResponse response = new EditEventResponse();
         //the event is completely new
-        //check request: valid add image amount?
-        int countAddImages = (int) request.getUpdateImages().stream()
-                .filter(r -> r.getUpdateAction() == EUpdateAction.ADD)
-                .count();
-        if (countAddImages > MAX_IMAGES) {
-            throw new AppException(EventErrorCode.INVALID_IMAGES_AMOUNT);
-        }
 
         //check request: valid add place amount?
         int countAddPlaces = (int) request.getCheckInPlaces().stream()
