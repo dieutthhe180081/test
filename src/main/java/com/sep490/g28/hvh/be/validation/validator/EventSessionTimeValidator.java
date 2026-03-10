@@ -2,13 +2,13 @@ package com.sep490.g28.hvh.be.validation.validator;
 
 import com.sep490.g28.hvh.be.dto.eventsession.request.EditEventSessionRequest;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.ValidationErrorCode;
-import com.sep490.g28.hvh.be.validation.EventTime;
+import com.sep490.g28.hvh.be.validation.EventSessionTime;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 import java.time.*;
 
-public class EventTimeValidator implements ConstraintValidator<EventTime, Object> {
+public class EventSessionTimeValidator implements ConstraintValidator<EventSessionTime, Object> {
 
     @Override
     public boolean isValid(Object o, ConstraintValidatorContext context) {

@@ -1,6 +1,6 @@
 package com.sep490.g28.hvh.be.validation;
 
-import com.sep490.g28.hvh.be.validation.validator.EventTimeValidator;
+import com.sep490.g28.hvh.be.validation.validator.EventSessionTimeValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -24,10 +24,10 @@ import java.lang.annotation.*;
  * </pre>
  */
 @Documented
-@Constraint(validatedBy = EventTimeValidator.class)
+@Constraint(validatedBy = EventSessionTimeValidator.class)
 @Target({ ElementType.TYPE_USE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface EventTime {
+public @interface EventSessionTime {
     String message() default "INVALID_EVENT_DATE_TIME";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};

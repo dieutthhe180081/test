@@ -1,7 +1,7 @@
 package com.sep490.g28.hvh.be.dto.eventsession.request;
 
 import com.sep490.g28.hvh.be.constant.EUpdateAction;
-import com.sep490.g28.hvh.be.validation.EventTime;
+import com.sep490.g28.hvh.be.validation.EventSessionTime;
 import com.sep490.g28.hvh.be.validation.RequiredField;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -18,7 +18,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@EventTime
+@EventSessionTime
 @Valid
 public class EditEventSessionRequest {
 
