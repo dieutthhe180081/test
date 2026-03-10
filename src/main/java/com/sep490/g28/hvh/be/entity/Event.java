@@ -89,11 +89,13 @@ public class Event {
     @Column(name = "recruitment_end_date", nullable = false)
     private LocalDate recruitmentEndDate;
 
-    @Column(name = "start_time", nullable = false)
-    private OffsetDateTime startTime; // check-in time
+    @OneToMany(
+            mappedBy = "event",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true //each checkin place must link to one event
+    )
+    private List<EventDateTime> dateTimes;
 
-    @Column(name = "end_time", nullable = false)
-    private OffsetDateTime endTime;   // check-out time
 
     //--------------------------------------------------------
     /**
