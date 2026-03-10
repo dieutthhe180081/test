@@ -6,7 +6,6 @@ import com.sep490.g28.hvh.be.entity.Event;
 import com.sep490.g28.hvh.be.entity.EventSession;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.EventErrorCode;
-import com.sep490.g28.hvh.be.repository.EventSessionRepository;
 import com.sep490.g28.hvh.be.service.EventSessionService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +25,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EventSessionServiceImpl implements EventSessionService {
-
-    EventSessionRepository eventSessionRepository;
 
     /*
     In context of this class 1 session equivalence to 1 EventDateTime
@@ -211,14 +208,14 @@ public class EventSessionServiceImpl implements EventSessionService {
         // today follow VN hour
         LocalDate today = LocalDate.now(VN);
 
-        //recruitment endDate must after at least 3 days since today
-        if (recruitmentEndDate.isBefore(today.plusDays(3))) {
-            throw new AppException(EventErrorCode.INVALID_EVENT_RECRUITMENT_END_DATE);
-        }
-
         // startDate endDate must after at least 15 days since today
         if (startDate.isBefore(today.plusDays(15))) {
             throw new AppException(EventErrorCode.INVALID_EVENT_START_DATE);
+        }
+
+        //recruitment endDate must after at least 3 days since today
+        if (recruitmentEndDate.isBefore(today.plusDays(3))) {
+            throw new AppException(EventErrorCode.INVALID_EVENT_RECRUITMENT_END_DATE);
         }
 
         // recruitmentEndDate must before startDate at least 3 days

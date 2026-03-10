@@ -78,14 +78,14 @@ public class EventImageServiceTest {
     }
 
     // ==== addEventImages (3 params) ===================================
-    // AE01 addImages == null
+    // TC01 addImages == null
     @Test
     void addEventImages_nullRequest_shouldThrow() {
         assertThrows(NullPointerException.class,
                 () -> service.addEventImages(event, null));
     }
 
-    // AE02 add 1 image
+    // TC02 add 1 image
     @Test
     void addEventImages_oneAdd_shouldReturnUrl() {
 
@@ -101,7 +101,7 @@ public class EventImageServiceTest {
         assertEquals(1, event.getImages().size());
     }
 
-    // AE03 add exactly MAX_IMAGES
+    // TC03 add exactly MAX_IMAGES
     @Test
     void addEventImages_exactMax_shouldSuccess() {
 
@@ -121,7 +121,7 @@ public class EventImageServiceTest {
         assertEquals(5, event.getImages().size());
     }
 
-    // AE04 add > MAX_IMAGES
+    // TC04 add > MAX_IMAGES
     @Test
     void addEventImages_exceedMax_shouldThrow() {
 
@@ -134,7 +134,7 @@ public class EventImageServiceTest {
                 () -> service.addEventImages(event, req));
     }
 
-    // AE05 mix ADD + REMOVE
+    // TC05 mix ADD + REMOVE
     @Test
     void addEventImages_mixedActions_shouldProcessOnlyAdd() {
 
@@ -157,7 +157,7 @@ public class EventImageServiceTest {
     }
 
     // ==== updateEventImages ===================================
-    // UE01 reqImages null
+    // TC01 reqImages null
     @Test
     void updateEventImages_nullRequest_shouldReturnEmpty() {
 
@@ -166,7 +166,7 @@ public class EventImageServiceTest {
         assertTrue(result.isEmpty());
     }
 
-    // UE02 empty request
+    // TC02 empty request
     @Test
     void updateEventImages_emptyRequest_shouldReturnEmpty() {
 
@@ -175,7 +175,7 @@ public class EventImageServiceTest {
         assertTrue(result.isEmpty());
     }
 
-    // UE03 remove existing
+    // TC03 remove existing
     @Test
     void updateEventImages_removeExisting_shouldRemoveFromEvent() {
 
@@ -189,7 +189,7 @@ public class EventImageServiceTest {
         assertTrue(event.getImages().isEmpty());
     }
 
-    // UE04 remove id not exist
+    // TC04 remove id not exist
     @Test
     void updateEventImages_removeNotExisting_shouldIgnore() {
 
@@ -198,7 +198,7 @@ public class EventImageServiceTest {
         assertTrue(event.getImages().isEmpty());
     }
 
-    // UE05 add image
+    // TC05 add image
     @Test
     void updateEventImages_add_shouldReturnUrl() {
 
@@ -214,7 +214,7 @@ public class EventImageServiceTest {
         assertEquals(1, event.getImages().size());
     }
 
-    // UE06 remove then add
+    // TC06 remove then add
     @Test
     void updateEventImages_removeThenAdd_shouldWork() {
 
@@ -237,7 +237,7 @@ public class EventImageServiceTest {
         assertEquals(1, result.size());
     }
 
-    // UE07 exceed MAX
+    // TC07 exceed MAX
     @Test
     void updateEventImages_exceedMax_shouldThrow() {
 
@@ -249,7 +249,7 @@ public class EventImageServiceTest {
                 () -> service.updateEventImages(event, List.of(addReq())));
     }
 
-    // UE08 remove id null
+    // TC08 remove id null
     @Test
     void updateEventImages_removeNullId_shouldIgnore() {
 
