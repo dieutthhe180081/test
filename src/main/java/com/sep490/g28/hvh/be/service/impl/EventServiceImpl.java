@@ -2,11 +2,8 @@ package com.sep490.g28.hvh.be.service.impl;
 
 import com.sep490.g28.hvh.be.auth.CurrentUserProvider;
 import com.sep490.g28.hvh.be.constant.EEventStatus;
-import com.sep490.g28.hvh.be.constant.EUpdateAction;
-import com.sep490.g28.hvh.be.dto.checkinplace.request.EditCheckInPlaceRequest;
 import com.sep490.g28.hvh.be.dto.event.response.EditEventResponse;
 import com.sep490.g28.hvh.be.dto.event.request.EditEventRequest;
-import com.sep490.g28.hvh.be.dto.eventimage.request.EditEventImageRequest;
 import com.sep490.g28.hvh.be.entity.*;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.ActivityDomainErrorCode;
@@ -20,11 +17,11 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.locationtech.jts.geom.Point;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -39,10 +36,6 @@ public class EventServiceImpl implements EventService {
 
     private final EventImageService eventImageService;
     private final NotificationService notificationService;
-
-    private final CheckInPlaceRepository checkInPlaceRepository;
-
-    private static final int MAX_PLACES = 10;
 
     /*
     draft -> create
@@ -85,14 +78,6 @@ public class EventServiceImpl implements EventService {
         EditEventResponse response = new EditEventResponse();
         //the event is completely new
 
-        //check request: valid add place amount?
-        int countAddPlaces = (int) request.getCheckInPlaces().stream()
-                .filter(r -> r.getUpdateAction() == EUpdateAction.ADD)
-                .count();
-        if (countAddPlaces < 1 || countAddPlaces > MAX_PLACES) {
-            throw new AppException(EventErrorCode.INVALID_CHECKIN_PLACES_AMOUNT);
-        }
-
         //set event's information
         mapEventSimpleField(request, event);
         event.setStatus(eventStatus);
@@ -103,9 +88,6 @@ public class EventServiceImpl implements EventService {
         //adding images
         List<String> uploadUrls = eventImageService.addEventImages(event, request.getUpdateImages());
         response.setUploadUrls(uploadUrls);
-
-        //add CheckinPlace
-        addCheckInPlaces(event, request.getCheckInPlaces(), MAX_PLACES);
 
         //after finish all things to do with repo or other services, send notification to host if the event is submitted
         notificationService.sendEventCreatedNotification(event, event.getHost());
@@ -119,9 +101,6 @@ public class EventServiceImpl implements EventService {
             throw new AppException(EventErrorCode.EVENT_NOT_EDITABLE);
 
         //event ís editable
-        //edit check in places
-        updateCheckInPlaces(event, request.getCheckInPlaces());
-
         //edit event's images
         List<String> uploadUrls = eventImageService.updateEventImages(event, request.getUpdateImages());
         response.setUploadUrls(uploadUrls);
@@ -140,14 +119,19 @@ public class EventServiceImpl implements EventService {
         Host host = hostRepository.getReferenceById(currentUserProvider.getId());
         Organization organization = host.getOrganization();
 
+        event.setHost(host);
+        event.setCreateBy(host);
+        event.setOrganization(organization);
+
         ActivitySubDomain activitySubDomain = activitySubDomainRepository.findById(request.getActivitySubDomainId())
                 .orElseThrow(() -> new AppException(ActivityDomainErrorCode.SUBDOMAIN_NOT_EXISTED));
         event.setActivitySubDomain(activitySubDomain);
         //todo, còn phải check event time nữa
 
-        event.setHost(host);
-        event.setCreateBy(host);
-        event.setOrganization(organization);
+        //check in place
+        Point checkInLocation = GeoUtils.toPoint(request.getCheckInPlaceLat(), request.getCheckInPlaceLng());
+        event.setCheckInLocation(checkInLocation);
+        event.setCheckInAccuracyMeters(request.getCheckInPlaceAccuracyMeters());
 
         event.setName(request.getName());
         event.setDescription(request.getDescription());
@@ -167,99 +151,4 @@ public class EventServiceImpl implements EventService {
         event.setEndTime(request.getEndTime());
     }
 
-
-    private void updateCheckInPlaces(Event event, List<EditCheckInPlaceRequest> reqPlaces) {
-
-        //request place empty, don't need to update
-        if (reqPlaces == null || reqPlaces.isEmpty()) return;
-
-        List<CheckInPlace> existingPlaces = checkInPlaceRepository.findByEventId(event.getId());
-
-        //categorize update place request base on action
-        List<EditCheckInPlaceRequest> removes = new ArrayList<>();
-        List<EditCheckInPlaceRequest> edits = new ArrayList<>();
-        List<EditCheckInPlaceRequest> adds = new ArrayList<>();
-
-        for (EditCheckInPlaceRequest r : reqPlaces) {
-            switch (r.getUpdateAction()) {
-                case REMOVE -> removes.add(r);
-                case EDIT -> edits.add(r);
-                case ADD -> adds.add(r);
-            }
-        }
-
-        //check the amount
-        int existingCount = existingPlaces.size();
-        int removeCount = removes.size();
-        int addCount = adds.size();
-
-        //the amount of check in place after update
-        int finalCount = existingCount - removeCount + addCount;
-        if (finalCount < 1 || finalCount > MAX_PLACES) {
-            throw new AppException(EventErrorCode.INVALID_CHECKIN_PLACES_AMOUNT);
-        }
-
-        //remove
-        if (!removes.isEmpty()) {
-            Set<UUID> removeIds = removes.stream()
-                    .map(EditCheckInPlaceRequest::getCheckInPlaceId)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toSet());
-
-            checkInPlaceRepository.deleteAllById(removeIds);
-
-            //remove deleted EventImage from Event
-            event.getCheckInPlaces().removeIf(place -> removeIds.contains(place.getId()));
-        }
-
-        //edit
-        if (!edits.isEmpty()) {
-
-            //map using Id
-            Map<UUID, EditCheckInPlaceRequest> editMap = edits.stream()
-                    .collect(Collectors.toMap(
-                            EditCheckInPlaceRequest::getCheckInPlaceId,
-                            r -> r
-                    ));
-
-            //get the object that will be update out from existing ones
-            List<CheckInPlace> toUpdate = existingPlaces.stream()
-                    .filter(p -> editMap.containsKey(p.getId()))
-                    .toList();
-
-            //update
-            for (CheckInPlace place : toUpdate) {
-                EditCheckInPlaceRequest r = editMap.get(place.getId());
-
-                place.setLocation(GeoUtils.toPoint(r.getLat(), r.getLng()));
-                place.setAccuracyMeters(((double) r.getAccuracyMeters()));
-            }
-            checkInPlaceRepository.saveAll(toUpdate);
-        }
-
-        //add
-        if (!adds.isEmpty()) {
-
-            int remainingSlots = MAX_PLACES - (existingCount - removeCount);
-
-            addCheckInPlaces(event, adds, remainingSlots);
-        }
-    }
-
-    private void addCheckInPlaces(Event event, List<EditCheckInPlaceRequest> addRequest, int limitAddingAmount) {
-        List<CheckInPlace> toAdd = addRequest.stream()
-                .filter(r -> r.getUpdateAction() == EUpdateAction.ADD)
-                .limit(limitAddingAmount)
-                .map(r -> {
-                    CheckInPlace cp = new CheckInPlace();
-                    cp.setEvent(event);
-                    cp.setLocation(GeoUtils.toPoint(r.getLat(), r.getLng()));
-                    cp.setAccuracyMeters(((double) r.getAccuracyMeters()));
-                    cp.setCreateBy(event.getCreateBy());
-                    return cp;
-                })
-                .toList();
-
-        checkInPlaceRepository.saveAll(toAdd);
-    }
 }

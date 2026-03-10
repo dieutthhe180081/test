@@ -2,7 +2,6 @@ package com.sep490.g28.hvh.be.dto.event.request;
 
 import com.sep490.g28.hvh.be.constant.EServedTarget;
 import com.sep490.g28.hvh.be.constant.EServingPlaceType;
-import com.sep490.g28.hvh.be.dto.checkinplace.request.EditCheckInPlaceRequest;
 import com.sep490.g28.hvh.be.dto.eventimage.request.EditEventImageRequest;
 import com.sep490.g28.hvh.be.validation.EventDate;
 import com.sep490.g28.hvh.be.validation.RequiredField;
@@ -31,6 +30,7 @@ public class EditEventRequest {
     String name;
 
     //todo validate bên trong update images
+    @Valid
     List<EditEventImageRequest> updateImages;
 
     @RequiredField(fieldName = "Mô tả sự kiện")
@@ -84,8 +84,14 @@ public class EditEventRequest {
     OffsetDateTime endTime;   // check-out time
 
     //--------------------------------------------------------
-    @RequiredField(fieldName = "Địa điểm phục vụ")
-    @Valid
-    List<EditCheckInPlaceRequest> checkInPlaces; //valid amount would be done in service method
+    //todo, validate this
+    @NotNull
+    @Min(value = 10)
+    Double checkInPlaceLat;
 
+    @NotNull
+    Double checkInPlaceLng;
+
+    @NotNull
+    Double checkInPlaceAccuracyMeters;
 }
