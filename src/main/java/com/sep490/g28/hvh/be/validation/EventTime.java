@@ -1,15 +1,13 @@
 package com.sep490.g28.hvh.be.validation;
 
-
-import com.sep490.g28.hvh.be.validation.validator.EventDateValidator;
+import com.sep490.g28.hvh.be.validation.validator.EventTimeValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
 import java.lang.annotation.*;
 
 /**
- * Validation annotation used to verify that input data about event date is valid
- *
+ * Validation annotation used to verify that input data about event time in a date is valid
  *
  * <p><b>Null handling:</b><br>
  * This annotation <b>allows {@code null}</b> values by design.
@@ -20,16 +18,16 @@ import java.lang.annotation.*;
  * <p>Example usage:</p>
  * <pre>
  * {@code
- * @EventDate
- * public class EditEventRequest{}
+ * @EventTime
+ * public class EditEventDateTimeRequest{}
  * }
  * </pre>
  */
 @Documented
-@Constraint(validatedBy = EventDateValidator.class)
+@Constraint(validatedBy = EventTimeValidator.class)
 @Target({ ElementType.TYPE_USE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface EventDate {
+public @interface EventTime {
     String message() default "INVALID_EVENT_DATE_TIME";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
