@@ -22,7 +22,7 @@ import java.util.UUID;
 @Valid
 public class EditEventSessionRequest {
 
-    UUID eventDateTimeId; //nullable
+    UUID eventSessionId; //nullable //todoổi tên
 
     @RequiredField(fieldName = "updateAction")
     EUpdateAction updateAction;

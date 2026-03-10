@@ -107,7 +107,7 @@ public class EventSessionServiceImpl implements EventSessionService {
                             .compareTo(Duration.ofHours(sessionMaxTime)) > 0
             ) {
                 //not satisfy session constraint
-                continue;
+                throw new AppException(EventErrorCode.INVALID_EVENT_SESSION_TIME_RANGE);
             }
 
             if (r.getUpdateAction() == EUpdateAction.EDIT) {
@@ -123,7 +123,7 @@ public class EventSessionServiceImpl implements EventSessionService {
                 .collect(Collectors.toSet());
 
         Set<UUID> removeIds = removes.stream()
-                .map(EditEventSessionRequest::getEventDateTimeId)
+                .map(EditEventSessionRequest::getEventSessionId)
                 .filter(Objects::nonNull)
                 .filter(existingIds::contains)
                 .collect(Collectors.toSet());
@@ -144,10 +144,10 @@ public class EventSessionServiceImpl implements EventSessionService {
         if (!edits.isEmpty()) {
             //transfer to map for the edit step
             Map<UUID, EditEventSessionRequest> editMap = edits.stream()
-                    .filter(r -> r.getEventDateTimeId() != null)
-                    .filter(r -> existingIds.contains(r.getEventDateTimeId()))
+                    .filter(r -> r.getEventSessionId() != null)
+                    .filter(r -> existingIds.contains(r.getEventSessionId()))
                     .collect(Collectors.toMap(
-                            EditEventSessionRequest::getEventDateTimeId,
+                            EditEventSessionRequest::getEventSessionId,
                             r -> r,
                             (a, b) -> b   // request same id, keep the last one
                     ));

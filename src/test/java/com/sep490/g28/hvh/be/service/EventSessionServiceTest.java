@@ -60,14 +60,14 @@ public class EventSessionServiceTest {
     private EditEventSessionRequest removeReq(UUID id) {
         EditEventSessionRequest r = new EditEventSessionRequest();
         r.setUpdateAction(EUpdateAction.REMOVE);
-        r.setEventDateTimeId(id);
+        r.setEventSessionId(id);
         return r;
     }
 
     private EditEventSessionRequest editReq(UUID id, OffsetDateTime start, OffsetDateTime end) {
         EditEventSessionRequest r = sessionReq(start, end);
         r.setUpdateAction(EUpdateAction.EDIT);
-        r.setEventDateTimeId(id);
+        r.setEventSessionId(id);
         return r;
     }
 
