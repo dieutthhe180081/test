@@ -47,26 +47,30 @@ public class EventImageServiceImpl implements EventImageService {
     }
 
     private List<String> addEventImages(Event event, List<EditEventImageRequest> addImages, int remainingSlot) {
-        List<EventImage> toAdd = new ArrayList<>();
         List<CompletableFuture<String>> urlFutures = new ArrayList<>();
         //go through add list to create object EventImage and get upload url
         addImages.stream()
                 .filter(r -> r.getUpdateAction() == EUpdateAction.ADD)
                 .limit(remainingSlot)
                 .forEach(r -> {
+
                     UUID imageId = UUID.randomUUID();
-                    String path = storagePathGenerator.eventImage(event.getId(), imageId, r.getFileExtension());
+                    String path = storagePathGenerator.eventImage(
+                            event.getId(),
+                            imageId,
+                            r.getFileExtension()
+                    );
 
                     EventImage image = new EventImage();
                     image.setId(imageId);
                     image.setEvent(event);
                     image.setImagePath(path);
 
-                    toAdd.add(image);
+                    //add to Event
+                    event.getImages().add(image);
+
                     urlFutures.add(storageService.getUploadUrlAsync(path));
                 });
-
-        eventImageRepository.saveAll(toAdd);
 
         CompletableFuture.allOf(urlFutures.toArray(new CompletableFuture[0])).join();
 
@@ -93,8 +97,18 @@ public class EventImageServiceImpl implements EventImageService {
         }
 
         //check the amount
+        Set<UUID> existingIds = existingImages.stream()
+                .map(EventImage::getId)
+                .collect(Collectors.toSet());
+
+        Set<UUID> removeIds = removes.stream()
+                .map(EditEventImageRequest::getImageId)
+                .filter(Objects::nonNull)
+                .filter(existingIds::contains)
+                .collect(Collectors.toSet());
+
         int existingCount = existingImages.size();
-        int removeCount = removes.size();
+        int removeCount =  removeIds.size();
         int addCount = adds.size();
 
         //the amount of check in place after update
@@ -104,24 +118,15 @@ public class EventImageServiceImpl implements EventImageService {
         }
 
         //remove
-        if (!removes.isEmpty()) {
+        if (!removeIds.isEmpty()) {
 
-            Set<UUID> removeIds = removes.stream()
-                    .map(EditEventImageRequest::getImageId)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toSet());
+            existingImages.removeIf(dt -> removeIds.contains(dt.getId()));
 
             // get path to delete
             List<String> pathsToDelete = existingImages.stream()
                     .filter(img -> removeIds.contains(img.getId()))
                     .map(EventImage::getImagePath)
                     .toList();
-
-            // delete DB
-            eventImageRepository.deleteAllById(removeIds);
-
-            // remove from collection in Event
-            event.getImages().removeIf(img -> removeIds.contains(img.getId()));
 
             // delete file async
             List<CompletableFuture<Void>> futures = pathsToDelete.stream()
@@ -134,7 +139,6 @@ public class EventImageServiceImpl implements EventImageService {
         //add
         if (!adds.isEmpty()) {
             int remainingSlots = MAX_IMAGES - (existingCount - removeCount);
-
             return addEventImages(event, adds, remainingSlots);
         }
 

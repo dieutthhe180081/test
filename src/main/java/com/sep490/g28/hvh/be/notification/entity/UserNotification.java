@@ -4,6 +4,7 @@ import com.sep490.g28.hvh.be.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -45,6 +46,7 @@ public class UserNotification {
 
     OffsetDateTime readAt;
 
+    @CreationTimestamp
     @Column(nullable = false)
     OffsetDateTime createdAt;
 }

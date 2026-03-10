@@ -6,10 +6,7 @@ import com.sep490.g28.hvh.be.validation.EventTime;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
+import java.time.*;
 
 public class EventTimeValidator implements ConstraintValidator<EventTime, Object> {
 
@@ -33,17 +30,21 @@ public class EventTimeValidator implements ConstraintValidator<EventTime, Object
             start = r.getStartDateTime();
             end = r.getEndDateTime();
 
-            if (!start.isBefore(end)) {
 
-//                invalid(context, "startDateTime",
+            if (!start.isBefore(end)) {
                 invalid(context, endDateTimeFieldName,
                         ValidationErrorCode.INVALID_EVENT_SESSION_START_END_TIME);
                 return false;
             }
 
-            //get date only
-            LocalDate startDay = start.toLocalDate();
-            LocalDate endDay = end.toLocalDate();
+            ZoneId VN = ZoneId.of("Asia/Ho_Chi_Minh");
+
+            OffsetDateTime startVN = start.atZoneSameInstant(VN).toOffsetDateTime();
+            OffsetDateTime endVN = end.atZoneSameInstant(VN).toOffsetDateTime();
+
+            //get date only (VN hour)
+            LocalDate startDay = startVN.toLocalDate();
+            LocalDate endDay = endVN.toLocalDate();
 
             // session must be in 1 day
             if (!startDay.equals(endDay)) {
@@ -52,9 +53,9 @@ public class EventTimeValidator implements ConstraintValidator<EventTime, Object
                 return false;
             }
 
-            //get time only
-            LocalTime startTime = start.toLocalTime();
-            LocalTime endTime = end.toLocalTime();
+            //get time only (VN hour)
+            LocalTime startTime = startVN.toLocalTime();
+            LocalTime endTime = endVN.toLocalTime();
 
 
             // not start before 05:00

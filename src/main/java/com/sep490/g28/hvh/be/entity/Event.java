@@ -14,6 +14,7 @@ import org.locationtech.jts.geom.Point;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,7 +49,7 @@ public class Event {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    private List<EventImage> images;
+    private List<EventImage> images = new ArrayList<>();
 
 
     @Column(name = "description", columnDefinition = "text", nullable = false)
@@ -77,9 +78,6 @@ public class Event {
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
-    @Column(name = "end_date", nullable = false)
-    private LocalDate endDate;
-
     @Column(name = "recruitment_end_date", nullable = false)
     private LocalDate recruitmentEndDate;
 
@@ -88,7 +86,7 @@ public class Event {
             cascade = CascadeType.ALL,
             orphanRemoval = true //each checkin place must link to one event
     )
-    private List<EventSession> dateTimes;
+    private List<EventSession> dateTimes = new ArrayList<>();
 
 
     //--------------------------------------------------------
