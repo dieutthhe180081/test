@@ -33,14 +33,14 @@ public class EventDateTime {
     private Event event;
 
     //--------------------------------------------------------
-    @Column(name = "date", nullable = false)
-    private LocalDate date;
+//    @Column(name = "date", nullable = false)
+//    private LocalDate date;
 
-    @Column(name = "start_time", nullable = false)
-    private OffsetDateTime startTime; // check-in time
+    @Column(name = "start_date_time", nullable = false)
+    private OffsetDateTime startDateTime; // check-in time
 
-    @Column(name = "end_time", nullable = false)
-    private OffsetDateTime endTime;   // check-out time
+    @Column(name = "end_date_time", nullable = false)
+    private OffsetDateTime endDateTime;   // check-out time
 
     //--------------------------------------------------------
     @CreationTimestamp

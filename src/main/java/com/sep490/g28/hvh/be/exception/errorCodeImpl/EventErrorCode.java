@@ -18,6 +18,7 @@ public enum EventErrorCode implements ErrorCode {
     EVENT_NOT_EDITABLE(7002, "Sự kiện đang ở trong trạng thái không thể chỉnh sửa được", HttpStatus.NOT_FOUND),
 
     INVALID_IMAGES_AMOUNT(7003, "Số lượng ảnh giới hạn tối đa 5 ảnh", HttpStatus.BAD_REQUEST),
+    INVALID_DATE_TIME_AMOUNT(7003, "Phải có ít nhất 1 ngày và thời gian diễn ra sự kiện", HttpStatus.BAD_REQUEST),
     // todo missing validate error
     ;
 

@@ -9,6 +9,7 @@ import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.ActivityDomainErrorCode;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.EventErrorCode;
 import com.sep490.g28.hvh.be.repository.*;
+import com.sep490.g28.hvh.be.service.EventDateTimeService;
 import com.sep490.g28.hvh.be.service.EventImageService;
 import com.sep490.g28.hvh.be.service.EventService;
 import com.sep490.g28.hvh.be.service.NotificationService;
@@ -35,6 +36,7 @@ public class EventServiceImpl implements EventService {
     private final CurrentUserProvider currentUserProvider;
 
     private final EventImageService eventImageService;
+    private final EventDateTimeService eventDateTimeService;
     private final NotificationService notificationService;
 
     /*
@@ -78,10 +80,24 @@ public class EventServiceImpl implements EventService {
         EditEventResponse response = new EditEventResponse();
         //the event is completely new
 
+        //todo, còn phải check event time nữa, tách ra update và create riêng
+        ActivitySubDomain activitySubDomain = activitySubDomainRepository.findById(request.getActivitySubDomainId())
+                .orElseThrow(() -> new AppException(ActivityDomainErrorCode.SUBDOMAIN_NOT_EXISTED));
+        event.setActivitySubDomain(activitySubDomain);
+
+        ActivityDomain activityDomain = activitySubDomain.getActivityDomain();
+        Short sessionMaxTime = activityDomain.getSpecialSessionMaxTime() == null ? 4 : activityDomain.getSpecialSessionMaxTime();
+        eventDateTimeService.addEventDateTimesForCreateEvent(
+                event,
+                request.getRecruitmentEndDate(),
+                request.getEventDateTimes(),
+                sessionMaxTime
+        );
+
         //set event's information
         mapEventSimpleField(request, event);
-        event.setStatus(eventStatus);
 
+        event.setStatus(eventStatus);
         //save event
         event = eventRepository.save(event);
 
@@ -105,6 +121,23 @@ public class EventServiceImpl implements EventService {
         List<String> uploadUrls = eventImageService.updateEventImages(event, request.getUpdateImages());
         response.setUploadUrls(uploadUrls);
 
+        //edit EventDateTime
+        ActivitySubDomain activitySubDomain = activitySubDomainRepository.findById(request.getActivitySubDomainId())
+                .orElseThrow(() -> new AppException(ActivityDomainErrorCode.SUBDOMAIN_NOT_EXISTED));
+        event.setActivitySubDomain(activitySubDomain);
+
+        ActivityDomain activityDomain = activitySubDomain.getActivityDomain();
+        Short sessionMaxTime =
+                activityDomain.getSpecialSessionMaxTime() == null
+                        ? 4
+                        : activityDomain.getSpecialSessionMaxTime();
+        eventDateTimeService.updateEventDateTimes(
+                event,
+                request.getRecruitmentEndDate(),
+                request.getEventDateTimes(),
+                sessionMaxTime
+        );
+
         //set event's information
         mapEventSimpleField(request, event);
         event.setStatus(eventStatus);
@@ -123,11 +156,6 @@ public class EventServiceImpl implements EventService {
         event.setCreateBy(host);
         event.setOrganization(organization);
 
-        ActivitySubDomain activitySubDomain = activitySubDomainRepository.findById(request.getActivitySubDomainId())
-                .orElseThrow(() -> new AppException(ActivityDomainErrorCode.SUBDOMAIN_NOT_EXISTED));
-        event.setActivitySubDomain(activitySubDomain);
-        //todo, còn phải check event time nữa
-
         //check in place
         Point checkInLocation = GeoUtils.toPoint(request.getCheckInPlaceLat(), request.getCheckInPlaceLng());
         event.setCheckInLocation(checkInLocation);
@@ -143,12 +171,7 @@ public class EventServiceImpl implements EventService {
         event.setServedTarget(request.getServedTarget());
         event.setServingPlaceType(request.getServingPlaceType());
 
-        event.setStartDate(request.getStartDate());
-        event.setEndDate(request.getEndDate());
         event.setRecruitmentEndDate(request.getRecruitmentEndDate());
-
-        event.setStartTime(request.getStartTime());
-        event.setEndTime(request.getEndTime());
     }
 
 }

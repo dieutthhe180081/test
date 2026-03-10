@@ -1,12 +1,11 @@
 CREATE TABLE event_date_times
 (
-    id         UUID                        NOT NULL,
-    event_id   UUID                        NOT NULL,
-    date       date                        NOT NULL,
-    start_time TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    end_time   TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    id              UUID                        NOT NULL,
+    event_id        UUID                        NOT NULL,
+    start_date_time TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    end_date_time   TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    created_at      TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    updated_at      TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     CONSTRAINT pk_event_date_times PRIMARY KEY (id)
 );
 
