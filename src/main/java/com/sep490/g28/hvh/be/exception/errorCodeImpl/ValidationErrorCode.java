@@ -53,10 +53,10 @@ public enum ValidationErrorCode implements ErrorCode {
 //    INVALID_EVENT_EDIT_ACTION(2026, "Phải lựa chọn hành động sau khi edit là lưu bản nháp hay là gửi đi phê duyệt", HttpStatus.BAD_REQUEST),
 
     INVALID_EVENT_DATE_TIME(2026, "Ngày và thời gian tổ chức sự kiện không hợp lệ.", HttpStatus.BAD_REQUEST),
-    INVALID_EVENT_RECRUIT_END_DATE(2026, "Ngày kết thúc tuyển người phải cách ngày hôm nay ít nhất 3 ngày và trước ngày bắt đầu sự kiện ít nhất 3 ngày.", HttpStatus.BAD_REQUEST),
-    INVALID_EVENT_START_DATE(2026, "Ngày bắt đầu tổ chức sự kiện phải cách ngày hôm nay ít nhất 15 ngày.", HttpStatus.BAD_REQUEST),
-    INVALID_EVENT_END_DATE(2026, "Ngày kết thúc sự kiện phải sau ngày bắt đầu sự kiện.", HttpStatus.BAD_REQUEST),
-
+    INVALID_EVENT_SESSION_TIME_RANGE(2026, "Thời gian bắt đầu và thời gian kết thúc phải trong 1 ngày và cách nhau tối thiểu 1 tiếng, tối đa 12 tiếng.", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_SESSION_START_END_TIME(2026, "Thời gian kết thúc phải sau thời gian bắt đầu.", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_SESSION_START_TIME(2026, "Thời gian bắt đầu không được sớm hơn 5 giờ sáng.", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_SESSION_END_TIME(2026, "Thời gian kết thúc không được muộn hơn 23 giờ.", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

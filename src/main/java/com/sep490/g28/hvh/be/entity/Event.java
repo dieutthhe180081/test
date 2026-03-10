@@ -65,12 +65,6 @@ public class Event {
     @JoinColumn(name = "activity_sub_domain_id", referencedColumnName = "id", nullable = false)
     private ActivitySubDomain activitySubDomain;
 
-    @Column(name = "expected_vol_amount", nullable = false)
-    private int expectedVolAmount;
-
-    @Column(name = "expected_ser_amount", nullable = false)
-    private int expectedSerAmount;
-
     @Column(name = "served_target")
     @Enumerated(EnumType.STRING)
     private EServedTarget servedTarget;
@@ -94,7 +88,7 @@ public class Event {
             cascade = CascadeType.ALL,
             orphanRemoval = true //each checkin place must link to one event
     )
-    private List<EventDateTime> dateTimes;
+    private List<EventSession> dateTimes;
 
 
     //--------------------------------------------------------

@@ -9,7 +9,7 @@ import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.ActivityDomainErrorCode;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.EventErrorCode;
 import com.sep490.g28.hvh.be.repository.*;
-import com.sep490.g28.hvh.be.service.EventDateTimeService;
+import com.sep490.g28.hvh.be.service.EventSessionService;
 import com.sep490.g28.hvh.be.service.EventImageService;
 import com.sep490.g28.hvh.be.service.EventService;
 import com.sep490.g28.hvh.be.service.NotificationService;
@@ -36,7 +36,7 @@ public class EventServiceImpl implements EventService {
     private final CurrentUserProvider currentUserProvider;
 
     private final EventImageService eventImageService;
-    private final EventDateTimeService eventDateTimeService;
+    private final EventSessionService eventSessionService;
     private final NotificationService notificationService;
 
     /*
@@ -87,10 +87,10 @@ public class EventServiceImpl implements EventService {
 
         ActivityDomain activityDomain = activitySubDomain.getActivityDomain();
         Short sessionMaxTime = activityDomain.getSpecialSessionMaxTime() == null ? 4 : activityDomain.getSpecialSessionMaxTime();
-        eventDateTimeService.addEventDateTimesForCreateEvent(
+        eventSessionService.addEventSessionsForCreateEvent(
                 event,
                 request.getRecruitmentEndDate(),
-                request.getEventDateTimes(),
+                request.getEventSessions(),
                 sessionMaxTime
         );
 
@@ -131,10 +131,10 @@ public class EventServiceImpl implements EventService {
                 activityDomain.getSpecialSessionMaxTime() == null
                         ? 4
                         : activityDomain.getSpecialSessionMaxTime();
-        eventDateTimeService.updateEventDateTimes(
+        eventSessionService.updateEventSessions(
                 event,
                 request.getRecruitmentEndDate(),
-                request.getEventDateTimes(),
+                request.getEventSessions(),
                 sessionMaxTime
         );
 
@@ -159,15 +159,13 @@ public class EventServiceImpl implements EventService {
         //check in place
         Point checkInLocation = GeoUtils.toPoint(request.getCheckInPlaceLat(), request.getCheckInPlaceLng());
         event.setCheckInLocation(checkInLocation);
-        event.setCheckInAccuracyMeters(request.getCheckInPlaceAccuracyMeters());
+        event.setCheckInAccuracyMeters((double) request.getCheckInPlaceAccuracyMeters());
 
         event.setName(request.getName());
         event.setDescription(request.getDescription());
         event.setAddress(request.getAddress());
 
         event.setAutoApprove(request.getAutoApprove());
-        event.setExpectedVolAmount(request.getExpectedVolAmount());
-        event.setExpectedSerAmount(request.getExpectedSerAmount());
         event.setServedTarget(request.getServedTarget());
         event.setServingPlaceType(request.getServingPlaceType());
 

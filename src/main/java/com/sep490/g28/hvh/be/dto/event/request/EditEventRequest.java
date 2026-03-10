@@ -2,9 +2,8 @@ package com.sep490.g28.hvh.be.dto.event.request;
 
 import com.sep490.g28.hvh.be.constant.EServedTarget;
 import com.sep490.g28.hvh.be.constant.EServingPlaceType;
-import com.sep490.g28.hvh.be.dto.eventdatetime.request.EditEventDateTimeRequest;
+import com.sep490.g28.hvh.be.dto.eventsession.request.EditEventSessionRequest;
 import com.sep490.g28.hvh.be.dto.eventimage.request.EditEventImageRequest;
-import com.sep490.g28.hvh.be.validation.EventDate;
 import com.sep490.g28.hvh.be.validation.RequiredField;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -20,9 +19,9 @@ import java.util.UUID;
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@EventDate
 public class EditEventRequest {
 
+    //todo 1 đống chưa có validationerror code
     //allowed null
     UUID eventId;
 
@@ -47,16 +46,6 @@ public class EditEventRequest {
     @Positive
     Short activitySubDomainId;
 
-    @NotNull(message = "INVALID_EVENT_EXPECTED_VOL_AMOUNT")
-    @PositiveOrZero( message = "INVALID_EVENT_EXPECTED_VOL_AMOUNT")
-    @Max(value = 10000000, message = "INVALID_EVENT_EXPECTED_VOL_AMOUNT")
-    Integer  expectedVolAmount;
-
-    @NotNull(message = "INVALID_EVENT_EXPECTED_SER_AMOUNT")
-    @PositiveOrZero( message = "INVALID_EVENT_EXPECTED_SER_AMOUNT")
-    @Max(value = 10000000, message = "INVALID_EVENT_EXPECTED_SER_AMOUNT")
-    Integer  expectedSerAmount;
-
     @RequiredField(fieldName = "Đối tượng phục vụ")
     EServedTarget servedTarget;
 
@@ -64,31 +53,21 @@ public class EditEventRequest {
     EServingPlaceType servingPlaceType;
 
     //--------------------------------------------------------
-//    todo validate date
-//    EarliestStartTime với LastestEndTime với DeèaultSessionMaxTime
-//    Là 5, 23, và 4
-//    @RequiredField(fieldName = "Ngày bắt đầu sự kiện")
-//    LocalDate startDate;
-//
-//    @RequiredField(fieldName = "Ngày kết thúc sự kiện")
-//    LocalDate endDate;
-
     @RequiredField(fieldName = "Ngày kết thúc tuyển người")
     LocalDate recruitmentEndDate;
 
-    //todo validate bên trong event date time
     @Valid
-    List<EditEventDateTimeRequest> eventDateTimes;
+    List<EditEventSessionRequest> eventSessions;
 
     //--------------------------------------------------------
     //todo, validate this
     @NotNull
-    @Min(value = 10)
     Double checkInPlaceLat;
 
     @NotNull
     Double checkInPlaceLng;
 
     @NotNull
-    Double checkInPlaceAccuracyMeters;
+    @Min(value = 10)
+    int checkInPlaceAccuracyMeters;
 }

@@ -18,8 +18,13 @@ public enum EventErrorCode implements ErrorCode {
     EVENT_NOT_EDITABLE(7002, "Sự kiện đang ở trong trạng thái không thể chỉnh sửa được", HttpStatus.NOT_FOUND),
 
     INVALID_IMAGES_AMOUNT(7003, "Số lượng ảnh giới hạn tối đa 5 ảnh", HttpStatus.BAD_REQUEST),
-    INVALID_DATE_TIME_AMOUNT(7003, "Phải có ít nhất 1 ngày và thời gian diễn ra sự kiện", HttpStatus.BAD_REQUEST),
     // todo missing validate error
+    INVALID_DATE_TIME_AMOUNT(7003, "Phải có ít nhất 1 ngày và thời gian diễn ra sự kiện", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_DATE_TIME_RANGE(7003, "Thời gian bắt đầu sự kiện phải trước thời gian kết thúc trong ngày", HttpStatus.BAD_REQUEST),
+    DUPLICATE_SESSION_DAY(7003, "Thời gian bắt đầu và thời gian kết thúc sự kiện phải trong 1 ngày", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_RECRUITMENT_END_DATE(2026, "Ngày kết thúc tuyển người phải cách ngày hôm nay ít nhất 3 ngày và trước ngày bắt đầu sự kiện ít nhất 3 ngày.", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_START_DATE(2026, "Ngày bắt đầu tổ chức sự kiện phải cách ngày hôm nay ít nhất 15 ngày.", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_END_DATE(2026, "Ngày kết thúc sự kiện phải sau ngày bắt đầu sự kiện.", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

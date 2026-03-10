@@ -1,25 +1,25 @@
 package com.sep490.g28.hvh.be.service;
 
-import com.sep490.g28.hvh.be.dto.eventdatetime.request.EditEventDateTimeRequest;
+import com.sep490.g28.hvh.be.dto.eventsession.request.EditEventSessionRequest;
 
 import com.sep490.g28.hvh.be.entity.Event;
 
 import java.time.LocalDate;
 import java.util.List;
 
-public interface EventDateTimeService {
+public interface EventSessionService {
 
-    void addEventDateTimesForCreateEvent(
+    void addEventSessionsForCreateEvent(
             Event event,
             LocalDate recruitmentEndDate,
-            List<EditEventDateTimeRequest> dateTimeRequests,
+            List<EditEventSessionRequest> sessionRequests,
             Short sessionMaxTime
     );
 
-    void updateEventDateTimes(
+    void updateEventSessions(
             Event event,
             LocalDate recruitmentEndDate,
-            List<EditEventDateTimeRequest> dateTimeRequests,
+            List<EditEventSessionRequest> sessionRequests,
             Short sessionMaxTime
     );
 }
