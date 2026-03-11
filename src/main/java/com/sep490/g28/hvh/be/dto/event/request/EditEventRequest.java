@@ -5,6 +5,7 @@ import com.sep490.g28.hvh.be.constant.EServingPlaceType;
 import com.sep490.g28.hvh.be.dto.eventsession.request.EditEventSessionRequest;
 import com.sep490.g28.hvh.be.dto.eventimage.request.EditEventImageRequest;
 import com.sep490.g28.hvh.be.validation.RequiredField;
+import com.sep490.g28.hvh.be.validation.ValidWard;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AccessLevel;
@@ -34,8 +35,8 @@ public class EditEventRequest {
     @RequiredField(fieldName = "Mô tả sự kiện")
     String description;
 
-    @NotBlank
-    //todo validate address
+    @NotBlank (message = "INVALID_ADDRESS")
+    @ValidWard
     String address;
 
     @NotNull(message = "INVALID_EVENT_AUTO_APPROVE")

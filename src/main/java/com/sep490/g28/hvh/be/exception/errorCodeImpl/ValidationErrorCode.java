@@ -46,11 +46,11 @@ public enum ValidationErrorCode implements ErrorCode {
     INVALID_STRING_LENGTH(2025, "Độ dài chuỗi ký tự không hợp lệ", HttpStatus.BAD_REQUEST),
 
     //todo
+    INVALID_UPDATE_ACTION(2026, "Phải có hành động update khi gửi yêu cầu (ADD/ EDIT/ REMOVE)", HttpStatus.BAD_REQUEST),
     INVALID_EVENT_AUTO_APPROVE(2026, "Sự kiện phải được phân loại là tự động phê duyệt hoặc không", HttpStatus.BAD_REQUEST),
     INVALID_EVENT_SUBDOMAIN_ID(2026, "Sự kiện phải thuộc về 1 lĩnh vự hoạt động", HttpStatus.BAD_REQUEST),
     INVALID_EVENT_EXPECTED_VOL_AMOUNT(2026, "Số lượng tình nguyện viên dự kiến không hợp lệ (>=0 và < 10000000)", HttpStatus.BAD_REQUEST),
     INVALID_EVENT_EXPECTED_SER_AMOUNT(2026, "Số người được phục vụ dự kiến không hợp lệ (>=0 và < 10000000)", HttpStatus.BAD_REQUEST),
-//    INVALID_EVENT_EDIT_ACTION(2026, "Phải lựa chọn hành động sau khi edit là lưu bản nháp hay là gửi đi phê duyệt", HttpStatus.BAD_REQUEST),
 
     INVALID_EVENT_DATE_TIME(2026, "Ngày và thời gian tổ chức sự kiện không hợp lệ.", HttpStatus.BAD_REQUEST),
     INVALID_EVENT_SESSION_TIME_RANGE(2026, "Thời gian bắt đầu và thời gian kết thúc phải trong 1 ngày và cách nhau tối thiểu 1 tiếng, tối đa 12 tiếng.", HttpStatus.BAD_REQUEST),
