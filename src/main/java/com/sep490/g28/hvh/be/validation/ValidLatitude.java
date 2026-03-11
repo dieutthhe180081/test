@@ -1,13 +1,13 @@
 package com.sep490.g28.hvh.be.validation;
 
-import com.sep490.g28.hvh.be.validation.validator.WardValidator;
+import com.sep490.g28.hvh.be.validation.validator.LatitudeValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
 import java.lang.annotation.*;
 
 /**
- * Validation annotation used to validate a String as a ward's name
+ * Validation annotation used to validate a Double as Latitude value
  *
  *
  * <p><b>Null handling:</b><br>
@@ -18,20 +18,22 @@ import java.lang.annotation.*;
  * <p>Example usage:</p>
  * <pre>
  * {@code
- * @ValidWard
- * private String address;
+ * @NotNull(message = "INVALID_LATITUDE")
+ * @ValidLatitude
+ * Double checkInPlaceLat;
  * }
  * </pre>
  *
- * <p> The {@code message} attribute can be used to customize
+ * <p>The {@code message} attribute can be used to customize
  * the validation error message.</p>
  */
 @Documented
-@Constraint(validatedBy = WardValidator.class)
+@Constraint(validatedBy = LatitudeValidator.class)
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ValidWard {
-    String message() default "INVALID_ADDRESS"; // Default error message
+public @interface ValidLatitude {
+
+    String message() default "INVALID_LATITUDE"; // Default error message
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }

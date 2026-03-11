@@ -5,6 +5,8 @@ import com.sep490.g28.hvh.be.constant.EServingPlaceType;
 import com.sep490.g28.hvh.be.dto.eventsession.request.EditEventSessionRequest;
 import com.sep490.g28.hvh.be.dto.eventimage.request.EditEventImageRequest;
 import com.sep490.g28.hvh.be.validation.RequiredField;
+import com.sep490.g28.hvh.be.validation.ValidLatitude;
+import com.sep490.g28.hvh.be.validation.ValidLongitude;
 import com.sep490.g28.hvh.be.validation.ValidWard;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -22,7 +24,6 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class EditEventRequest {
 
-    //todo 1 đống chưa có validationerror code
     //allowed null
     UUID eventId;
 
@@ -43,7 +44,7 @@ public class EditEventRequest {
     Boolean autoApprove;
 
     @NotNull(message = "INVALID_EVENT_SUBDOMAIN_ID")
-    @Positive
+    @Positive(message = "INVALID_EVENT_SUBDOMAIN_ID")
     Short activitySubDomainId;
 
     @RequiredField(fieldName = "Đối tượng phục vụ")
@@ -60,14 +61,15 @@ public class EditEventRequest {
     List<EditEventSessionRequest> eventSessions;
 
     //--------------------------------------------------------
-    //todo, validate this
-    @NotNull
+    @NotNull(message = "INVALID_LATITUDE")
+    @ValidLatitude
     Double checkInPlaceLat;
 
-    @NotNull
+    @NotNull(message = "INVALID_LONGITUDE")
+    @ValidLongitude
     Double checkInPlaceLng;
 
-    @NotNull
-    @Min(value = 10)
+    @NotNull (message = "INVALID_EVENT_CHECKIN_ACCURACY_RANGE")
+    @Min(value = 10, message = "INVALID_EVENT_CHECKIN_ACCURACY_RANGE")
     int checkInPlaceAccuracyMeters;
 }

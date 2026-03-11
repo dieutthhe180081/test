@@ -80,7 +80,6 @@ public class EventServiceImpl implements EventService {
         EditEventResponse response = new EditEventResponse();
         //the event is completely new
 
-        //todo, còn phải check event time nữa, tách ra update và create riêng
         ActivitySubDomain activitySubDomain = activitySubDomainRepository.findById(request.getActivitySubDomainId())
                 .orElseThrow(() -> new AppException(ActivityDomainErrorCode.SUBDOMAIN_NOT_EXISTED));
         event.setActivitySubDomain(activitySubDomain);
