@@ -106,7 +106,9 @@ public class EventServiceImpl implements EventService {
         response.setUploadUrls(uploadUrls);
 
         //after finish all things to do with repo or other services, send notification to host if the event is submitted
-        notificationService.sendEventCreatedNotification(event, event.getHost());
+        if (eventStatus.equals(EEventStatus.SUMMITED)) {
+            notificationService.sendEventCreatedNotification(event, event.getHost());
+        }
         return response;
     }
 
@@ -145,6 +147,10 @@ public class EventServiceImpl implements EventService {
         //save event
         eventRepository.save(event);
 
+        //after finish all things to do with repo or other services, send notification to host if the event is submitted
+        if (eventStatus.equals(EEventStatus.SUMMITED)) {
+            notificationService.sendEventCreatedNotification(event, event.getHost());
+        }
         return response;
     }
 

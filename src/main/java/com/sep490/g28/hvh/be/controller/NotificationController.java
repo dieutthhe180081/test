@@ -56,8 +56,8 @@ public class NotificationController {
 //    }
 //
 //    @PostMapping("/send-to-user")
-//    public ResponseEntity<Void> sendNotiToUser() {
-//        UUID userId = UUID.fromString("57fa7839-375d-4298-a319-cbea49d22ce7");
+//    public ResponseEntity<Void> sendNotiToUser(@RequestParam UUID userId) {
+////        UUID userId = UUID.fromString("57fa7839-375d-4298-a319-cbea49d22ce7");
 ////        UUID userId = UUID.fromString("a67dabdc-ea8e-4c58-8312-c9aec971a38a");
 //
 //        Notification notification = new Notification();
