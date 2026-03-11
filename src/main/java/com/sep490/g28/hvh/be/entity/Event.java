@@ -14,6 +14,7 @@ import org.locationtech.jts.geom.Point;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,7 +49,7 @@ public class Event {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    private List<EventImage> images;
+    private List<EventImage> images = new ArrayList<>();
 
 
     @Column(name = "description", columnDefinition = "text", nullable = false)
@@ -65,12 +66,6 @@ public class Event {
     @JoinColumn(name = "activity_sub_domain_id", referencedColumnName = "id", nullable = false)
     private ActivitySubDomain activitySubDomain;
 
-    @Column(name = "expected_vol_amount", nullable = false)
-    private int expectedVolAmount;
-
-    @Column(name = "expected_ser_amount", nullable = false)
-    private int expectedSerAmount;
-
     @Column(name = "served_target")
     @Enumerated(EnumType.STRING)
     private EServedTarget servedTarget;
@@ -83,9 +78,6 @@ public class Event {
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
-    @Column(name = "end_date", nullable = false)
-    private LocalDate endDate;
-
     @Column(name = "recruitment_end_date", nullable = false)
     private LocalDate recruitmentEndDate;
 
@@ -94,7 +86,7 @@ public class Event {
             cascade = CascadeType.ALL,
             orphanRemoval = true //each checkin place must link to one event
     )
-    private List<EventDateTime> dateTimes;
+    private List<EventSession> dateTimes = new ArrayList<>();
 
 
     //--------------------------------------------------------

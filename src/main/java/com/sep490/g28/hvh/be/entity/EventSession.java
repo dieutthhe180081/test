@@ -8,21 +8,20 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(
-        name = "event_date_times",
+        name = "event_sessions",
         indexes = {
-                @Index(name = "idx_event_date_times_eventId", columnList = "event_id"),
+                @Index(name = "idx_event_sessions_eventId", columnList = "event_id"),
         })
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class EventDateTime {
+public class EventSession {
 
     @Id
     @GeneratedValue
@@ -33,14 +32,17 @@ public class EventDateTime {
     private Event event;
 
     //--------------------------------------------------------
-    @Column(name = "date", nullable = false)
-    private LocalDate date;
+    @Column(name = "start_date_time", nullable = false)
+    private OffsetDateTime startDateTime; // check-in time
 
-    @Column(name = "start_time", nullable = false)
-    private OffsetDateTime startTime; // check-in time
+    @Column(name = "end_date_time", nullable = false)
+    private OffsetDateTime endDateTime;   // check-out time
 
-    @Column(name = "end_time", nullable = false)
-    private OffsetDateTime endTime;   // check-out time
+    @Column(name = "expected_vol_amount", nullable = false)
+    private int expectedVolAmount;
+
+    @Column(name = "expected_ser_amount", nullable = false)
+    private int expectedSerAmount;
 
     //--------------------------------------------------------
     @CreationTimestamp
