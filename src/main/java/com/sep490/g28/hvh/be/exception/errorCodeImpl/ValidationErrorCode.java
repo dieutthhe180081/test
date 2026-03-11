@@ -44,19 +44,22 @@ public enum ValidationErrorCode implements ErrorCode {
     INVALID_SUBDOMAIN_UPDATE(2024, "Dữ liệu cập nhật lĩnh vực tình nguyện con không hợp lệ" +
             ", cần tuân thủ theo: EDIT: id + name, DELETE: id, ADD: name", HttpStatus.BAD_REQUEST),
     INVALID_STRING_LENGTH(2025, "Độ dài chuỗi ký tự không hợp lệ", HttpStatus.BAD_REQUEST),
-
-    //todo
     INVALID_UPDATE_ACTION(2026, "Phải có hành động update khi gửi yêu cầu (ADD/ EDIT/ REMOVE)", HttpStatus.BAD_REQUEST),
-    INVALID_EVENT_AUTO_APPROVE(2026, "Sự kiện phải được phân loại là tự động phê duyệt hoặc không", HttpStatus.BAD_REQUEST),
-    INVALID_EVENT_SUBDOMAIN_ID(2026, "Sự kiện phải thuộc về 1 lĩnh vự hoạt động", HttpStatus.BAD_REQUEST),
-    INVALID_EVENT_EXPECTED_VOL_AMOUNT(2026, "Số lượng tình nguyện viên dự kiến không hợp lệ (>=0 và < 10000000)", HttpStatus.BAD_REQUEST),
-    INVALID_EVENT_EXPECTED_SER_AMOUNT(2026, "Số người được phục vụ dự kiến không hợp lệ (>=0 và < 10000000)", HttpStatus.BAD_REQUEST),
+    INVALID_LATITUDE(2027, "Vĩ độ không hợp lệ", HttpStatus.BAD_REQUEST),
+    INVALID_LONGITUDE(2028, "Kinh độ không hợp lệ", HttpStatus.BAD_REQUEST),
 
-    INVALID_EVENT_DATE_TIME(2026, "Ngày và thời gian tổ chức sự kiện không hợp lệ.", HttpStatus.BAD_REQUEST),
-    INVALID_EVENT_SESSION_TIME_RANGE(2026, "Thời gian bắt đầu và thời gian kết thúc phải trong 1 ngày và cách nhau tối thiểu 1 tiếng, tối đa 12 tiếng.", HttpStatus.BAD_REQUEST),
-    INVALID_EVENT_SESSION_START_END_TIME(2026, "Thời gian kết thúc phải sau thời gian bắt đầu.", HttpStatus.BAD_REQUEST),
-    INVALID_EVENT_SESSION_START_TIME(2026, "Thời gian bắt đầu không được sớm hơn 5 giờ sáng.", HttpStatus.BAD_REQUEST),
-    INVALID_EVENT_SESSION_END_TIME(2026, "Thời gian kết thúc không được muộn hơn 23 giờ.", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_AUTO_APPROVE(2029, "Sự kiện phải được phân loại là tự động phê duyệt hoặc không", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_SUBDOMAIN_ID(2030, "Sự kiện phải thuộc về 1 lĩnh vự hoạt động", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_EXPECTED_VOL_AMOUNT(2031, "Số lượng tình nguyện viên dự kiến không hợp lệ (>=0 và < 10000000)", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_EXPECTED_SER_AMOUNT(2032, "Số người được phục vụ dự kiến không hợp lệ (>=0 và < 10000000)", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_DATE_TIME(2033, "Ngày và thời gian tổ chức sự kiện không hợp lệ.", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_SESSION_TIME_RANGE(2034, "Thời gian bắt đầu và thời gian kết thúc phải trong 1 ngày và cách nhau tối thiểu 1 tiếng, tối đa 12 tiếng.", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_SESSION_START_END_TIME(2035, "Thời gian kết thúc phải sau thời gian bắt đầu.", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_SESSION_START_TIME(2036, "Thời gian bắt đầu không được sớm hơn 5 giờ sáng.", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_SESSION_END_TIME(2037, "Thời gian kết thúc không được muộn hơn 23 giờ.", HttpStatus.BAD_REQUEST),
+    INVALID_EVENT_CHECKIN_ACCURACY_RANGE(2038, "Phạm vi check in phải lớn hơn 10m", HttpStatus.BAD_REQUEST),
+    INVALID_NOTIFICATION_TOKEN(2039, "Token để nhận thông báo không hợp lệ", HttpStatus.BAD_REQUEST),
+    INVALID_DEVICE_ID(2040, "ID thiết bị không hợp lệ", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;
