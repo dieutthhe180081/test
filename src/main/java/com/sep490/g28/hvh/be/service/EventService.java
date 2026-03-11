@@ -10,14 +10,14 @@ import com.sep490.g28.hvh.be.dto.event.request.EditEventRequest;
 
 public interface EventService {
 
-    EventFeedResponse getEventFeeds(int pageNumber,
-                                    int pageSize,
-                                    boolean refresh,
-                                    String name,
-                                    String address,
-                                    LocalDate startDate,
-                                    LocalDate endDate,
-                                    List<Short> activitySubDomains);
+//    EventFeedResponse getEventFeeds(int pageNumber,
+//                                    int pageSize,
+//                                    boolean refresh,
+//                                    String name,
+//                                    String address,
+//                                    LocalDate startDate,
+//                                    LocalDate endDate,
+//                                    List<Short> activitySubDomains);
 
     EditEventResponse draftEvent(EditEventRequest request);
 

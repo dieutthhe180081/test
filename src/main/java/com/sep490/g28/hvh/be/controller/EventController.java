@@ -32,22 +32,22 @@ public class EventController {
 
     EventService eventService;
 
-    @GetMapping("/new-feeds")
-    public ResponseEntity<EventFeedResponse> getEventNewFeeds(
-            @RequestParam(defaultValue = "0")
-            @Min(value = 0, message = "INVALID_PAGE_NUMBER") int pageNumber,
-            @RequestParam(defaultValue = "10")
-            @Min(value = 1, message = "INVALID_PAGE_SIZE")
-            @Max(value = 100, message = "INVALID_PAGE_SIZE") int pageSize,
-            @RequestParam(defaultValue = "true") boolean refresh,
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String address,
-            @RequestParam(required = false) LocalDate startDate,
-            @RequestParam(required = false) LocalDate endDate,
-            @RequestParam(required = false) List<Short> activitySubDomainIds
-    ) {
-        return ResponseEntity.ok(eventService.getEventFeeds(pageNumber, pageSize, refresh, name, address, startDate, endDate, activitySubDomainIds));
-    }
+//    @GetMapping("/new-feeds")
+//    public ResponseEntity<EventFeedResponse> getEventNewFeeds(
+//            @RequestParam(defaultValue = "0")
+//            @Min(value = 0, message = "INVALID_PAGE_NUMBER") int pageNumber,
+//            @RequestParam(defaultValue = "10")
+//            @Min(value = 1, message = "INVALID_PAGE_SIZE")
+//            @Max(value = 100, message = "INVALID_PAGE_SIZE") int pageSize,
+//            @RequestParam(defaultValue = "true") boolean refresh,
+//            @RequestParam(required = false) String name,
+//            @RequestParam(required = false) String address,
+//            @RequestParam(required = false) LocalDate startDate,
+//            @RequestParam(required = false) LocalDate endDate,
+//            @RequestParam(required = false) List<Short> activitySubDomainIds
+//    ) {
+//        return ResponseEntity.ok(eventService.getEventFeeds(pageNumber, pageSize, refresh, name, address, startDate, endDate, activitySubDomainIds));
+//    }
 
     @PreAuthorize("hasRole('HOST')")
     @PostMapping("/draft")
