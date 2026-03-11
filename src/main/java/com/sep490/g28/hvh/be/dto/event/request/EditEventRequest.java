@@ -28,7 +28,6 @@ public class EditEventRequest {
     @RequiredField(fieldName = "Tên sự kiện")
     String name;
 
-    //todo validate bên trong update images
     @Valid
     List<EditEventImageRequest> updateImages;
 
