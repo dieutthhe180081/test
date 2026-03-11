@@ -80,12 +80,9 @@ public class EventServiceTest {
         event.setName("Charity Event");
         event.setDescription("Helping people");
         event.setAddress("Hanoi");
-        event.setExpectedVolAmount(10);
-        event.setExpectedSerAmount(20);
         event.setServedTarget(EServedTarget.CHILDREN);
         event.setServingPlaceType(EServingPlaceType.CEMETERY);
         event.setStartDate(LocalDate.now());
-        event.setEndDate(LocalDate.now().plusDays(1));
         event.setRecruitmentEndDate(LocalDate.now().minusDays(1));
         event.setStatus(EEventStatus.RECRUITING);
 
@@ -108,6 +105,8 @@ public class EventServiceTest {
         img2.setImagePath("img2");
 
         event.setImages(List.of(img1, img2));
+
+        EventSession day1 = new EventSession();
 
         return event;
     }
