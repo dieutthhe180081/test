@@ -22,13 +22,11 @@ public class EventDetailsResponse {
     private String description;
     private String address;
     private String activitySubDomain;
-    private int expectedVolAmount;
-    private int expectedSerAmount;
     private EServedTarget servedTarget;
     private EServingPlaceType servingPlaceType;
     private LocalDate startDate;
-    private LocalDate endDate;
     private LocalDate recruitmentEndDate;
     private String hostPhone;
     private String orgName;
+    private List<EventSessionDetailsResponse> eventSessions;
 }

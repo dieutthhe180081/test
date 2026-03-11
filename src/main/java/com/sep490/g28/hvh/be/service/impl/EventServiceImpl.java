@@ -5,6 +5,7 @@ import com.sep490.g28.hvh.be.constant.EEventStatus;
 import com.sep490.g28.hvh.be.dto.event.request.SaveEventRequest;
 import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponse;
 import com.sep490.g28.hvh.be.dto.event.response.EventFeedResponse;
+import com.sep490.g28.hvh.be.dto.event.response.EventSessionDetailsResponse;
 import com.sep490.g28.hvh.be.dto.event.response.EventSimpleResponse;
 import com.sep490.g28.hvh.be.entity.Event;
 import com.sep490.g28.hvh.be.entity.EventImage;
@@ -64,7 +65,7 @@ public class EventServiceImpl implements EventService {
         if (refresh) {
             OffsetDateTime oneHourAgo = OffsetDateTime.now().minusHours(1);
             slice = eventRepository.refresh(name, address, startDate, endDate, activitySubDomains, oneHourAgo, pageable);
-        //Else if the action is load more, keep getting the slice with current searching params
+            //Else if the action is load more, keep getting the slice with current searching params
         } else {
             slice = eventRepository.search(name, address, startDate, endDate, activitySubDomains, pageable);
         }
@@ -74,40 +75,40 @@ public class EventServiceImpl implements EventService {
                 .map(list -> list.stream().filter(e -> e.getStatus().equals(EEventStatus.RECRUITING))
                         .map(e -> {
 
-                            String firstEventImageUrl = null;
+                                    String firstEventImageUrl = null;
 
-                            //get signed URL of file
-                            if (e.getImages() != null) {
+                                    //get signed URL of file
+                                    if (e.getImages() != null) {
 
-                                List<EventImage> eventImageList =e.getImages();
+                                        List<EventImage> eventImageList = e.getImages();
 
-                                CompletableFuture<String> firstEventImageFuture =
-                                        storageService.getSignedUrlAsync(eventImageList.getFirst().getImagePath());
+                                        CompletableFuture<String> firstEventImageFuture =
+                                                storageService.getSignedUrlAsync(eventImageList.getFirst().getImagePath());
 
-                                try {
-                                    CompletableFuture.allOf(firstEventImageFuture).join();
-                                    firstEventImageUrl = firstEventImageFuture.join();
-                                } catch (CompletionException ex) {
-                                    Throwable cause = ex.getCause();
-                                    if (cause instanceof AppException ae) {
-                                        //todo: handle app exception in viewEventFeeds
-                                    } else {
-                                        throw cause instanceof RuntimeException re ? re : ex;
+                                        try {
+                                            CompletableFuture.allOf(firstEventImageFuture).join();
+                                            firstEventImageUrl = firstEventImageFuture.join();
+                                        } catch (CompletionException ex) {
+                                            Throwable cause = ex.getCause();
+                                            if (cause instanceof AppException ae) {
+                                                //todo: handle app exception in viewEventFeeds
+                                            } else {
+                                                throw cause instanceof RuntimeException re ? re : ex;
+                                            }
+                                        }
                                     }
+
+                                    return new EventSimpleResponse(
+                                            e.getOrganization().getName(),
+                                            e.getName(),
+                                            firstEventImageUrl,
+                                            e.getAddress(),
+                                            e.getStartDate(),
+                                            e.getRecruitmentEndDate()
+                                    );
                                 }
-                            }
 
-                            return new EventSimpleResponse(
-                                    e.getOrganization().getName(),
-                                    e.getName(),
-                                    firstEventImageUrl,
-                                    e.getAddress(),
-                                    e.getStartDate(),
-                                    e.getRecruitmentEndDate()
-                            );
-                        }
-
-                ).toList())
+                        ).toList())
                 .orElse(Collections.emptyList());
 
         // If after load the slice with n size,
@@ -130,7 +131,7 @@ public class EventServiceImpl implements EventService {
 
         //get signed URL of file
         List<CompletableFuture<String>> imagesFutures = new ArrayList<>();
-        if(event.getImages() != null) {
+        if (event.getImages() != null) {
             List<EventImage> imagesList = event.getImages();
             for (EventImage image : imagesList) {
                 CompletableFuture<String> imageFuture =
@@ -157,19 +158,29 @@ public class EventServiceImpl implements EventService {
         }
 
         String hostPhone = "";
-        if(event.getHost() != null) {
+        if (event.getHost() != null) {
             hostPhone = event.getHost().getPhone();
         }
 
         String orgName = "";
-        if(event.getOrganization() != null) {
+        if (event.getOrganization() != null) {
             orgName = event.getOrganization().getName();
         }
 
         String activitySubDomainName = "";
-        if(event.getActivitySubDomain() != null) {
+        if (event.getActivitySubDomain() != null) {
             activitySubDomainName = event.getActivitySubDomain().getName();
         }
+
+        //Map event sessions to response
+        List<EventSessionDetailsResponse> eventSessions = event.getDateTimes().stream()
+                .map(es -> new EventSessionDetailsResponse(
+                        es.getId(),
+                        es.getStartDateTime(),
+                        es.getEndDateTime(),
+                        es.getExpectedVolAmount(),
+                        es.getExpectedSerAmount()
+                )).toList();
 
         return EventDetailsResponse.builder()
                 .id(event.getId())
@@ -178,15 +189,13 @@ public class EventServiceImpl implements EventService {
                 .description(event.getDescription())
                 .address(event.getAddress())
                 .activitySubDomain(activitySubDomainName)
-                .expectedVolAmount(event.getExpectedVolAmount())
-                .expectedSerAmount(event.getExpectedSerAmount())
                 .servedTarget(event.getServedTarget())
                 .servingPlaceType(event.getServingPlaceType())
                 .startDate(event.getStartDate())
-                .endDate(event.getEndDate())
                 .recruitmentEndDate(event.getRecruitmentEndDate())
                 .hostPhone(hostPhone)
                 .orgName(orgName)
+                .eventSessions(eventSessions)
                 .build();
     }
 
