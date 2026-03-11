@@ -20,6 +20,7 @@ public class StoragePathGenerator {
     private final static String CID_FRONT_FILE_NAME = "/cid-front";
     private final static String CID_BACK_FILE_NAME = "/cid-back";
     private final static String CID_HOLDING_FILE_NAME = "/cid-holding";
+    private final static String LEGAL_DOCUMENTS_FILE_NAME = "/legal-docs_";
     private final static String OTHER_EVIDENCES_FILE_NAME = "/others_";
 
 
@@ -46,6 +47,10 @@ public class StoragePathGenerator {
 
     public String orgRegistrationCidHolding(UUID registrationId, String fileExtension) {
         return  ORG_REGISTRATION_FOLDER+ "/" + registrationId + CID_HOLDING_FILE_NAME + fileExtension;
+    }
+
+    public String orgRegistrationLegalDocuments(UUID registrationId, int order, String fileExtension) {
+        return  ORG_REGISTRATION_FOLDER+ "/" + registrationId + LEGAL_DOCUMENTS_FILE_NAME + order + fileExtension;
     }
 
     public String orgRegistrationOtherEvidences(UUID registrationId, int order, String fileExtension) {
