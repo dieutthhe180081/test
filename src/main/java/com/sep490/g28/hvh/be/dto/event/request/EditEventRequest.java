@@ -69,7 +69,7 @@ public class EditEventRequest {
     @ValidLongitude
     Double checkInPlaceLng;
 
-    @NotNull (message = "INVALID_EVENT_CHECKIN_ACCURACY_RANGE")
-    @Min(value = 10, message = "INVALID_EVENT_CHECKIN_ACCURACY_RANGE")
+    @Min(value = 300, message = "INVALID_EVENT_CHECKIN_ACCURACY_RANGE")
+    @Max(value = 3000, message = "INVALID_EVENT_CHECKIN_ACCURACY_RANGE")
     int checkInPlaceAccuracyMeters;
 }
