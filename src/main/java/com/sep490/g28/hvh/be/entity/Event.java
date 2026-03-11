@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.locationtech.jts.geom.Point;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -88,23 +89,31 @@ public class Event {
     @Column(name = "recruitment_end_date", nullable = false)
     private LocalDate recruitmentEndDate;
 
-    @Column(name = "start_time", nullable = false)
-    private OffsetDateTime startTime; // check-in time
-
-    @Column(name = "end_time", nullable = false)
-    private OffsetDateTime endTime;   // check-out time
-
-    //--------------------------------------------------------
     @OneToMany(
             mappedBy = "event",
             cascade = CascadeType.ALL,
-            orphanRemoval = true //each checkin place link to one event
+            orphanRemoval = true //each checkin place must link to one event
     )
-    private List<CheckInPlace> checkInPlaces;
+    private List<EventDateTime> dateTimes;
+
+
+    //--------------------------------------------------------
+    /**
+     * geography(Point, 4326)
+     * Save using PostGIS
+     */
+    @Column(
+            name = "check_in_location",
+            nullable = false,
+            columnDefinition = "geography(Point, 4326)"
+    )
+    private Point checkInLocation;
+
+    @Column(name = "check_in_accuracy_meters", nullable = false)
+    private Double checkInAccuracyMeters;
 
     @Column(name = "check_in_code", length = 6)
     private String checkInCode;
-
 
     //--------------------------------------------------------
     @Enumerated(EnumType.STRING)
