@@ -85,43 +85,43 @@ public class EventServiceImpl implements EventService {
 
         //map the slice content (list of events) to EventSimpleResponse
         List<EventSimpleResponse> eventSimpleResponseList = Optional.of(slice.getContent())
-                .map(list -> list.stream().map(e -> {
+                .map(list -> list.stream().filter(e -> e.getStatus().equals(EEventStatus.RECRUITING))
+                        .map(e -> {
 
-                            String firstEventImageUrl = null;
+                                    String firstEventImageUrl = null;
 
-                            //get signed URL of file
-                            if (e.getImages() != null) {
+                                    //get signed URL of file
+                                    if (e.getImages() != null) {
 
-                                String[] eventImages = e.getImages().split("\\s+");
-                                List<String> eventImageList = new ArrayList<>(Arrays.asList(eventImages));
+                                        List<EventImage> eventImageList = e.getImages();
 
-                                CompletableFuture<String> firstEventImageFuture =
-                                        storageService.getSignedUrlAsync(eventImageList.getFirst());
+                                        CompletableFuture<String> firstEventImageFuture =
+                                                storageService.getSignedUrlAsync(eventImageList.getFirst().getImagePath());
 
-                                try {
-                                    CompletableFuture.allOf(firstEventImageFuture).join();
-                                    firstEventImageUrl = firstEventImageFuture.join();
-                                } catch (CompletionException ex) {
-                                    Throwable cause = ex.getCause();
-                                    if (cause instanceof AppException ae) {
-                                        //todo: handle app exception in viewEventFeeds
-                                    } else {
-                                        throw cause instanceof RuntimeException re ? re : ex;
+                                        try {
+                                            CompletableFuture.allOf(firstEventImageFuture).join();
+                                            firstEventImageUrl = firstEventImageFuture.join();
+                                        } catch (CompletionException ex) {
+                                            Throwable cause = ex.getCause();
+                                            if (cause instanceof AppException ae) {
+                                                //todo: handle app exception in viewEventFeeds
+                                            } else {
+                                                throw cause instanceof RuntimeException re ? re : ex;
+                                            }
+                                        }
                                     }
+
+                                    return new EventSimpleResponse(
+                                            e.getOrganization().getName(),
+                                            e.getName(),
+                                            firstEventImageUrl,
+                                            e.getAddress(),
+                                            e.getStartDate(),
+                                            e.getRecruitmentEndDate()
+                                    );
                                 }
-                            }
 
-                            return new EventSimpleResponse(
-                                    e.getOrganization().getName(),
-                                    e.getName(),
-                                    firstEventImageUrl,
-                                    e.getAddress(),
-                                    e.getStartDate(),
-                                    e.getRecruitmentEndDate()
-                            );
-                        }
-
-                ).toList())
+                        ).toList())
                 .orElse(Collections.emptyList());
 
         // If after load the slice with n size,
@@ -148,7 +148,7 @@ public class EventServiceImpl implements EventService {
             //event has been saved as drafted
             //get event from db
             Event event = eventRepository.findById(request.getEventId()).orElseThrow(
-                    () -> new AppException(EventErrorCode.EVENT_NOT_FOUND)
+                    () -> new AppException(EventErrorCode.EVENT_NOT_EXISTED)
             );
             return editEvent(request, event, EEventStatus.EDITING);
         } else {
@@ -162,7 +162,7 @@ public class EventServiceImpl implements EventService {
             //event has been saved as drafted
             //get event from db
             Event event = eventRepository.findById(request.getEventId()).orElseThrow(
-                    () -> new AppException(EventErrorCode.EVENT_NOT_FOUND)
+                    () -> new AppException(EventErrorCode.EVENT_NOT_EXISTED)
             );
             return editEvent(request, event, EEventStatus.SUMMITED);
         } else {

@@ -211,7 +211,7 @@ public class EventServiceEditEventTest {
                 () -> service.submitEvent(req)
         );
 
-        assertEquals(EventErrorCode.EVENT_NOT_FOUND.getCode(), ex.getCode());
+        assertEquals(EventErrorCode.EVENT_NOT_EXISTED.getCode(), ex.getCode());
     }
 
     // TC02

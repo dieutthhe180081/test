@@ -20,6 +20,7 @@ import com.sep490.g28.hvh.be.service.impl.EventServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
@@ -55,6 +56,7 @@ public class EventServiceTest {
     @Mock
     CurrentUserProvider currentUserProvider;
 
+    @InjectMocks
     EventServiceImpl eventService;
 
     UUID volunteerId;
@@ -62,13 +64,6 @@ public class EventServiceTest {
 
     @BeforeEach
     void setup() {
-        eventService = new EventServiceImpl(
-                eventRepository,
-                volunteerRepository,
-                volunteerSavedEventRepository,
-                storageService,
-                currentUserProvider
-        );
         volunteerId = UUID.randomUUID();
         eventId = UUID.randomUUID();
     }
