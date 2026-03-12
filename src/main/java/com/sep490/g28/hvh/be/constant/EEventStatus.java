@@ -2,7 +2,7 @@ package com.sep490.g28.hvh.be.constant;
 
 public enum EEventStatus {
     EDITING, //aka drafted
-    SUMMITED,
+    SUBMITTED,
     APPROVED_BY_MNG,
     REJECTED_BY_MNG,
     REJECTED_BY_AD,
