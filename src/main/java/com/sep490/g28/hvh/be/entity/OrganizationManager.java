@@ -61,7 +61,12 @@ public class OrganizationManager {
     @JoinColumn(name = "created_by", referencedColumnName = "id")
     private SystemAdmin createdBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organization_id", referencedColumnName = "id", nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "organization_id",
+            referencedColumnName = "id",
+            nullable = false,
+            unique = true
+    )
     private Organization organization;
 }
