@@ -1,7 +1,6 @@
 package com.sep490.g28.hvh.be.validation;
 
 import com.sep490.g28.hvh.be.validation.validator.ImageFileExtensionValidator;
-import com.sep490.g28.hvh.be.validation.validator.OrgTypeValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 

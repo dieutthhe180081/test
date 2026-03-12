@@ -17,7 +17,6 @@ public class RegisterNotificationTokenRequest {
 
         EPlatform platform;
 
-        //todo add error code
         @NotBlank(message = "INVALID_DEVICE_ID")
         @Size(min = 20, message = "INVALID_DEVICE_ID") //check garbage
         String deviceId;

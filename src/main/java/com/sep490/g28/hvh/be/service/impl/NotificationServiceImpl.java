@@ -1,8 +1,11 @@
 package com.sep490.g28.hvh.be.service.impl;
 
 import com.sep490.g28.hvh.be.auth.CurrentUserProvider;
+import com.sep490.g28.hvh.be.constant.ENotificationDataAction;
 import com.sep490.g28.hvh.be.constant.ENotificationType;
 import com.sep490.g28.hvh.be.entity.Event;
+import com.sep490.g28.hvh.be.entity.Host;
+import com.sep490.g28.hvh.be.entity.OrganizationManager;
 import com.sep490.g28.hvh.be.entity.User;
 import com.sep490.g28.hvh.be.notification.entity.Notification;
 import com.sep490.g28.hvh.be.notification.entity.UserNotification;
@@ -47,6 +50,7 @@ public class NotificationServiceImpl implements NotificationService {
     private static final String ADMIN_TOPIC = "admin";
 
     private static final String DATA_REF_ID_KEY = "refId";
+    private static final String DATA_ACTION = "action";
     private static final String DATA_NOTIFICATION_TYPE = "type";
     private final UserNotificationRepository userNotificationRepository;
 
@@ -98,6 +102,33 @@ public class NotificationServiceImpl implements NotificationService {
 
     }
 
+    @Override
+    public void sendEventCreatedNotification(Event event, Host host) {
+        Notification notification = new Notification();
+        User orgManager = userRepository.getReferenceById(host.getCreatedBy().getId());
+
+        notification.setType(ENotificationType.EVENT_CREATED);
+        notification.setTitle("Sự kiện mới được tạo");
+        notification.setBody(String.format("Sự kiện \"%s\" vừa được tạo và cần xác nhận.", event.getName()));
+        notification.setData(Map.of(
+                DATA_NOTIFICATION_TYPE, ENotificationType.EVENT_CREATED.name(),
+                DATA_REF_ID_KEY, event.getId().toString(),
+                DATA_ACTION, ENotificationDataAction.MNG_EVENT_DETAILS.name()
+        ));
+
+        //save notification
+        notification = notificationRepository.save(notification);
+
+        //link the notification to user in the db
+        UserNotification userNotification = new UserNotification();
+        userNotification.setNotification(notification);
+        userNotification.setUser(orgManager);
+
+        userNotificationRepository.save(userNotification);
+
+        notificationPublisher.enqueueNotification(notification, orgManager.getId());
+    }
+
 //    @Override
 //    public List<UserNotification> getLatestNotification(OffsetDateTime cursor) {
 //        UUID currentUserId = currentUserProvider.getId();
@@ -131,7 +162,8 @@ public class NotificationServiceImpl implements NotificationService {
             notification.setBody(String.format("Sự kiện %s đã được phê duyệt và bước vào trạng thái tuyển người.", event.getName()));
             notification.setData(Map.of(
                     DATA_NOTIFICATION_TYPE, ENotificationType.EVENT_APPROVED_BY_MNG.name(),
-                    DATA_REF_ID_KEY, event.getId().toString()
+                    DATA_REF_ID_KEY, event.getId().toString(),
+                    DATA_ACTION, ENotificationDataAction.HOST_EVENT_DETAILS.name()
             ));
             notification.setType(ENotificationType.EVENT_APPROVED_BY_MNG);
         } else {
@@ -139,7 +171,8 @@ public class NotificationServiceImpl implements NotificationService {
             notification.setBody(String.format("Quản lí tổ chức đã không chấp thuận tạo sự kiện %s.", event.getName()));
             notification.setData(Map.of(
                     DATA_NOTIFICATION_TYPE, ENotificationType.EVENT_REJECTED_BY_MNG.name(),
-                    DATA_REF_ID_KEY, event.getId().toString()
+                    DATA_REF_ID_KEY, event.getId().toString(),
+                    DATA_ACTION, ENotificationDataAction.HOST_EVENT_DETAILS.name()
             ));
             notification.setType(ENotificationType.EVENT_REJECTED_BY_MNG);
         }

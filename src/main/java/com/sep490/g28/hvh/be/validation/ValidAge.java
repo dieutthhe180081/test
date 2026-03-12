@@ -1,6 +1,5 @@
 package com.sep490.g28.hvh.be.validation;
 
-import com.sep490.g28.hvh.be.validation.validator.AllowedFileExtensionValidator;
 import com.sep490.g28.hvh.be.validation.validator.ValidAgeValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
