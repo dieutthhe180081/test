@@ -1,5 +1,6 @@
 package com.sep490.g28.hvh.be.controller;
 
+import com.sep490.g28.hvh.be.dto.event.request.RejectEventRequest;
 import com.sep490.g28.hvh.be.dto.event.request.SaveEventRequest;
 import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponse;
 import com.sep490.g28.hvh.be.dto.event.response.EventFeedResponse;
@@ -72,6 +73,40 @@ public class EventController {
     @PostMapping("/save-event")
     public ResponseEntity<String> saveEvent(@Valid @RequestBody SaveEventRequest request) {
         eventService.saveEvent(request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasRole('ORG_MANAGER')")
+    @PutMapping("/manager/event/{eventId}/approve")
+    public ResponseEntity<String> approveEventByManager(@PathVariable java.util.UUID eventId) {
+        eventService.approveEventByManager(eventId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasRole('ORG_MANAGER')")
+    @PutMapping("/manager/event/{eventId}/reject")
+    public ResponseEntity<String> rejectEventByManager(
+            @PathVariable java.util.UUID eventId,
+            @Valid @RequestBody RejectEventRequest request
+    ) {
+        eventService.rejectEventByManager(eventId, request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasRole('SYS_ADMIN')")
+    @PutMapping("/admin/event/{eventId}/approve")
+    public ResponseEntity<String> approveEventByAdmin(@PathVariable java.util.UUID eventId) {
+        eventService.approveEventByAdmin(eventId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasRole('SYS_ADMIN')")
+    @PutMapping("/admin/event/{eventId}/reject")
+    public ResponseEntity<String> rejectEventByAdmin(
+            @PathVariable java.util.UUID eventId,
+            @Valid @RequestBody RejectEventRequest request
+    ) {
+        eventService.rejectEventByAdmin(eventId, request);
         return ResponseEntity.ok().build();
     }
 }

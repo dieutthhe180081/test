@@ -2,6 +2,7 @@ package com.sep490.g28.hvh.be.service.impl;
 
 import com.sep490.g28.hvh.be.constant.EEventStatus;
 import com.sep490.g28.hvh.be.dto.event.request.EditEventRequest;
+import com.sep490.g28.hvh.be.dto.event.request.RejectEventRequest;
 import com.sep490.g28.hvh.be.dto.event.response.EditEventResponse;
 import com.sep490.g28.hvh.be.dto.event.request.SaveEventRequest;
 import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponse;
@@ -46,19 +47,19 @@ import java.util.concurrent.CompletionException;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EventServiceImpl implements EventService {
-    private final HostRepository hostRepository;
-    private final ActivitySubDomainRepository activitySubDomainRepository;
-    private final EventRepository eventRepository;
+    HostRepository hostRepository;
+    ActivitySubDomainRepository activitySubDomainRepository;
+    EventRepository eventRepository;
+    VolunteerRepository volunteerRepository;
+    VolunteerSavedEventRepository volunteerSavedEventRepository;
 
     StorageService storageService;
 
-    private final EventImageService eventImageService;
-    private final EventSessionService eventSessionService;
-    private final NotificationService notificationService;
+    EventImageService eventImageService;
+    EventSessionService eventSessionService;
+    NotificationService notificationService;
 
-    private final CurrentUserProvider currentUserProvider;
-    VolunteerRepository volunteerRepository;
-    VolunteerSavedEventRepository volunteerSavedEventRepository;
+    CurrentUserProvider currentUserProvider;
 
     @Override
     public EventFeedResponse getEventFeeds(int pageNumber, int pageSize, boolean refresh,
@@ -164,9 +165,9 @@ public class EventServiceImpl implements EventService {
             Event event = eventRepository.findById(request.getEventId()).orElseThrow(
                     () -> new AppException(EventErrorCode.EVENT_NOT_EXISTED)
             );
-            return editEvent(request, event, EEventStatus.SUMMITED);
+            return editEvent(request, event, EEventStatus.SUBMITTED);
         } else {
-            return createEvent(request, EEventStatus.SUMMITED);
+            return createEvent(request, EEventStatus.SUBMITTED);
         }
     }
 
@@ -201,7 +202,7 @@ public class EventServiceImpl implements EventService {
         response.setUploadUrls(uploadUrls);
 
         //after finish all things to do with repo or other services, send notification to host if the event is submitted
-        if (eventStatus.equals(EEventStatus.SUMMITED)) {
+        if (eventStatus.equals(EEventStatus.SUBMITTED)) {
             notificationService.sendEventCreatedNotification(event, event.getHost());
         }
         return response;
@@ -243,7 +244,7 @@ public class EventServiceImpl implements EventService {
         eventRepository.save(event);
 
         //after finish all things to do with repo or other services, send notification to host if the event is submitted
-        if (eventStatus.equals(EEventStatus.SUMMITED)) {
+        if (eventStatus.equals(EEventStatus.SUBMITTED)) {
             notificationService.sendEventCreatedNotification(event, event.getHost());
         }
         return response;
@@ -375,6 +376,118 @@ public class EventServiceImpl implements EventService {
 
         volunteerSavedEventRepository.save(volunteerSavedEvent);
     }
+
+    @Override
+    public void approveEventByManager(UUID eventId) {
+        //get event out from repo
+        Event event = eventRepository.findById(eventId).orElseThrow(
+                () -> new AppException(EventErrorCode.EVENT_NOT_EXISTED)
+        );
+
+        //check event status
+        if (!event.getStatus().equals(EEventStatus.SUBMITTED)) {
+            throw new AppException(EventErrorCode.ACTION_NOT_EXECUTABLE);
+        }
+
+        //check whether the host is hosting other event or not?
+        List<EventSession> conflictSession =  eventSessionService.findConflictSessionDateOfHost(event.getHost().getId(), eventId, event.getDateTimes());
+        if (!conflictSession.isEmpty()) {
+            throw new AppException(EventErrorCode.DUPLICATE_HOSTED_DATE);
+        }
+
+        //update in db
+        event.setStatus(EEventStatus.APPROVED_BY_MNG);
+        eventRepository.save(event);
+
+        //send notification
+        notificationService.sendEventApprovedByOrgManagerNotification(event);
+    }
+
+    @Override
+    public void rejectEventByManager(UUID eventId, RejectEventRequest request) {
+        //get event out from repo
+        Event event = eventRepository.findById(eventId).orElseThrow(
+                () -> new AppException(EventErrorCode.EVENT_NOT_EXISTED)
+        );
+
+        //check event status
+        if (!event.getStatus().equals(EEventStatus.SUBMITTED)) {
+            throw new AppException(EventErrorCode.ACTION_NOT_EXECUTABLE);
+        }
+
+        //update in db
+        event.setStatus(EEventStatus.REJECTED_BY_MNG);
+        eventRepository.save(event);
+
+        //send notification
+        notificationService.sendEventRejectedByOrgManagerNotification(event, request.getReason());
+    }
+
+    @Override
+    public void approveEventByAdmin(UUID eventId) {
+        //get event out from repo
+        Event event = eventRepository.findById(eventId).orElseThrow(
+                () -> new AppException(EventErrorCode.EVENT_NOT_EXISTED)
+        );
+
+        //check event status
+        if (!event.getStatus().equals(EEventStatus.APPROVED_BY_MNG)) {
+            throw new AppException(EventErrorCode.ACTION_NOT_EXECUTABLE);
+        }
+
+//        //check whether the host is hosting other event or not?
+//        List<EventSession> conflictSession =
+//                eventSessionService.findConflictSessionDateOfHost(
+//                        event.getHost().getId(),
+//                        eventId,
+//                        event.getDateTimes()
+//                );
+//        if (!conflictSession.isEmpty()) {
+//            throw new AppException(EventErrorCode.DUPLICATE_HOSTED_DATE);
+//        }
+
+        //update in db
+        event.setStatus(EEventStatus.RECRUITING);
+        eventRepository.save(event);
+
+        //send notification
+        notificationService.sendEventApprovedByAdminNotification(event);
+    }
+
+    @Override
+    public void rejectEventByAdmin(UUID eventId, RejectEventRequest request) {
+        //get event out from repo
+        Event event = eventRepository.findById(eventId).orElseThrow(
+                () -> new AppException(EventErrorCode.EVENT_NOT_EXISTED)
+        );
+
+        //check event status
+        if (!event.getStatus().equals(EEventStatus.APPROVED_BY_MNG)) {
+            throw new AppException(EventErrorCode.ACTION_NOT_EXECUTABLE);
+        }
+
+        //update in db
+        event.setStatus(EEventStatus.REJECTED_BY_AD);
+        eventRepository.save(event);
+
+        //send notification
+        notificationService.sendEventRejectedByAdminNotification(event, request.getReason());
+    }
+
+
+//    private List<OffsetDateTime> findConflictingDateOfHost(Event event) {
+//        List<LocalDate> dates = event.getDateTimes()
+//                .stream()
+//                .map(s -> s.getStartDateTime().toLocalDate())
+//                .toList();
+//
+//        List<EventSession> conflictSession =  eventSessionRepository.findConflictingSessions(
+//                        event.getHost().getId(),
+//                        event.getId(),
+//                        dates
+//                );
+//        return conflictSession.stream().map(EventSession::getStartDateTime).toList();
+//    }
 
 }
 

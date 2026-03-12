@@ -333,7 +333,7 @@ public class EventServiceEditEventTest {
     void editEvent_notEditable_shouldThrow() {
 
         Event event = event();
-        event.setStatus(EEventStatus.SUMMITED);
+        event.setStatus(EEventStatus.SUBMITTED);
 
         EditEventRequest req = request();
         req.setEventId(event.getId());

@@ -1,5 +1,6 @@
 package com.sep490.g28.hvh.be.service;
 
+import com.sep490.g28.hvh.be.dto.event.request.RejectEventRequest;
 import com.sep490.g28.hvh.be.dto.event.request.SaveEventRequest;
 import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponse;
 import com.sep490.g28.hvh.be.dto.event.response.EventFeedResponse;
@@ -29,4 +30,12 @@ public interface EventService {
     EventDetailsResponse getEventDetails(UUID id);
 
     void saveEvent(SaveEventRequest saveEventRequest);
+
+    void approveEventByManager(UUID eventId);
+
+    void rejectEventByManager(UUID eventId, RejectEventRequest request);
+
+    void approveEventByAdmin(UUID eventId);
+
+    void rejectEventByAdmin(UUID eventId, RejectEventRequest request);
 }
