@@ -47,7 +47,7 @@ public class ValidationExceptionHandler {
     );
 
     /**
-     * Handles DTO field and object validation errors.
+     * Handles DTO field and object validation errors. (field error)
      *
      * <p>Triggered when {@code @Valid} / {@code @Validated}
      * fails on {@code @RequestBody}.</p>
@@ -97,7 +97,7 @@ public class ValidationExceptionHandler {
     }
 
     /**
-     * Handles method-level constraint violations.
+     * Handles method-level constraint violations. (Object error)
      *
      * <p>Applies to validation on request parameters,
      * path variables, and service-layer method parameters.</p>

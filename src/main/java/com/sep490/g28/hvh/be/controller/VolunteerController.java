@@ -41,12 +41,20 @@ public class VolunteerController {
     @GetMapping("/registrations")
     public ResponseEntity<Page<VolunteerRegistrationSimpleResponse>> getRegistrations(
             @RequestParam(defaultValue = "0")
-            @Min(value = 0, message = "INVALID_PAGE_NUMBER") int pageNumber,
+            @Min(value = 0, message = "INVALID_PAGE_NUMBER")
+            int pageNumber,
+
             @RequestParam(defaultValue = "10")
             @Min(value = 1, message = "INVALID_PAGE_SIZE")
-            @Max(value = 100, message = "INVALID_PAGE_SIZE") int pageSize,
-            @RequestParam(required = false, name = "status") @VolunteerVerificationStatus String inputStatus,
-            @RequestParam(required = false) String email
+            @Max(value = 100, message = "INVALID_PAGE_SIZE")
+            int pageSize,
+
+            @RequestParam(required = false, name = "status")
+            @VolunteerVerificationStatus
+            String inputStatus,
+
+            @RequestParam(required = false)
+            String email
     ) {
 
         return ResponseEntity.ok(

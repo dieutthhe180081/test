@@ -10,14 +10,17 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.locationtech.jts.geom.Point;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Entity
 @Table(name = "events")
+//todo, có khi thêm index tren satus nua, search cho nhanh
 @Getter
 @Setter
 @NoArgsConstructor
@@ -40,8 +43,14 @@ public class Event {
     @Column(nullable = false)
     private String name;
 
-    @Column(name = "images", length = 500)
-    private String images;
+    @OneToMany(
+            mappedBy = "event",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<EventImage> images = new ArrayList<>();
+
 
     @Column(name = "description", columnDefinition = "text", nullable = false)
     private String description;
@@ -57,12 +66,6 @@ public class Event {
     @JoinColumn(name = "activity_sub_domain_id", referencedColumnName = "id", nullable = false)
     private ActivitySubDomain activitySubDomain;
 
-    @Column(name = "expected_vol_amount", nullable = false)
-    private int expectedVolAmount;
-
-    @Column(name = "expected_ser_amount", nullable = false)
-    private int expectedSerAmount;
-
     @Column(name = "served_target")
     @Enumerated(EnumType.STRING)
     private EServedTarget servedTarget;
@@ -75,29 +78,34 @@ public class Event {
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
-    @Column(name = "end_date", nullable = false)
-    private LocalDate endDate;
-
     @Column(name = "recruitment_end_date", nullable = false)
     private LocalDate recruitmentEndDate;
 
-    @Column(name = "start_time", nullable = false)
-    private OffsetDateTime startTime; // check-in time
-
-    @Column(name = "end_time", nullable = false)
-    private OffsetDateTime endTime;   // check-out time
-
-    //--------------------------------------------------------
     @OneToMany(
             mappedBy = "event",
             cascade = CascadeType.ALL,
-            orphanRemoval = true //each checkin place link to one event
+            orphanRemoval = true //each checkin place must link to one event
     )
-    private List<CheckInPlace> checkInPlaces;
+    private List<EventSession> dateTimes = new ArrayList<>();
+
+
+    //--------------------------------------------------------
+    /**
+     * geography(Point, 4326)
+     * Save using PostGIS
+     */
+    @Column(
+            name = "check_in_location",
+            nullable = false,
+            columnDefinition = "geography(Point, 4326)"
+    )
+    private Point checkInLocation;
+
+    @Column(name = "check_in_accuracy_meters", nullable = false)
+    private Double checkInAccuracyMeters;
 
     @Column(name = "check_in_code", length = 6)
     private String checkInCode;
-
 
     //--------------------------------------------------------
     @Enumerated(EnumType.STRING)

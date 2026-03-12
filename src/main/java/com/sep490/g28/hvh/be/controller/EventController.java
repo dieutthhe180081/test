@@ -1,18 +1,22 @@
 package com.sep490.g28.hvh.be.controller;
 
+import com.sep490.g28.hvh.be.dto.event.request.SaveEventRequest;
+import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponse;
 import com.sep490.g28.hvh.be.dto.event.response.EventFeedResponse;
+import com.sep490.g28.hvh.be.dto.event.request.EditEventRequest;
+import com.sep490.g28.hvh.be.dto.event.response.EditEventResponse;
 import com.sep490.g28.hvh.be.service.EventService;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.validator.constraints.UUID;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -41,5 +45,33 @@ public class EventController {
             @RequestParam(required = false) List<Short> activitySubDomainIds
     ) {
         return ResponseEntity.ok(eventService.getEventFeeds(pageNumber, pageSize, refresh, name, address, startDate, endDate, activitySubDomainIds));
+    }
+
+    @PreAuthorize("hasRole('HOST')")
+    @PostMapping("/draft")
+    ResponseEntity<EditEventResponse> draftEvent(@RequestBody @Valid EditEventRequest request) {
+
+        return ResponseEntity.ok(eventService.draftEvent(request));
+    }
+
+    @PreAuthorize("hasRole('HOST')")
+    @PostMapping("/submit")
+    ResponseEntity<EditEventResponse> submitEvent(@RequestBody @Valid EditEventRequest request) {
+
+        return ResponseEntity.ok(eventService.submitEvent(request));
+    }
+
+    @GetMapping("/event-details/{id}")
+    public ResponseEntity<EventDetailsResponse> getEventDetails(
+            @PathVariable(name = "id") @UUID(message = "INVALID_UUID") String inputId
+    ) {
+        java.util.UUID id = java.util.UUID.fromString(inputId);
+        return ResponseEntity.ok(eventService.getEventDetails(id));
+    }
+
+    @PostMapping("/save-event")
+    public ResponseEntity<String> saveEvent(@Valid @RequestBody SaveEventRequest request) {
+        eventService.saveEvent(request);
+        return ResponseEntity.ok().build();
     }
 }

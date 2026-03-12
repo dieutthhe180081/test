@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(AppException.class)
     ResponseEntity<ExceptionResponse> appExceptionHandler(AppException e) {
-        log.info("Exception is catch by appExceptionHandler, exception: {}", e.getMessage());
+        log.info("Exception is catch by appExceptionHandler, errorCode={} exception={}", e.getResponseMessage(), e.getMessage());
         var response = new ExceptionResponse();
         response.setCode(e.getCode());
         response.setMessage(e.getResponseMessage());

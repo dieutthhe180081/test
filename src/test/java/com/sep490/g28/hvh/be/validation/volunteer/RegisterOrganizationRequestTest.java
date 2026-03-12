@@ -40,6 +40,7 @@ public class RegisterOrganizationRequestTest {
         req.setManagerCidFrontExtension(".png");
         req.setManagerCidBackExtension(".png");
         req.setManagerCidHoldingExtension(".png");
+        req.setLegalDocumentsExtensions(".png .pdf .jpg");
         req.setOtherEvidencesExtensions(".png .pdf .jpg");
         req.setApplicationReason("Yêu cầu đăng ký");
         return req;
@@ -49,6 +50,18 @@ public class RegisterOrganizationRequestTest {
     void should_pass_when_all_fields_valid() {
         Set<ConstraintViolation<RegisterOrganizationRequest>> violations =
                 validator.validate(validRequest());
+
+        assertThat(violations).isEmpty();
+    }
+
+    @Test
+    void should_pass_when_other_evidences_null() {
+
+        RegisterOrganizationRequest req = validRequest();
+        req.setOtherEvidencesExtensions(null);
+
+        Set<ConstraintViolation<RegisterOrganizationRequest>> violations =
+                validator.validate(req);
 
         assertThat(violations).isEmpty();
     }
@@ -134,7 +147,6 @@ public class RegisterOrganizationRequestTest {
     @ParameterizedTest
     @ValueSource(strings = {
             ".pdf .html .gif",
-            "   ",
             "",
             ".pdf .png .jpg thisisarandomfile",
             ".sdf",

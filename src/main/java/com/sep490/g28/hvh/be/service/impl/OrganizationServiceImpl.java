@@ -8,6 +8,7 @@ import com.sep490.g28.hvh.be.dto.organization.request.OrganizationRegistrationVe
 import com.sep490.g28.hvh.be.dto.organization.request.RegisterOrganizationRequest;
 import com.sep490.g28.hvh.be.dto.organization.response.OrganizationRegistrationDetailsResponse;
 import com.sep490.g28.hvh.be.dto.organization.response.OrganizationRegistrationSimpleResponse;
+import com.sep490.g28.hvh.be.dto.organization.response.OrganizationSimpleResponse;
 import com.sep490.g28.hvh.be.dto.organization.response.RegisterOrganizationResponse;
 import com.sep490.g28.hvh.be.entity.Organization;
 import com.sep490.g28.hvh.be.entity.OrganizationManager;
@@ -27,10 +28,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -80,21 +78,41 @@ public class OrganizationServiceImpl implements OrganizationService {
         String managerCidBackPath = storagePathGenerator.orgRegistrationCidBack(id, request.getManagerCidBackExtension());
         String managerCidHoldingPath = storagePathGenerator.orgRegistrationCidHolding(id, request.getManagerCidHoldingExtension());
 
-        String[] otherEvidences = request.getOtherEvidencesExtensions().split("\\s+");
-        List<String> otherEvidencesPathsList = new ArrayList<>();
-        int order = 1;
-        for (String otherEvidence : otherEvidences) {
-            String otherEvidencePath = storagePathGenerator.orgRegistrationOtherEvidences(id, order++, otherEvidence);
-            otherEvidencesPathsList.add(otherEvidencePath);
-            if (order == 6) {
+        String[] legalDocuments = request.getLegalDocumentsExtensions().split("\\s+");
+        List<String> legalDocumentsPathsList = new ArrayList<>();
+        int legal_order = 1;
+        for (String legalDocument : legalDocuments) {
+            String otherEvidencePath = storagePathGenerator.orgRegistrationLegalDocuments(id, legal_order++, legalDocument);
+            legalDocumentsPathsList.add(otherEvidencePath);
+            if (legal_order == 11) {
                 break;
             }
         }
-        StringBuilder otherEvidencesPathsSB = new StringBuilder();
-        for (String otherEvidencePath : otherEvidencesPathsList) {
-            otherEvidencesPathsSB.append(otherEvidencePath).append(" ");
+
+        StringBuilder legalDocumentsPathsSB = new StringBuilder();
+        for (String legalDocumentPath : legalDocumentsPathsList) {
+            legalDocumentsPathsSB.append(legalDocumentPath).append(" ");
         }
-        String otherEvidencesPaths = otherEvidencesPathsSB.toString().trim();
+        String legalDocumentsPaths = legalDocumentsPathsSB.toString().trim();
+
+        String otherEvidencesPaths = "";
+        List<String> otherEvidencesPathsList = new ArrayList<>();
+        if(request.getOtherEvidencesExtensions() != null) {
+            String[] otherEvidences = request.getOtherEvidencesExtensions().split("\\s+");
+            int order = 1;
+            for (String otherEvidence : otherEvidences) {
+                String otherEvidencePath = storagePathGenerator.orgRegistrationOtherEvidences(id, order++, otherEvidence);
+                otherEvidencesPathsList.add(otherEvidencePath);
+                if (order == 6) {
+                    break;
+                }
+            }
+            StringBuilder otherEvidencesPathsSB = new StringBuilder();
+            for (String otherEvidencePath : otherEvidencesPathsList) {
+                otherEvidencesPathsSB.append(otherEvidencePath).append(" ");
+            }
+            otherEvidencesPaths = otherEvidencesPathsSB.toString().trim();
+        }
 
         //get upload url
         CompletableFuture<String> managerCidFrontFuture =
@@ -104,16 +122,28 @@ public class OrganizationServiceImpl implements OrganizationService {
         CompletableFuture<String> managerCidHoldingFuture =
                 storageService.getUploadUrlAsync(managerCidHoldingPath);
 
+        List<CompletableFuture<String>> legalDocumentsFutures = new ArrayList<>();
+        for (String legalDocumentPath : legalDocumentsPathsList) {
+            CompletableFuture<String> legalDocumentFuture =
+                    storageService.getUploadUrlAsync(legalDocumentPath);
+            legalDocumentsFutures.add(legalDocumentFuture);
+        }
+
         List<CompletableFuture<String>> otherEvidencesFutures = new ArrayList<>();
-        for (String otherEvidencePath : otherEvidencesPathsList) {
-            CompletableFuture<String> otherEvidenceFuture =
-                    storageService.getUploadUrlAsync(otherEvidencePath);
-            otherEvidencesFutures.add(otherEvidenceFuture);
+        if(!otherEvidencesPathsList.isEmpty()) {
+            for (String otherEvidencePath : otherEvidencesPathsList) {
+                CompletableFuture<String> otherEvidenceFuture =
+                        storageService.getUploadUrlAsync(otherEvidencePath);
+                otherEvidencesFutures.add(otherEvidenceFuture);
+            }
         }
 
         try {
             CompletableFuture.allOf(managerCidFrontFuture, managerCidBackFuture, managerCidHoldingFuture).join();
-            CompletableFuture.allOf(otherEvidencesFutures.toArray(new CompletableFuture[0])).join();
+            CompletableFuture.allOf(legalDocumentsFutures.toArray(new CompletableFuture[0])).join();
+            if(!otherEvidencesFutures.isEmpty()) {
+                CompletableFuture.allOf(otherEvidencesFutures.toArray(new CompletableFuture[0])).join();
+            }
         } catch (CompletionException e) {
             throw (RuntimeException) e.getCause();
         }
@@ -121,9 +151,17 @@ public class OrganizationServiceImpl implements OrganizationService {
         String managerCidFrontUploadUrl = managerCidFrontFuture.join();
         String managerCidBackUploadUrl = managerCidBackFuture.join();
         String managerCidHoldingUploadUrl = managerCidHoldingFuture.join();
+
+        List<String> legalDocumentsUploadUrl = new ArrayList<>();
+        for (CompletableFuture<String> legalDocumentsFuture : legalDocumentsFutures) {
+            legalDocumentsUploadUrl.add(legalDocumentsFuture.join());
+        }
+
         List<String> otherEvidencesUploadUrl = new ArrayList<>();
-        for (CompletableFuture<String> otherEvidenceFuture : otherEvidencesFutures) {
-            otherEvidencesUploadUrl.add(otherEvidenceFuture.join());
+        if(!otherEvidencesFutures.isEmpty()) {
+            for (CompletableFuture<String> otherEvidenceFuture : otherEvidencesFutures) {
+                otherEvidencesUploadUrl.add(otherEvidenceFuture.join());
+            }
         }
 
         //4. create organization registration in db
@@ -140,6 +178,7 @@ public class OrganizationServiceImpl implements OrganizationService {
         orgRegistration.setManagerCidFront(managerCidFrontPath);
         orgRegistration.setManagerCidBack(managerCidBackPath);
         orgRegistration.setManagerCidHolding(managerCidHoldingPath);
+        orgRegistration.setLegalDocument(legalDocumentsPaths);
         orgRegistration.setOtherEvidences(otherEvidencesPaths);
 
         organizationRegistrationRepository.save(orgRegistration);
@@ -149,6 +188,7 @@ public class OrganizationServiceImpl implements OrganizationService {
                 .managerCidFrontUploadUrl(managerCidFrontUploadUrl)
                 .managerCidBackUploadUrl(managerCidBackUploadUrl)
                 .managerCidHoldingUploadUrl(managerCidHoldingUploadUrl)
+                .legalDocumentsUploadUrls(legalDocumentsUploadUrl)
                 .otherEvidencesUploadUrls(otherEvidencesUploadUrl)
                 .build();
     }
@@ -218,6 +258,17 @@ public class OrganizationServiceImpl implements OrganizationService {
             CompletableFuture<String> managerCidHoldingFuture =
                     storageService.getSignedUrlAsync(organizationRegistration.getManagerCidHolding());
 
+            List<CompletableFuture<String>> legalDocumentsFutures = new ArrayList<>();
+            if(organizationRegistration.getLegalDocument() != null) {
+                String[] legalDocuments = organizationRegistration.getLegalDocument().split("\\s+");
+                List<String> legalDocumentsList = new ArrayList<>(Arrays.asList(legalDocuments));
+                for (String legalDocument : legalDocumentsList) {
+                    CompletableFuture<String> legalDocumentFuture =
+                            storageService.getSignedUrlAsync(legalDocument);
+                    legalDocumentsFutures.add(legalDocumentFuture);
+                }
+            }
+
             List<CompletableFuture<String>> otherEvidencesFutures = new ArrayList<>();
             if(organizationRegistration.getOtherEvidences() != null) {
                 String[] otherEvidences = organizationRegistration.getOtherEvidences().split("\\s+");
@@ -232,6 +283,7 @@ public class OrganizationServiceImpl implements OrganizationService {
             String managerCidFrontUrl = null;
             String managerCidBackUrl = null;
             String managerCidHoldingUrl = null;
+            List<String> legalDocumentsUrls = new ArrayList<>();
             List<String> otherEvidencesUrls = new ArrayList<>();
 
             try {
@@ -240,10 +292,18 @@ public class OrganizationServiceImpl implements OrganizationService {
                 managerCidBackUrl = managerCidBackFuture.join();
                 managerCidHoldingUrl = managerCidHoldingFuture.join();
 
+                CompletableFuture.allOf(legalDocumentsFutures.toArray(new CompletableFuture[0])).join();
+
                 CompletableFuture.allOf(otherEvidencesFutures.toArray(new CompletableFuture[0])).join();
                 response.setManagerCidFrontUrl(managerCidFrontUrl);
                 response.setManagerCidBackUrl(managerCidBackUrl);
                 response.setManagerCidHoldingUrl(managerCidHoldingUrl);
+
+                for (CompletableFuture<String> legalDocumentsFuture : legalDocumentsFutures) {
+                    legalDocumentsUrls.add(legalDocumentsFuture.join());
+                }
+                response.setLegalDocumentsUrls(legalDocumentsUrls);
+
                 for (CompletableFuture<String> otherEvidenceFuture : otherEvidencesFutures) {
                     otherEvidencesUrls.add(otherEvidenceFuture.join());
                 }
@@ -361,5 +421,22 @@ public class OrganizationServiceImpl implements OrganizationService {
         //send email
         emailService.sendRejectRegisterOrganizationEmail(organizationRegistration.getManagerEmail(), request.getRejectionReason());
         log.info("Verify organization registration id={}, rejected", id);
+    }
+
+    @Override
+    public Page<OrganizationSimpleResponse> getOrganizations(int pageNumber, int pageSize, String name, List<String> orgTypes) {
+
+        Pageable pageable = PageRequest.of(
+                pageNumber,
+                pageSize,
+                Sort.by(Sort.Direction.ASC, "created_at")
+        );
+
+        List<Object[]> rawOrgData = organizationRepository.search(name, orgTypes, pageable);
+
+        List<OrganizationSimpleResponse> organizations = rawOrgData.stream()
+                .map(OrganizationSimpleResponse::from).toList();
+
+        return new PageImpl<>(organizations, pageable, organizations.size());
     }
 }

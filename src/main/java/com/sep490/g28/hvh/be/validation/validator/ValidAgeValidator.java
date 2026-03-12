@@ -11,7 +11,7 @@ import java.time.Period;
 public class ValidAgeValidator implements ConstraintValidator<ValidAge, LocalDate> {
     private int min;
     private int max;
-    private Clock clock = Clock.systemDefaultZone(); //todo: cho nay can xem lai set sytem default zone
+    private Clock clock = Clock.systemDefaultZone();
 
     @Override
     public void initialize(ValidAge constraintAnnotation) {

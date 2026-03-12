@@ -7,6 +7,7 @@ import com.sep490.g28.hvh.be.dto.organization.request.OrganizationRegistrationVe
 import com.sep490.g28.hvh.be.dto.organization.request.RegisterOrganizationRequest;
 import com.sep490.g28.hvh.be.dto.organization.response.OrganizationRegistrationDetailsResponse;
 import com.sep490.g28.hvh.be.dto.organization.response.OrganizationRegistrationSimpleResponse;
+import com.sep490.g28.hvh.be.dto.organization.response.OrganizationSimpleResponse;
 import com.sep490.g28.hvh.be.dto.organization.response.RegisterOrganizationResponse;
 import com.sep490.g28.hvh.be.entity.Organization;
 import com.sep490.g28.hvh.be.entity.OrganizationManager;
@@ -116,6 +117,7 @@ public class OrganizationServiceTest {
         req.setManagerCidFrontExtension(".png");
         req.setManagerCidBackExtension(".png");
         req.setManagerCidHoldingExtension(".png");
+        req.setLegalDocumentsExtensions(".png .pdf .jpg");
         req.setOtherEvidencesExtensions(".png .pdf .jpg");
         req.setApplicationReason("Yêu cầu đăng ký");
         return req;
@@ -136,6 +138,7 @@ public class OrganizationServiceTest {
         organizationRegistration.setManagerCidFront("f1");
         organizationRegistration.setManagerCidBack("f2");
         organizationRegistration.setManagerCidHolding("f3");
+        organizationRegistration.setLegalDocument("f7 f8 f9");
         organizationRegistration.setOtherEvidences("f4 f5 f6");
         return organizationRegistration;
     }
@@ -153,6 +156,24 @@ public class OrganizationServiceTest {
         return req;
     }
 
+    private Object[] mockOrgRow() {
+        return new Object[]{
+                UUID.randomUUID(),
+                "Organization A",
+                "SOCIAL_ORGANIZATION",
+                15
+        };
+    }
+
+    private Object[] mockOrgRow1() {
+        return new Object[]{
+                UUID.randomUUID(),
+                "Organization A",
+                "GOVERNMENT_AGENCY_BASED",
+                15
+        };
+    }
+
     // ==== registerOrganization ===================================
     // ===== TC1 =====
     @Test
@@ -165,6 +186,8 @@ public class OrganizationServiceTest {
         when(storagePathGenerator.orgRegistrationCidFront(any(), any())).thenReturn("front-path");
         when(storagePathGenerator.orgRegistrationCidBack(any(), any())).thenReturn("back-path");
         when(storagePathGenerator.orgRegistrationCidHolding(any(), any())).thenReturn("holding-path");
+        when(storagePathGenerator.orgRegistrationLegalDocuments(any(), anyInt(), any()))
+                .thenReturn("legal-docs-path-1");
         when(storagePathGenerator.orgRegistrationOtherEvidences(any(), anyInt(), any()))
                 .thenReturn("evidences-path-1");
 
@@ -174,6 +197,8 @@ public class OrganizationServiceTest {
                 .thenReturn(CompletableFuture.completedFuture("back-url"));
         when(storageService.getUploadUrlAsync("holding-path"))
                 .thenReturn(CompletableFuture.completedFuture("holding-url"));
+        when(storageService.getUploadUrlAsync("legal-docs-path-1"))
+                .thenReturn(CompletableFuture.completedFuture("legal-docs-url-1"));
         when(storageService.getUploadUrlAsync("evidences-path-1"))
                 .thenReturn(CompletableFuture.completedFuture("evidences-url-1"));
 
@@ -185,6 +210,7 @@ public class OrganizationServiceTest {
         assertEquals("front-url", response.getManagerCidFrontUploadUrl());
         assertEquals("back-url", response.getManagerCidBackUploadUrl());
         assertEquals("holding-url", response.getManagerCidHoldingUploadUrl());
+        assertEquals("legal-docs-url-1", response.getLegalDocumentsUploadUrls().getFirst());
         assertEquals("evidences-url-1", response.getOtherEvidencesUploadUrls().getFirst());
     }
 
@@ -528,5 +554,62 @@ public class OrganizationServiceTest {
 
         assertThrows(RuntimeException.class,
                 () -> organizationService.verifyOrgRegistration(id, approveRequest()));
+    }
+
+    // ==== getOrganizations ======================================
+    // ===== TC1 =====
+    @Test
+    void getOrganizations_success() {
+
+        int pageNumber = 0;
+        int pageSize = 10;
+        String name = "Org";
+
+        List<String> orgTypes = List.of("SOCIAL_ORGANIZATION", "GOVERNMENT_AGENCY_BASED");
+
+        List<Object[]> rawData = List.of(
+                mockOrgRow(),
+                mockOrgRow1()
+        );
+
+        when(organizationRepository.search(
+                eq(name),
+                eq(orgTypes),
+                any(Pageable.class)
+        )).thenReturn(rawData);
+
+        Page<OrganizationSimpleResponse> result =
+                organizationService.getOrganizations(pageNumber, pageSize, name, orgTypes);
+
+        assertEquals(2, result.getContent().size());
+
+        verify(organizationRepository)
+                .search(eq(name), eq(orgTypes), any(Pageable.class));
+    }
+
+    // ===== TC2 =====
+    @Test
+    void getOrganizations_with_null_filters() {
+
+        int pageNumber = 0;
+        int pageSize = 10;
+
+        List<Object[]> rawData = List.of(
+                mockOrgRow(),
+                mockOrgRow());
+
+        when(organizationRepository.search(
+                isNull(),
+                isNull(),
+                any(Pageable.class)
+        )).thenReturn(rawData);
+
+        Page<OrganizationSimpleResponse> result =
+                organizationService.getOrganizations(pageNumber, pageSize, null, null);
+
+        assertEquals(2, result.getContent().size());
+
+        verify(organizationRepository)
+                .search(isNull(), isNull(), any(Pageable.class));
     }
 }

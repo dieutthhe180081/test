@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -38,7 +39,7 @@ public class HostServiceImpl implements HostService {
 
     CurrentUserProvider currentUserProvider;
 
-//    @Transactional todo
+    @Transactional
     @Override
     public void createHostAccount(CreateHostAccountRequest request) {
         OrganizationManager organizationManager = organizationManagerRepository.getReferenceById(currentUserProvider.getId());
