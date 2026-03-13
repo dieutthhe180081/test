@@ -2,14 +2,12 @@ package com.sep490.g28.hvh.be.service;
 
 import com.sep490.g28.hvh.be.dto.event.request.RejectEventRequest;
 import com.sep490.g28.hvh.be.dto.event.request.SaveEventRequest;
-import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponse;
-import com.sep490.g28.hvh.be.dto.event.response.EventFeedResponse;
-import com.sep490.g28.hvh.be.dto.event.response.EventSimpleResponseForManager;
+import com.sep490.g28.hvh.be.dto.event.response.*;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
 import java.util.List;
-import com.sep490.g28.hvh.be.dto.event.response.EditEventResponse;
+
 import com.sep490.g28.hvh.be.dto.event.request.EditEventRequest;
 import java.util.UUID;
 
