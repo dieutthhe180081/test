@@ -34,6 +34,7 @@ import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.stream.Stream;
 
 
 @Slf4j
@@ -485,17 +486,18 @@ public class EventServiceImpl implements EventService {
         Pageable pageable = PageRequest.of(
                 pageNumber,
                 pageSize,
-                Sort.by(Sort.Direction.ASC, "createdAt")
+                Sort.by(Sort.Direction.ASC, "created_at")
         );
         UUID managerId = currentUserProvider.getId();
         OrganizationManager manager = organizationManagerRepository.getReferenceById(managerId);
         Organization organization = manager.getOrganization();
 
-        List<EEventStatus> pendingStatus = List.of(
+        List<String> pendingStatus = Stream.of(
                 EEventStatus.SUBMITTED,
                 EEventStatus.APPROVED_BY_MNG,
                 EEventStatus.REJECTED_BY_MNG,
-                EEventStatus.REJECTED_BY_AD);
+                EEventStatus.REJECTED_BY_AD
+        ).map(Enum::name).toList();
 
         return eventRepository.findEventsByOrganizationIdAnd(
                 organization.getId(),
@@ -510,13 +512,13 @@ public class EventServiceImpl implements EventService {
         Pageable pageable = PageRequest.of(
                 pageNumber,
                 pageSize,
-                Sort.by(Sort.Direction.ASC, "createdAt")
+                Sort.by(Sort.Direction.ASC, "created_at")
         );
         UUID managerId = currentUserProvider.getId();
         OrganizationManager manager = organizationManagerRepository.getReferenceById(managerId);
         Organization organization = manager.getOrganization();
 
-        List<EEventStatus> approvedStatus = List.of(
+        List<String> approvedStatus = Stream.of(
                 EEventStatus.RECRUITING,
                 EEventStatus.UPCOMING,
                 EEventStatus.ONGOING,
@@ -524,7 +526,7 @@ public class EventServiceImpl implements EventService {
                 EEventStatus.ENDED,
                 EEventStatus.FINISHED,
                 EEventStatus.CANCELLED
-        );
+        ).map(Enum::name).toList();
 
         return eventRepository.findEventsByOrganizationIdAnd(
                 organization.getId(),

@@ -72,7 +72,7 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
             nativeQuery = true)
     Page<Event> findEventsByOrganizationIdAnd(
             @Param("organizationId") UUID organizationId,
-            @Param("status") List<EEventStatus> status,
+            @Param("status") List<String> status,
             @Param("name") String name,
             Pageable pageable
     );
