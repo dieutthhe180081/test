@@ -196,6 +196,8 @@ public class EventServiceImpl implements EventService {
         event.setStatus(eventStatus);
         //save event
         event = eventRepository.save(event);
+        log.info("Event is created: eventId={}", event.getId());
+
 
         //adding images
         List<String> uploadUrls = eventImageService.addEventImages(event, request.getUpdateImages());
@@ -203,6 +205,7 @@ public class EventServiceImpl implements EventService {
 
         //after finish all things to do with repo or other services, send notification to host if the event is submitted
         if (eventStatus.equals(EEventStatus.SUBMITTED)) {
+            log.info("Event is submitted: eventId={}", event.getId());
             notificationService.sendEventCreatedNotification(event, event.getHost());
         }
         return response;
@@ -242,9 +245,11 @@ public class EventServiceImpl implements EventService {
 
         //save event
         eventRepository.save(event);
+        log.info("Event is edited: eventId={}", event.getId());
 
         //after finish all things to do with repo or other services, send notification to host if the event is submitted
         if (eventStatus.equals(EEventStatus.SUBMITTED)) {
+            log.info("Event is submitted: eventId={}", event.getId());
             notificationService.sendEventCreatedNotification(event, event.getHost());
         }
         return response;
@@ -398,6 +403,7 @@ public class EventServiceImpl implements EventService {
         //update in db
         event.setStatus(EEventStatus.APPROVED_BY_MNG);
         eventRepository.save(event);
+        log.info("Event is approved by Organization Manager: eventId={}", event.getId());
 
         //send notification
         notificationService.sendEventApprovedByOrgManagerNotification(event);
@@ -418,6 +424,7 @@ public class EventServiceImpl implements EventService {
         //update in db
         event.setStatus(EEventStatus.REJECTED_BY_MNG);
         eventRepository.save(event);
+        log.info("Event is rejected by Organization Manager: eventId={}", event.getId());
 
         //send notification
         notificationService.sendEventRejectedByOrgManagerNotification(event, request.getReason());
@@ -449,6 +456,7 @@ public class EventServiceImpl implements EventService {
         //update in db
         event.setStatus(EEventStatus.RECRUITING);
         eventRepository.save(event);
+        log.info("Event is approved by System Admin: eventId={}", event.getId());
 
         //send notification
         notificationService.sendEventApprovedByAdminNotification(event);
@@ -469,25 +477,12 @@ public class EventServiceImpl implements EventService {
         //update in db
         event.setStatus(EEventStatus.REJECTED_BY_AD);
         eventRepository.save(event);
+        log.info("Event is rejected by System Admin: eventId={}", event.getId());
 
         //send notification
         notificationService.sendEventRejectedByAdminNotification(event, request.getReason());
     }
 
-
-//    private List<OffsetDateTime> findConflictingDateOfHost(Event event) {
-//        List<LocalDate> dates = event.getDateTimes()
-//                .stream()
-//                .map(s -> s.getStartDateTime().toLocalDate())
-//                .toList();
-//
-//        List<EventSession> conflictSession =  eventSessionRepository.findConflictingSessions(
-//                        event.getHost().getId(),
-//                        event.getId(),
-//                        dates
-//                );
-//        return conflictSession.stream().map(EventSession::getStartDateTime).toList();
-//    }
 
 }
 

@@ -319,6 +319,48 @@ public class EventSessionServiceTest {
                 ));
     }
 
+    // TC08
+    @Test
+    void updateEventSessions_editNonExistId_shouldIgnoreEdit() {
+
+        EventSession s1 = session(start(20));
+        EventSession s2 = session(start(21));
+
+        event.getDateTimes().addAll(List.of(s1, s2));
+
+        UUID nonExistId = UUID.randomUUID();
+
+        EditEventSessionRequest r = editReq(
+                nonExistId,
+                start(22),
+                start(22).plusHours(2)
+        );
+
+        service.updateEventSessions(
+                event,
+                validRecruitmentEndDate(),
+                List.of(r),
+                (short) 4
+        );
+
+        // sessions remain unchanged
+        assertEquals(2, event.getDateTimes().size());
+
+        EventSession rs1 = event.getDateTimes().stream()
+                .filter(s -> s.getId().equals(s1.getId()))
+                .findFirst()
+                .orElseThrow();
+
+        EventSession rs2 = event.getDateTimes().stream()
+                .filter(s -> s.getId().equals(s2.getId()))
+                .findFirst()
+                .orElseThrow();
+
+        assertEquals(s1.getStartDateTime(), rs1.getStartDateTime());
+        assertEquals(s2.getStartDateTime(), rs2.getStartDateTime());
+
+    }
+
 
     // ==== validate ===================================
     private LocalDate invokeValidate(LocalDate recruitmentEndDate, List<EventSession> sessions) throws Exception {
