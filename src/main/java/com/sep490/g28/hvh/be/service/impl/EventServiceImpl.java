@@ -3,12 +3,8 @@ package com.sep490.g28.hvh.be.service.impl;
 import com.sep490.g28.hvh.be.constant.EEventStatus;
 import com.sep490.g28.hvh.be.dto.event.request.EditEventRequest;
 import com.sep490.g28.hvh.be.dto.event.request.RejectEventRequest;
-import com.sep490.g28.hvh.be.dto.event.response.EditEventResponse;
+import com.sep490.g28.hvh.be.dto.event.response.*;
 import com.sep490.g28.hvh.be.dto.event.request.SaveEventRequest;
-import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponse;
-import com.sep490.g28.hvh.be.dto.event.response.EventFeedResponse;
-import com.sep490.g28.hvh.be.dto.event.response.EventSessionDetailsResponse;
-import com.sep490.g28.hvh.be.dto.event.response.EventSimpleResponse;
 import com.sep490.g28.hvh.be.entity.*;
 import com.sep490.g28.hvh.be.auth.CurrentUserProvider;
 import com.sep490.g28.hvh.be.exception.AppException;
@@ -16,6 +12,7 @@ import com.sep490.g28.hvh.be.exception.errorCodeImpl.ActivityDomainErrorCode;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.EventErrorCode;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.VolunteerErrorCode;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
+import com.sep490.g28.hvh.be.mapper.EventMapper;
 import com.sep490.g28.hvh.be.repository.EventRepository;
 import com.sep490.g28.hvh.be.repository.*;
 import com.sep490.g28.hvh.be.service.EventSessionService;
@@ -28,10 +25,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Point;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,6 +46,7 @@ public class EventServiceImpl implements EventService {
     EventRepository eventRepository;
     VolunteerRepository volunteerRepository;
     VolunteerSavedEventRepository volunteerSavedEventRepository;
+    OrganizationManagerRepository organizationManagerRepository;
 
     StorageService storageService;
 
@@ -60,6 +55,8 @@ public class EventServiceImpl implements EventService {
     NotificationService notificationService;
 
     CurrentUserProvider currentUserProvider;
+
+    EventMapper eventMapper;
 
     @Override
     public EventFeedResponse getEventFeeds(int pageNumber, int pageSize, boolean refresh,
@@ -483,6 +480,59 @@ public class EventServiceImpl implements EventService {
         notificationService.sendEventRejectedByAdminNotification(event, request.getReason());
     }
 
+    @Override
+    public Page<EventSimpleResponseForManager> getPendingEventsForManager(int pageNumber, int pageSize, String eventName) {
+        Pageable pageable = PageRequest.of(
+                pageNumber,
+                pageSize,
+                Sort.by(Sort.Direction.ASC, "createdAt")
+        );
+        UUID managerId = currentUserProvider.getId();
+        OrganizationManager manager = organizationManagerRepository.getReferenceById(managerId);
+        Organization organization = manager.getOrganization();
+
+        List<EEventStatus> pendingStatus = List.of(
+                EEventStatus.SUBMITTED,
+                EEventStatus.APPROVED_BY_MNG,
+                EEventStatus.REJECTED_BY_MNG,
+                EEventStatus.REJECTED_BY_AD);
+
+        return eventRepository.findEventsByOrganizationIdAnd(
+                organization.getId(),
+                pendingStatus,
+                eventName,
+                pageable
+        ).map(eventMapper::toEventSimpleResponseForManager);
+    }
+
+    @Override
+    public Page<EventSimpleResponseForManager> getApprovedEventsForManager(int pageNumber, int pageSize, String eventName) {
+        Pageable pageable = PageRequest.of(
+                pageNumber,
+                pageSize,
+                Sort.by(Sort.Direction.ASC, "createdAt")
+        );
+        UUID managerId = currentUserProvider.getId();
+        OrganizationManager manager = organizationManagerRepository.getReferenceById(managerId);
+        Organization organization = manager.getOrganization();
+
+        List<EEventStatus> approvedStatus = List.of(
+                EEventStatus.RECRUITING,
+                EEventStatus.UPCOMING,
+                EEventStatus.ONGOING,
+                EEventStatus.UPCOMING,
+                EEventStatus.ENDED,
+                EEventStatus.FINISHED,
+                EEventStatus.CANCELLED
+        );
+
+        return eventRepository.findEventsByOrganizationIdAnd(
+                organization.getId(),
+                approvedStatus,
+                eventName,
+                pageable
+        ).map(eventMapper::toEventSimpleResponseForManager);
+    }
 
 }
 

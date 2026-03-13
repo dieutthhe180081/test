@@ -4,7 +4,8 @@ import com.sep490.g28.hvh.be.dto.event.request.RejectEventRequest;
 import com.sep490.g28.hvh.be.dto.event.request.SaveEventRequest;
 import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponse;
 import com.sep490.g28.hvh.be.dto.event.response.EventFeedResponse;
-import org.springframework.data.repository.query.Param;
+import com.sep490.g28.hvh.be.dto.event.response.EventSimpleResponseForManager;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -38,4 +39,8 @@ public interface EventService {
     void approveEventByAdmin(UUID eventId);
 
     void rejectEventByAdmin(UUID eventId, RejectEventRequest request);
+
+    Page<EventSimpleResponseForManager> getPendingEventsForManager(int pageNumber, int pageSize, String eventName);
+
+    Page<EventSimpleResponseForManager> getApprovedEventsForManager(int pageNumber, int pageSize, String eventName);
 }
