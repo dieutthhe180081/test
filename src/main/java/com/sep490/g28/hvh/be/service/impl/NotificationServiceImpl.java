@@ -199,7 +199,7 @@ public class NotificationServiceImpl implements NotificationService {
                 DATA_REF_ID_KEY, event.getId().toString(),
                 DATA_ACTION, ENotificationDataAction.ADM_EVENT_DETAILS.name()
         ));
-        notificationForHost.setType(ENotificationType.ADM_EVENT_APPROVED_BY_MNG);
+        notificationForAdmin.setType(ENotificationType.ADM_EVENT_APPROVED_BY_MNG);
         notificationRepository.save(notificationForAdmin);
 
         //send notification
@@ -259,7 +259,7 @@ public class NotificationServiceImpl implements NotificationService {
         notificationForManager.setType(ENotificationType.MNG_EVENT_APPROVED_BY_AD);
 
         //save notification
-        notificationForHost = saveNotificationForUser(notificationForHost, orgManager);
+        notificationForManager = saveNotificationForUser(notificationForManager, orgManager);
 
 
         notificationPublisher.enqueueNotification(notificationForHost, host.getId());
@@ -297,7 +297,7 @@ public class NotificationServiceImpl implements NotificationService {
         notificationForManager.setType(ENotificationType.MNG_EVENT_REJECTED_BY_AD);
 
         //save notification
-        notificationForHost = saveNotificationForUser(notificationForHost, orgManager);
+        notificationForManager = saveNotificationForUser(notificationForManager, orgManager);
 
         notificationPublisher.enqueueNotification(notificationForHost, host.getId());
         notificationPublisher.enqueueNotification(notificationForManager, orgManager.getId());
