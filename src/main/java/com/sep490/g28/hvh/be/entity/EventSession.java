@@ -32,10 +32,18 @@ public class EventSession {
     private Event event;
 
     //--------------------------------------------------------
-    @Column(name = "start_date_time", nullable = false)
+    @Column(
+            name = "start_date_time",
+            nullable = false,
+            columnDefinition = "TIMESTAMP WITH TIME ZONE"
+    )
     private OffsetDateTime startDateTime; // check-in time
 
-    @Column(name = "end_date_time", nullable = false)
+    @Column(
+            name = "end_date_time",
+            nullable = false,
+            columnDefinition = "TIMESTAMP WITH TIME ZONE"
+    )
     private OffsetDateTime endDateTime;   // check-out time
 
     @Column(name = "expected_vol_amount", nullable = false)
@@ -46,10 +54,19 @@ public class EventSession {
 
     //--------------------------------------------------------
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(
+            name = "created_at",
+            nullable = false,
+            updatable = false,
+            columnDefinition = "TIMESTAMP WITH TIME ZONE"
+    )
     private OffsetDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
+    @Column(
+            name = "updated_at",
+            nullable = false,
+            columnDefinition = "TIMESTAMP WITH TIME ZONE"
+    )
     private OffsetDateTime updatedAt;
 }

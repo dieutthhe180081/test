@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -187,14 +187,11 @@ public class EventSessionServiceImpl implements EventSessionService {
             List<EventSession> sessions
     ) {
 
-        ZoneId VN = ZoneId.of("Asia/Ho_Chi_Minh");
-
         Set<LocalDate> days = new HashSet<>();
         //iterate through each session to make sure there are no 2 session in one day
         for (EventSession r : sessions) {
             // convert UTC -> VN
             LocalDate date = r.getStartDateTime()
-                    .atZoneSameInstant(VN)
                     .toLocalDate();
 
             // there is no 2 session in a same day
@@ -207,8 +204,8 @@ public class EventSessionServiceImpl implements EventSessionService {
                 .min(LocalDate::compareTo)
                 .orElseThrow();
 
-        // today follow VN hour
-        LocalDate today = LocalDate.now(VN);
+        // today
+        LocalDate today = LocalDate.now();
 
         // startDate endDate must after at least 15 days since today
         if (startDate.isBefore(today.plusDays(15))) {
