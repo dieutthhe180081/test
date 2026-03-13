@@ -3,6 +3,7 @@ package com.sep490.g28.hvh.be.service.impl;
 import com.sep490.g28.hvh.be.auth.CurrentUserProvider;
 import com.sep490.g28.hvh.be.constant.ENotificationDataAction;
 import com.sep490.g28.hvh.be.constant.ENotificationType;
+import com.sep490.g28.hvh.be.constant.ERole;
 import com.sep490.g28.hvh.be.entity.Event;
 import com.sep490.g28.hvh.be.entity.Host;
 import com.sep490.g28.hvh.be.entity.User;
@@ -86,7 +87,16 @@ public class NotificationServiceImpl implements NotificationService {
     private void subscribeTokenToTopicsAfterRegister(String token, UUID userId) {
         List<String> topics = notificationTopicSubscriptionRepository.findTopicsByUserId(userId);
 
-        //todo subscribe the to topic admin if the user is admin
+        //todo
+        //subscribe user to some special notification (in db) when created account
+        //ADMIN: TO ADMIN_TOPIC
+        //MANAGER:  to organization
+        //HOST: to the organization
+
+        //subscribe the to topic admin if the user is admin
+        if (currentUserProvider.getRoleName().equals(ERole.SYS_ADMIN)) {
+            topics.add(ADMIN_TOPIC);
+        }
         notificationPublisher.enqueueSubscribeToTopics(token, topics);
     }
 
@@ -108,6 +118,10 @@ public class NotificationServiceImpl implements NotificationService {
     private void unsubscribeTopicsAfterUnregister(String token, UUID userId) {
         List<String> topics = notificationTopicSubscriptionRepository.findTopicsByUserId(userId);
 
+        //unsubscribe the to topic admin if the user is admin
+        if (currentUserProvider.getRoleName().equals(ERole.SYS_ADMIN)) {
+            topics.add(ADMIN_TOPIC);
+        }
         notificationPublisher.enqueueUnsubscribeFromTopics(token, topics);
     }
 
