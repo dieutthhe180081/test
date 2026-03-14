@@ -23,6 +23,9 @@ public enum EventErrorCode implements ErrorCode {
     INVALID_EVENT_START_DATE(7008, "Ngày bắt đầu tổ chức sự kiện phải cách ngày hôm nay ít nhất 15 ngày.", HttpStatus.BAD_REQUEST),
     INVALID_EVENT_END_DATE(7009, "Ngày kết thúc sự kiện phải sau ngày bắt đầu sự kiện.", HttpStatus.BAD_REQUEST),
     INVALID_EVENT_SESSION_TIME_RANGE(7010, "Khoảng cách giữa thời gian bắt đầu và kết thúc sự kiện trong 1 ngày phải nằm trong khoảng cho phép của lĩnh vực hoạt động.", HttpStatus.BAD_REQUEST),
+    ACTION_NOT_EXECUTABLE(7011, "Trạng thái của sự kiện không cho phép bạn thực hiện hành động này.", HttpStatus.BAD_REQUEST),
+    DUPLICATE_HOSTED_DATE(7012, "Trùng ngày tổ chức sự kiện của host với một sự kiện khác.", HttpStatus.BAD_REQUEST),
+
     ;
 
     private final int code;

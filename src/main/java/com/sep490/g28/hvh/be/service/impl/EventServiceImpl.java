@@ -2,12 +2,8 @@ package com.sep490.g28.hvh.be.service.impl;
 
 import com.sep490.g28.hvh.be.constant.EEventStatus;
 import com.sep490.g28.hvh.be.dto.event.request.EditEventRequest;
-import com.sep490.g28.hvh.be.dto.event.response.EditEventResponse;
+import com.sep490.g28.hvh.be.dto.event.response.*;
 import com.sep490.g28.hvh.be.dto.event.request.SaveEventRequest;
-import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponse;
-import com.sep490.g28.hvh.be.dto.event.response.EventFeedResponse;
-import com.sep490.g28.hvh.be.dto.event.response.EventSessionDetailsResponse;
-import com.sep490.g28.hvh.be.dto.event.response.EventSimpleResponse;
 import com.sep490.g28.hvh.be.entity.*;
 import com.sep490.g28.hvh.be.auth.CurrentUserProvider;
 import com.sep490.g28.hvh.be.exception.AppException;
@@ -59,6 +55,7 @@ public class EventServiceImpl implements EventService {
     private final CurrentUserProvider currentUserProvider;
     VolunteerRepository volunteerRepository;
     VolunteerSavedEventRepository volunteerSavedEventRepository;
+    EventSessionRepository eventSessionRepository;
 
     @Override
     public EventFeedResponse getEventFeeds(int pageNumber, int pageSize, boolean refresh,
@@ -164,9 +161,9 @@ public class EventServiceImpl implements EventService {
             Event event = eventRepository.findById(request.getEventId()).orElseThrow(
                     () -> new AppException(EventErrorCode.EVENT_NOT_EXISTED)
             );
-            return editEvent(request, event, EEventStatus.SUMMITED);
+            return editEvent(request, event, EEventStatus.SUBMITTED);
         } else {
-            return createEvent(request, EEventStatus.SUMMITED);
+            return createEvent(request, EEventStatus.SUBMITTED);
         }
     }
 
@@ -201,7 +198,7 @@ public class EventServiceImpl implements EventService {
         response.setUploadUrls(uploadUrls);
 
         //after finish all things to do with repo or other services, send notification to host if the event is submitted
-        if (eventStatus.equals(EEventStatus.SUMMITED)) {
+        if (eventStatus.equals(EEventStatus.SUBMITTED)) {
             notificationService.sendEventCreatedNotification(event, event.getHost());
         }
         return response;
@@ -243,7 +240,7 @@ public class EventServiceImpl implements EventService {
         eventRepository.save(event);
 
         //after finish all things to do with repo or other services, send notification to host if the event is submitted
-        if (eventStatus.equals(EEventStatus.SUMMITED)) {
+        if (eventStatus.equals(EEventStatus.SUBMITTED)) {
             notificationService.sendEventCreatedNotification(event, event.getHost());
         }
         return response;
@@ -295,8 +292,8 @@ public class EventServiceImpl implements EventService {
         try {
 
             CompletableFuture.allOf(imagesFutures.toArray(new CompletableFuture[0])).join();
-            for (CompletableFuture<String> otherEvidenceFuture : imagesFutures) {
-                imagesUrls.add(otherEvidenceFuture.join());
+            for (CompletableFuture<String> imageFuture : imagesFutures) {
+                imagesUrls.add(imageFuture.join());
             }
 
         } catch (CompletionException e) {
@@ -376,5 +373,126 @@ public class EventServiceImpl implements EventService {
         volunteerSavedEventRepository.save(volunteerSavedEvent);
     }
 
+    @Override
+    public EventDetailsResponseForManager getEventDetailsByManager(UUID id) {
+        //check id exist
+        Event event = eventRepository.findById(id).orElseThrow(
+                () -> new AppException(EventErrorCode.EVENT_NOT_EXISTED)
+        );
+
+        StringBuilder note = new StringBuilder();
+
+        //get regular information of event
+        EEventStatus eventStatus = event.getStatus();
+
+        //get signed URL of file
+        List<CompletableFuture<String>> imagesFutures = new ArrayList<>();
+        if (event.getImages() != null) {
+            List<EventImage> imagesList = event.getImages();
+            for (EventImage image : imagesList) {
+                CompletableFuture<String> imageFuture =
+                        storageService.getSignedUrlAsync(image.getImagePath());
+                imagesFutures.add(imageFuture);
+            }
+        }
+
+        List<String> imagesUrls = new ArrayList<>();
+        try {
+
+            CompletableFuture.allOf(imagesFutures.toArray(new CompletableFuture[0])).join();
+            for (CompletableFuture<String> imageFuture : imagesFutures) {
+                imagesUrls.add(imageFuture.join());
+            }
+
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof AppException ae) {
+                //todo: handle exception at getEventDetails
+            } else {
+                throw cause instanceof RuntimeException re ? re : e;
+            }
+        }
+
+        UUID hostId = null;
+        String hostPhone = "";
+        String hostName = "";
+        if (event.getHost() != null) {
+            hostId = event.getHost().getId();
+            hostPhone = event.getHost().getPhone();
+            hostName = event.getHost().getFullName();
+        }
+
+        String activitySubDomainName = "";
+        if (event.getActivitySubDomain() != null) {
+            activitySubDomainName = event.getActivitySubDomain().getName();
+        }
+
+        //Map event sessions to response
+        List<EventSessionDetailsResponse> eventSessions = event.getDateTimes().stream()
+                .map(es -> new EventSessionDetailsResponse(
+                        es.getId(),
+                        es.getStartDateTime(),
+                        es.getEndDateTime(),
+                        es.getExpectedVolAmount(),
+                        es.getExpectedSerAmount()
+                )).toList();
+
+        //check whether the host is hosting other event or not?
+        List<EventSession> conflictSession =
+                eventSessionService.findConflictSessionDateOfHost(
+                        event.getHost().getId(),
+                        id,
+                        event.getDateTimes()
+                );
+
+        List<EventSessionDetailsResponse> conflictSessions = Optional.of(conflictSession)
+                .map(cs -> cs.stream()
+                        .map(es -> new EventSessionDetailsResponse(
+                        es.getId(),
+                        es.getStartDateTime(),
+                        es.getEndDateTime(),
+                        es.getExpectedVolAmount(),
+                        es.getExpectedSerAmount()
+                )).toList()).orElse(Collections.emptyList());;
+
+        if (!conflictSession.isEmpty()) {
+            note.append(EventErrorCode.DUPLICATE_HOSTED_DATE.getMessage()).append("\n");
+        }
+
+        LocalDate startDate = null;
+        LocalDate recruitmentEndDate = null;
+
+        //get specified info of SUMMITED status
+        if(eventStatus.toString().equals("SUBMITTED")){
+            startDate = event.getStartDate();
+            recruitmentEndDate = event.getRecruitmentEndDate();
+        }
+
+        //get specified info of RECRUITING status
+        if(eventStatus.toString().equals("RECRUITING")){
+            startDate = event.getStartDate();
+            recruitmentEndDate = event.getRecruitmentEndDate();
+        }
+
+        return EventDetailsResponseForManager.builder()
+                .id(event.getId())
+                .name(event.getName())
+                .imageUrls(imagesUrls)
+                .description(event.getDescription())
+                .address(event.getAddress())
+                .activitySubDomain(activitySubDomainName)
+                .servedTarget(event.getServedTarget())
+                .servingPlaceType(event.getServingPlaceType())
+                .startDate(startDate)
+                .recruitmentEndDate(recruitmentEndDate)
+                .hostId(hostId)
+                .hostPhone(hostPhone)
+                .hostName(hostName)
+                .status(eventStatus)
+                .eventSessions(eventSessions)
+                .conflictSessions(conflictSessions)
+                .note(note.toString())
+                .build();
+    }
 }
 

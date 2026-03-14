@@ -6,6 +6,7 @@ import com.sep490.g28.hvh.be.entity.Event;
 import com.sep490.g28.hvh.be.entity.EventSession;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.EventErrorCode;
+import com.sep490.g28.hvh.be.repository.EventSessionRepository;
 import com.sep490.g28.hvh.be.service.EventSessionService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EventSessionServiceImpl implements EventSessionService {
+    private final EventSessionRepository eventSessionRepository;
 
     /*
     In context of this class 1 session equivalence to 1 EventDateTime
@@ -224,5 +226,19 @@ public class EventSessionServiceImpl implements EventSessionService {
         }
 
         return startDate;
+    }
+
+    @Override
+    public List<EventSession> findConflictSessionDateOfHost(UUID hostId, UUID checkedEventId, List<EventSession> checkedSessions) {
+        List<LocalDate> dates = checkedSessions
+                .stream()
+                .map(s -> s.getStartDateTime().toLocalDate())
+                .toList();
+
+        return eventSessionRepository.findConflictingSessions(
+                hostId,
+                checkedEventId,
+                dates
+        );
     }
 }
