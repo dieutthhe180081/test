@@ -147,41 +147,41 @@ public class EventController {
         return ResponseEntity.ok().build();
     }
 
-//    @PreAuthorize("hasRole('SYS_ADMIN')")
-//    @GetMapping("/event/admin/pending")
-//    public ResponseEntity<Page<EventSimpleResponseForAdmin>> getPendingEventsByAdmin(
-//            @RequestParam(defaultValue = "0")
-//            @Min(value = 0, message = "INVALID_PAGE_NUMBER")
-//            int pageNumber,
-//
-//            @RequestParam(defaultValue = "10")
-//            @Min(value = 1, message = "INVALID_PAGE_SIZE")
-//            @Max(value = 100, message = "INVALID_PAGE_SIZE")
-//            int pageSize,
-//
-//            @RequestParam(required = false)
-//            String name
-//
-//    ) {
-//
-//        return ResponseEntity.ok(eventService.getPendingEventsForAdmin(pageNumber, pageSize, name));
-//    }
-//
-//    @PreAuthorize("hasRole('SYS_ADMIN')")
-//    @GetMapping("/event/admin/approved")
-//    public ResponseEntity<Page<EventSimpleResponseForAdmin>> getApprovedEventsByAdmin(
-//            @RequestParam(defaultValue = "0")
-//            @Min(value = 0, message = "INVALID_PAGE_NUMBER")
-//            int pageNumber,
-//
-//            @RequestParam(defaultValue = "10")
-//            @Min(value = 1, message = "INVALID_PAGE_SIZE")
-//            @Max(value = 100, message = "INVALID_PAGE_SIZE")
-//            int pageSize,
-//
-//            @RequestParam(required = false)
-//            String name
-//    ) {
-//        return ResponseEntity.ok(eventService.getApprovedEventsForAdmin(pageNumber, pageSize, name));
-//    }
+    @PreAuthorize("hasRole('SYS_ADMIN')")
+    @GetMapping("/event/admin/pending")
+    public ResponseEntity<Page<EventSimpleResponseForAdmin>> getPendingEventsByAdmin(
+            @RequestParam(defaultValue = "0")
+            @Min(value = 0, message = "INVALID_PAGE_NUMBER")
+            int pageNumber,
+
+            @RequestParam(defaultValue = "10")
+            @Min(value = 1, message = "INVALID_PAGE_SIZE")
+            @Max(value = 100, message = "INVALID_PAGE_SIZE")
+            int pageSize,
+
+            @RequestParam(required = false)
+            String name
+
+    ) {
+
+        return ResponseEntity.ok(eventService.getPendingEventsForAdmin(pageNumber, pageSize, name));
+    }
+
+    @PreAuthorize("hasRole('SYS_ADMIN')")
+    @GetMapping("/event/admin/running")
+    public ResponseEntity<Page<EventSimpleResponseForAdmin>> getRunningEventsByAdmin(
+            @RequestParam(defaultValue = "0")
+            @Min(value = 0, message = "INVALID_PAGE_NUMBER")
+            int pageNumber,
+
+            @RequestParam(defaultValue = "10")
+            @Min(value = 1, message = "INVALID_PAGE_SIZE")
+            @Max(value = 100, message = "INVALID_PAGE_SIZE")
+            int pageSize,
+
+            @RequestParam(required = false)
+            String name
+    ) {
+        return ResponseEntity.ok(eventService.getRunningEventsForAdmin(pageNumber, pageSize, name));
+    }
 }

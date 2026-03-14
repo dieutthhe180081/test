@@ -536,5 +536,48 @@ public class EventServiceImpl implements EventService {
         ).map(eventMapper::toEventSimpleResponseForManager);
     }
 
+    @Override
+    public Page<EventSimpleResponseForAdmin> getPendingEventsForAdmin(int pageNumber, int pageSize, String eventName) {
+        Pageable pageable = PageRequest.of(
+                pageNumber,
+                pageSize,
+                Sort.by(Sort.Direction.ASC, "created_at")
+        );
+
+        List<String> pendingStatus = Stream.of(
+                EEventStatus.APPROVED_BY_MNG,
+                EEventStatus.REJECTED_BY_AD
+        ).map(Enum::name).toList();
+
+        return eventRepository.findEventsByAdminAnd(
+                pendingStatus,
+                eventName,
+                pageable
+        ).map(eventMapper::toEventSimpleResponseForAdmin);
+    }
+
+    @Override
+    public Page<EventSimpleResponseForAdmin> getRunningEventsForAdmin(int pageNumber, int pageSize, String eventName) {
+        Pageable pageable = PageRequest.of(
+                pageNumber,
+                pageSize,
+                Sort.by(Sort.Direction.ASC, "created_at")
+        );
+
+        List<String> runningStatus = Stream.of(
+                EEventStatus.RECRUITING,
+                EEventStatus.UPCOMING,
+                EEventStatus.ONGOING,
+                EEventStatus.UPCOMING,
+                EEventStatus.ENDED
+        ).map(Enum::name).toList();
+
+        return eventRepository.findEventsByAdminAnd(
+                runningStatus,
+                eventName,
+                pageable
+        ).map(eventMapper::toEventSimpleResponseForAdmin);
+    }
+
 }
 

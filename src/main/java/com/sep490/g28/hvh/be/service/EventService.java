@@ -41,4 +41,8 @@ public interface EventService {
     Page<EventSimpleResponseForManager> getPendingEventsForManager(int pageNumber, int pageSize, String eventName);
 
     Page<EventSimpleResponseForManager> getApprovedEventsForManager(int pageNumber, int pageSize, String eventName);
+
+    Page<EventSimpleResponseForAdmin> getPendingEventsForAdmin(int pageNumber, int pageSize, String eventName);
+
+    Page<EventSimpleResponseForAdmin> getRunningEventsForAdmin(int pageNumber, int pageSize, String eventName);
 }

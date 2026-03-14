@@ -76,4 +76,18 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
             @Param("name") String name,
             Pageable pageable
     );
+
+    @Query(value = """
+            SELECT e.*
+            FROM events e
+            WHERE (e.status IN (:status))
+            AND (:name IS NULL OR e.name ILIKE CONCAT('%', :name, '%'))
+            -- #pageable
+            """,
+            nativeQuery = true)
+    Page<Event> findEventsByAdminAnd(
+            @Param("status") List<String> status,
+            @Param("name") String name,
+            Pageable pageable
+    );
 }
