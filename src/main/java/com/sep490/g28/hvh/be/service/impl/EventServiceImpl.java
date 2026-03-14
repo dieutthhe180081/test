@@ -393,7 +393,11 @@ public class EventServiceImpl implements EventService {
         }
 
         //check whether the host is hosting other event or not?
-        List<EventSession> conflictSession =  eventSessionService.findConflictSessionDateOfHost(event.getHost().getId(), eventId, event.getDateTimes());
+        List<EventSession> conflictSession =  eventSessionService.findConflictSessionDateOfHost(
+                event.getHost().getId(),
+                eventId,
+                event.getDateTimes()
+        );
         if (!conflictSession.isEmpty()) {
             throw new AppException(EventErrorCode.DUPLICATE_HOSTED_DATE);
         }
