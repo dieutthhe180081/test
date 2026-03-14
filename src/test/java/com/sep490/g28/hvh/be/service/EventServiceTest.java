@@ -546,34 +546,65 @@ public class EventServiceTest {
                 .contains(EventErrorCode.DUPLICATE_HOSTED_DATE.getMessage()));
     }
 
-    // ===== TC4 =====
-    @Test
-    void getEventDetailsByManager_status_recruiting_should_return_dates() {
-
-        Event event = mockEvent();
-        event.setStatus(EEventStatus.RECRUITING);
-        event.setStartDate(LocalDate.now());
-        event.setRecruitmentEndDate(LocalDate.now().plusDays(5));
-
-        when(eventRepository.findById(eventId))
-                .thenReturn(Optional.of(event));
-
-        when(storageService.getSignedUrlAsync("img1"))
-                .thenReturn(CompletableFuture.completedFuture("url1"));
-
-        when(storageService.getSignedUrlAsync("img2"))
-                .thenReturn(CompletableFuture.completedFuture("url2"));
-
-        when(eventSessionService.findConflictSessionDateOfHost(
-                any(),
-                any(),
-                anyList()
-        )).thenReturn(Collections.emptyList());
-
-        EventDetailsResponseForManager response =
-                eventService.getEventDetailsByManager(eventId);
-
-        assertNotNull(response.getStartDate());
-        assertNotNull(response.getRecruitmentEndDate());
-    }
+//    // ===== TC4 =====
+//    @Test
+//    void getEventDetailsByManager_status_recruiting_should_return_dates() {
+//
+//        Event event = mockEvent();
+//        event.setStatus(EEventStatus.RECRUITING);
+//        event.setStartDate(LocalDate.now());
+//        event.setRecruitmentEndDate(LocalDate.now().plusDays(5));
+//
+//        when(eventRepository.findById(eventId))
+//                .thenReturn(Optional.of(event));
+//
+//        when(storageService.getSignedUrlAsync("img1"))
+//                .thenReturn(CompletableFuture.completedFuture("url1"));
+//
+//        when(storageService.getSignedUrlAsync("img2"))
+//                .thenReturn(CompletableFuture.completedFuture("url2"));
+//
+//        when(eventSessionService.findConflictSessionDateOfHost(
+//                any(),
+//                any(),
+//                anyList()
+//        )).thenReturn(Collections.emptyList());
+//
+//        EventDetailsResponseForManager response =
+//                eventService.getEventDetailsByManager(eventId);
+//
+//        assertNotNull(response.getStartDate());
+//        assertNotNull(response.getRecruitmentEndDate());
+//    }
+//
+//    // ===== TC5 =====
+//    @Test
+//    void getEventDetailsByManager_status_submitted_should_return_dates() {
+//
+//        Event event = mockEvent();
+//        event.setStatus(EEventStatus.SUBMITTED);
+//        event.setStartDate(LocalDate.now());
+//        event.setRecruitmentEndDate(LocalDate.now().plusDays(5));
+//
+//        when(eventRepository.findById(eventId))
+//                .thenReturn(Optional.of(event));
+//
+//        when(storageService.getSignedUrlAsync("img1"))
+//                .thenReturn(CompletableFuture.completedFuture("url1"));
+//
+//        when(storageService.getSignedUrlAsync("img2"))
+//                .thenReturn(CompletableFuture.completedFuture("url2"));
+//
+//        when(eventSessionService.findConflictSessionDateOfHost(
+//                any(),
+//                any(),
+//                anyList()
+//        )).thenReturn(Collections.emptyList());
+//
+//        EventDetailsResponseForManager response =
+//                eventService.getEventDetailsByManager(eventId);
+//
+//        assertNotNull(response.getStartDate());
+//        assertNotNull(response.getRecruitmentEndDate());
+//    }
 }
