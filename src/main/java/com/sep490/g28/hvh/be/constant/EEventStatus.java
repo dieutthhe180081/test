@@ -2,8 +2,8 @@ package com.sep490.g28.hvh.be.constant;
 
 public enum EEventStatus {
     EDITING, //aka drafted
-    SUMMITED,
-    APPROVED_BY_MNG,
+    SUBMITTED, //host submit event, waiting for approval from manager
+    APPROVED_BY_MNG, //manager approve, waiting for approval from admin
     REJECTED_BY_MNG,
     REJECTED_BY_AD,
     RECRUITING,

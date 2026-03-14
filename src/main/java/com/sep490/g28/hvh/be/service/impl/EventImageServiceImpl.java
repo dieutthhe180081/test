@@ -36,6 +36,8 @@ public class EventImageServiceImpl implements EventImageService {
 
 
     public List<String> addEventImages(Event event, List<EditEventImageRequest> addImages) {
+        if (addImages == null || addImages.isEmpty()) return Collections.emptyList();
+
         //check request: valid add image amount?
         int countAddImages = (int) addImages.stream()
                 .filter(r -> r.getUpdateAction() == EUpdateAction.ADD)

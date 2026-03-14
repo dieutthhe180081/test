@@ -6,6 +6,7 @@ import com.sep490.g28.hvh.be.entity.Event;
 import com.sep490.g28.hvh.be.entity.EventSession;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.EventErrorCode;
+import com.sep490.g28.hvh.be.repository.EventSessionRepository;
 import com.sep490.g28.hvh.be.service.EventSessionService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EventSessionServiceImpl implements EventSessionService {
+    private final EventSessionRepository eventSessionRepository;
 
     /*
     In context of this class 1 session equivalence to 1 EventDateTime
@@ -185,14 +187,11 @@ public class EventSessionServiceImpl implements EventSessionService {
             List<EventSession> sessions
     ) {
 
-        ZoneId VN = ZoneId.of("Asia/Ho_Chi_Minh");
-
         Set<LocalDate> days = new HashSet<>();
         //iterate through each session to make sure there are no 2 session in one day
         for (EventSession r : sessions) {
             // convert UTC -> VN
             LocalDate date = r.getStartDateTime()
-                    .atZoneSameInstant(VN)
                     .toLocalDate();
 
             // there is no 2 session in a same day
@@ -205,8 +204,8 @@ public class EventSessionServiceImpl implements EventSessionService {
                 .min(LocalDate::compareTo)
                 .orElseThrow();
 
-        // today follow VN hour
-        LocalDate today = LocalDate.now(VN);
+        // today
+        LocalDate today = LocalDate.now();
 
         // startDate endDate must after at least 15 days since today
         if (startDate.isBefore(today.plusDays(15))) {
@@ -224,5 +223,19 @@ public class EventSessionServiceImpl implements EventSessionService {
         }
 
         return startDate;
+    }
+
+    @Override
+    public List<EventSession> findConflictSessionDateOfHost(UUID hostId, UUID checkedEventId, List<EventSession> checkedSessions) {
+        List<LocalDate> dates = checkedSessions
+                .stream()
+                .map(s -> s.getStartDateTime().toLocalDate())
+                .toList();
+
+        return eventSessionRepository.findConflictingSessions(
+                hostId,
+                checkedEventId,
+                dates
+        );
     }
 }
