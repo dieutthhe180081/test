@@ -5,6 +5,7 @@ import com.sep490.g28.hvh.be.constant.EEventStatus;
 import com.sep490.g28.hvh.be.constant.EServedTarget;
 import com.sep490.g28.hvh.be.constant.EServingPlaceType;
 import com.sep490.g28.hvh.be.dto.event.request.EditEventRequest;
+import com.sep490.g28.hvh.be.dto.event.request.RejectEventRequest;
 import com.sep490.g28.hvh.be.dto.event.response.EditEventResponse;
 import com.sep490.g28.hvh.be.entity.*;
 import com.sep490.g28.hvh.be.exception.AppException;
@@ -68,6 +69,12 @@ public class EventServiceEditEventTest {
     private Event event() {
         Event e = new Event();
         e.setId(UUID.randomUUID());
+
+        Host host = new Host();
+        host.setId(UUID.randomUUID());
+
+        e.setHost(host);
+
         e.setStatus(EEventStatus.EDITING);
         e.setDateTimes(new ArrayList<>());
         e.setImages(new ArrayList<>());
@@ -343,6 +350,274 @@ public class EventServiceEditEventTest {
 
         assertThrows(AppException.class,
                 () -> service.draftEvent(req));
+    }
+
+    // ==== approveEventByManager ===================================
+    // TC01
+    @Test
+    void approveEvent_success_shouldApproveAndNotify() {
+
+        UUID eventId = UUID.randomUUID();
+
+        Event event = event();
+        event.setStatus(EEventStatus.SUBMITTED);
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        when(eventSessionService.findConflictSessionDateOfHost(any(), any(), any()))
+                .thenReturn(List.of());
+
+        service.approveEventByManager(eventId);
+
+        assertEquals(EEventStatus.APPROVED_BY_MNG, event.getStatus());
+
+        verify(eventRepository).save(event);
+
+        verify(notificationService)
+                .sendEventApprovedByOrgManagerNotification(event);
+    }
+
+    // TC02
+    @Test
+    void approveEvent_eventNotExist_shouldThrow() {
+
+        UUID eventId = UUID.randomUUID();
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                AppException.class,
+                () -> service.approveEventByManager(eventId)
+        );
+    }
+
+    // TC03
+    @Test
+    void approveEvent_invalidStatus_shouldThrow() {
+
+        UUID eventId = UUID.randomUUID();
+
+        Event event = event();
+        event.setStatus(EEventStatus.APPROVED_BY_MNG);
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        assertThrows(
+                AppException.class,
+                () -> service.approveEventByManager(eventId)
+        );
+    }
+
+    // TC04
+    @Test
+    void approveEvent_hostConflict_shouldThrow() {
+
+        UUID eventId = UUID.randomUUID();
+
+        Event event = event();
+        event.setStatus(EEventStatus.SUBMITTED);
+
+        EventSession conflict = new EventSession();
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        when(eventSessionService.findConflictSessionDateOfHost(any(), any(), any()))
+                .thenReturn(List.of(conflict));
+
+        assertThrows(
+                AppException.class,
+                () -> service.approveEventByManager(eventId)
+        );
+    }
+
+    // ==== rejectEventByManager ===================================
+    // TC01
+    @Test
+    void rejectEvent_success_shouldRejectAndNotify() {
+
+        UUID eventId = UUID.randomUUID();
+
+        Event event = event();
+        event.setStatus(EEventStatus.SUBMITTED);
+
+        RejectEventRequest req = new RejectEventRequest();
+        req.setReason("invalid plan");
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        service.rejectEventByManager(eventId, req);
+
+        assertEquals(EEventStatus.REJECTED_BY_MNG, event.getStatus());
+
+        verify(eventRepository).save(event);
+
+        verify(notificationService)
+                .sendEventRejectedByOrgManagerNotification(event, req.getReason());
+    }
+
+    // TC02
+    @Test
+    void rejectEvent_eventNotExist_shouldThrow() {
+
+        UUID eventId = UUID.randomUUID();
+
+        RejectEventRequest req = new RejectEventRequest();
+        req.setReason("reason");
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                AppException.class,
+                () -> service.rejectEventByManager(eventId, req)
+        );
+    }
+
+    // TC03
+    @Test
+    void rejectEvent_invalidStatus_shouldThrow() {
+
+        UUID eventId = UUID.randomUUID();
+
+        Event event = event();
+        event.setStatus(EEventStatus.APPROVED_BY_MNG);
+
+        RejectEventRequest req = new RejectEventRequest();
+        req.setReason("reason");
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        assertThrows(
+                AppException.class,
+                () -> service.rejectEventByManager(eventId, req)
+        );
+    }
+
+    // ==== approveEventByAdmin ===================================
+    // TC01
+    @Test
+    void approveEventByAdmin_success_shouldApproveAndNotify() {
+
+        UUID eventId = UUID.randomUUID();
+
+        Event event = event();
+        event.setStatus(EEventStatus.APPROVED_BY_MNG);
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        service.approveEventByAdmin(eventId);
+
+        assertEquals(EEventStatus.RECRUITING, event.getStatus());
+
+        verify(eventRepository).save(event);
+
+        verify(notificationService)
+                .sendEventApprovedByAdminNotification(event);
+    }
+
+    // TC02
+    @Test
+    void approveEventByAdmin_eventNotExist_shouldThrow() {
+
+        UUID eventId = UUID.randomUUID();
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                AppException.class,
+                () -> service.approveEventByAdmin(eventId)
+        );
+    }
+
+    // TC03
+    @Test
+    void approveEventByAdmin_invalidStatus_shouldThrow() {
+
+        UUID eventId = UUID.randomUUID();
+
+        Event event = event();
+        event.setStatus(EEventStatus.SUBMITTED);
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        assertThrows(
+                AppException.class,
+                () -> service.approveEventByAdmin(eventId)
+        );
+    }
+
+    // ==== rejectEventByAdmin ===================================
+    // TC01
+    @Test
+    void rejectEventByAdmin_success_shouldRejectAndNotify() {
+
+        UUID eventId = UUID.randomUUID();
+
+        Event event = event();
+        event.setStatus(EEventStatus.APPROVED_BY_MNG);
+
+        RejectEventRequest req = new RejectEventRequest();
+        req.setReason("invalid plan");
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        service.rejectEventByAdmin(eventId, req);
+
+        assertEquals(EEventStatus.REJECTED_BY_AD, event.getStatus());
+
+        verify(eventRepository).save(event);
+
+        verify(notificationService)
+                .sendEventRejectedByAdminNotification(event, req.getReason());
+    }
+
+    // TC02
+    @Test
+    void rejectEventByAdmin_eventNotExist_shouldThrow() {
+
+        UUID eventId = UUID.randomUUID();
+
+        RejectEventRequest req = new RejectEventRequest();
+        req.setReason("reason");
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                AppException.class,
+                () -> service.rejectEventByAdmin(eventId, req)
+        );
+    }
+
+    // TC03
+    @Test
+    void rejectEventByAdmin_invalidStatus_shouldThrow() {
+
+        UUID eventId = UUID.randomUUID();
+
+        Event event = event();
+        event.setStatus(EEventStatus.SUBMITTED);
+
+        RejectEventRequest req = new RejectEventRequest();
+        req.setReason("reason");
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        assertThrows(
+                AppException.class,
+                () -> service.rejectEventByAdmin(eventId, req)
+        );
     }
 
 }

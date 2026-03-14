@@ -2,6 +2,7 @@ package com.sep490.g28.hvh.be.service.impl;
 
 import com.sep490.g28.hvh.be.constant.EEventStatus;
 import com.sep490.g28.hvh.be.dto.event.request.EditEventRequest;
+import com.sep490.g28.hvh.be.dto.event.request.RejectEventRequest;
 import com.sep490.g28.hvh.be.dto.event.response.*;
 import com.sep490.g28.hvh.be.dto.event.request.SaveEventRequest;
 import com.sep490.g28.hvh.be.entity.*;
@@ -11,6 +12,7 @@ import com.sep490.g28.hvh.be.exception.errorCodeImpl.ActivityDomainErrorCode;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.EventErrorCode;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.VolunteerErrorCode;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
+import com.sep490.g28.hvh.be.mapper.EventMapper;
 import com.sep490.g28.hvh.be.repository.EventRepository;
 import com.sep490.g28.hvh.be.repository.*;
 import com.sep490.g28.hvh.be.service.EventSessionService;
@@ -23,10 +25,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Point;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +34,7 @@ import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.stream.Stream;
 
 
 @Slf4j
@@ -42,20 +42,22 @@ import java.util.concurrent.CompletionException;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EventServiceImpl implements EventService {
-    private final HostRepository hostRepository;
-    private final ActivitySubDomainRepository activitySubDomainRepository;
-    private final EventRepository eventRepository;
+    HostRepository hostRepository;
+    ActivitySubDomainRepository activitySubDomainRepository;
+    EventRepository eventRepository;
+    VolunteerRepository volunteerRepository;
+    VolunteerSavedEventRepository volunteerSavedEventRepository;
+    OrganizationManagerRepository organizationManagerRepository;
 
     StorageService storageService;
 
-    private final EventImageService eventImageService;
-    private final EventSessionService eventSessionService;
-    private final NotificationService notificationService;
+    EventImageService eventImageService;
+    EventSessionService eventSessionService;
+    NotificationService notificationService;
 
-    private final CurrentUserProvider currentUserProvider;
-    VolunteerRepository volunteerRepository;
-    VolunteerSavedEventRepository volunteerSavedEventRepository;
-    EventSessionRepository eventSessionRepository;
+    CurrentUserProvider currentUserProvider;
+
+    EventMapper eventMapper;
 
     @Override
     public EventFeedResponse getEventFeeds(int pageNumber, int pageSize, boolean refresh,
@@ -192,6 +194,8 @@ public class EventServiceImpl implements EventService {
         event.setStatus(eventStatus);
         //save event
         event = eventRepository.save(event);
+        log.info("Event is created: eventId={}", event.getId());
+
 
         //adding images
         List<String> uploadUrls = eventImageService.addEventImages(event, request.getUpdateImages());
@@ -199,6 +203,7 @@ public class EventServiceImpl implements EventService {
 
         //after finish all things to do with repo or other services, send notification to host if the event is submitted
         if (eventStatus.equals(EEventStatus.SUBMITTED)) {
+            log.info("Event is submitted: eventId={}", event.getId());
             notificationService.sendEventCreatedNotification(event, event.getHost());
         }
         return response;
@@ -238,9 +243,11 @@ public class EventServiceImpl implements EventService {
 
         //save event
         eventRepository.save(event);
+        log.info("Event is edited: eventId={}", event.getId());
 
         //after finish all things to do with repo or other services, send notification to host if the event is submitted
         if (eventStatus.equals(EEventStatus.SUBMITTED)) {
+            log.info("Event is submitted: eventId={}", event.getId());
             notificationService.sendEventCreatedNotification(event, event.getHost());
         }
         return response;
@@ -374,6 +381,209 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    public void approveEventByManager(UUID eventId) {
+        //get event out from repo
+        Event event = eventRepository.findById(eventId).orElseThrow(
+                () -> new AppException(EventErrorCode.EVENT_NOT_EXISTED)
+        );
+
+        //check event status
+        if (!event.getStatus().equals(EEventStatus.SUBMITTED)) {
+            throw new AppException(EventErrorCode.ACTION_NOT_EXECUTABLE);
+        }
+
+        //check whether the host is hosting other event or not?
+        List<EventSession> conflictSession =  eventSessionService.findConflictSessionDateOfHost(
+                event.getHost().getId(),
+                eventId,
+                event.getDateTimes()
+        );
+        if (!conflictSession.isEmpty()) {
+            throw new AppException(EventErrorCode.DUPLICATE_HOSTED_DATE);
+        }
+
+        //update in db
+        event.setStatus(EEventStatus.APPROVED_BY_MNG);
+        eventRepository.save(event);
+        log.info("Event is approved by Organization Manager: eventId={}", event.getId());
+
+        //send notification
+        notificationService.sendEventApprovedByOrgManagerNotification(event);
+    }
+
+    @Override
+    public void rejectEventByManager(UUID eventId, RejectEventRequest request) {
+        //get event out from repo
+        Event event = eventRepository.findById(eventId).orElseThrow(
+                () -> new AppException(EventErrorCode.EVENT_NOT_EXISTED)
+        );
+
+        //check event status
+        if (!event.getStatus().equals(EEventStatus.SUBMITTED)) {
+            throw new AppException(EventErrorCode.ACTION_NOT_EXECUTABLE);
+        }
+
+        //update in db
+        event.setStatus(EEventStatus.REJECTED_BY_MNG);
+        eventRepository.save(event);
+        log.info("Event is rejected by Organization Manager: eventId={}", event.getId());
+
+        //send notification
+        notificationService.sendEventRejectedByOrgManagerNotification(event, request.getReason());
+    }
+
+    @Override
+    public void approveEventByAdmin(UUID eventId) {
+        //get event out from repo
+        Event event = eventRepository.findById(eventId).orElseThrow(
+                () -> new AppException(EventErrorCode.EVENT_NOT_EXISTED)
+        );
+
+        //check event status
+        if (!event.getStatus().equals(EEventStatus.APPROVED_BY_MNG)) {
+            throw new AppException(EventErrorCode.ACTION_NOT_EXECUTABLE);
+        }
+
+//        //check whether the host is hosting other event or not?
+//        List<EventSession> conflictSession =
+//                eventSessionService.findConflictSessionDateOfHost(
+//                        event.getHost().getId(),
+//                        eventId,
+//                        event.getDateTimes()
+//                );
+//        if (!conflictSession.isEmpty()) {
+//            throw new AppException(EventErrorCode.DUPLICATE_HOSTED_DATE);
+//        }
+
+        //update in db
+        event.setStatus(EEventStatus.RECRUITING);
+        eventRepository.save(event);
+        log.info("Event is approved by System Admin: eventId={}", event.getId());
+
+        //send notification
+        notificationService.sendEventApprovedByAdminNotification(event);
+    }
+
+    @Override
+    public void rejectEventByAdmin(UUID eventId, RejectEventRequest request) {
+        //get event out from repo
+        Event event = eventRepository.findById(eventId).orElseThrow(
+                () -> new AppException(EventErrorCode.EVENT_NOT_EXISTED)
+        );
+
+        //check event status
+        if (!event.getStatus().equals(EEventStatus.APPROVED_BY_MNG)) {
+            throw new AppException(EventErrorCode.ACTION_NOT_EXECUTABLE);
+        }
+
+        //update in db
+        event.setStatus(EEventStatus.REJECTED_BY_AD);
+        eventRepository.save(event);
+        log.info("Event is rejected by System Admin: eventId={}", event.getId());
+
+        //send notification
+        notificationService.sendEventRejectedByAdminNotification(event, request.getReason());
+    }
+
+    @Override
+    public Page<EventSimpleResponseForManager> getPendingEventsForManager(int pageNumber, int pageSize, String eventName) {
+        Pageable pageable = PageRequest.of(
+                pageNumber,
+                pageSize,
+                Sort.by(Sort.Direction.ASC, "created_at")
+        );
+        UUID managerId = currentUserProvider.getId();
+        OrganizationManager manager = organizationManagerRepository.getReferenceById(managerId);
+        Organization organization = manager.getOrganization();
+
+        List<String> pendingStatus = Stream.of(
+                EEventStatus.SUBMITTED,
+                EEventStatus.APPROVED_BY_MNG,
+                EEventStatus.REJECTED_BY_MNG,
+                EEventStatus.REJECTED_BY_AD
+        ).map(Enum::name).toList();
+
+        return eventRepository.findEventsByOrganizationIdAnd(
+                organization.getId(),
+                pendingStatus,
+                eventName,
+                pageable
+        ).map(eventMapper::toEventSimpleResponseForManager);
+    }
+
+    @Override
+    public Page<EventSimpleResponseForManager> getApprovedEventsForManager(int pageNumber, int pageSize, String eventName) {
+        Pageable pageable = PageRequest.of(
+                pageNumber,
+                pageSize,
+                Sort.by(Sort.Direction.ASC, "created_at")
+        );
+        UUID managerId = currentUserProvider.getId();
+        OrganizationManager manager = organizationManagerRepository.getReferenceById(managerId);
+        Organization organization = manager.getOrganization();
+
+        List<String> approvedStatus = Stream.of(
+                EEventStatus.RECRUITING,
+                EEventStatus.UPCOMING,
+                EEventStatus.ONGOING,
+                EEventStatus.UPCOMING,
+                EEventStatus.ENDED,
+                EEventStatus.FINISHED,
+                EEventStatus.CANCELLED
+        ).map(Enum::name).toList();
+
+        return eventRepository.findEventsByOrganizationIdAnd(
+                organization.getId(),
+                approvedStatus,
+                eventName,
+                pageable
+        ).map(eventMapper::toEventSimpleResponseForManager);
+    }
+
+    @Override
+    public Page<EventSimpleResponseForAdmin> getPendingEventsForAdmin(int pageNumber, int pageSize, String eventName) {
+        Pageable pageable = PageRequest.of(
+                pageNumber,
+                pageSize,
+                Sort.by(Sort.Direction.ASC, "created_at")
+        );
+
+        List<String> pendingStatus = Stream.of(
+                EEventStatus.APPROVED_BY_MNG,
+                EEventStatus.REJECTED_BY_AD
+        ).map(Enum::name).toList();
+
+        return eventRepository.findEventsByAdminAnd(
+                pendingStatus,
+                eventName,
+                pageable
+        ).map(eventMapper::toEventSimpleResponseForAdmin);
+    }
+
+    @Override
+    public Page<EventSimpleResponseForAdmin> getRunningEventsForAdmin(int pageNumber, int pageSize, String eventName) {
+        Pageable pageable = PageRequest.of(
+                pageNumber,
+                pageSize,
+                Sort.by(Sort.Direction.ASC, "created_at")
+        );
+
+        List<String> runningStatus = Stream.of(
+                EEventStatus.RECRUITING,
+                EEventStatus.UPCOMING,
+                EEventStatus.ONGOING,
+                EEventStatus.UPCOMING,
+                EEventStatus.ENDED
+        ).map(Enum::name).toList();
+
+        return eventRepository.findEventsByAdminAnd(
+                runningStatus,
+                eventName,
+                pageable
+        ).map(eventMapper::toEventSimpleResponseForAdmin);
+    }
+
+    @Override
     public EventDetailsResponseForManager getEventDetailsByManager(UUID id) {
         //check id exist
         Event event = eventRepository.findById(id).orElseThrow(
@@ -448,12 +658,12 @@ public class EventServiceImpl implements EventService {
         List<EventSessionDetailsResponse> conflictSessions = Optional.of(conflictSession)
                 .map(cs -> cs.stream()
                         .map(es -> new EventSessionDetailsResponse(
-                        es.getId(),
-                        es.getStartDateTime(),
-                        es.getEndDateTime(),
-                        es.getExpectedVolAmount(),
-                        es.getExpectedSerAmount()
-                )).toList()).orElse(Collections.emptyList());;
+                                es.getId(),
+                                es.getStartDateTime(),
+                                es.getEndDateTime(),
+                                es.getExpectedVolAmount(),
+                                es.getExpectedSerAmount()
+                        )).toList()).orElse(Collections.emptyList());;
 
         if (!conflictSession.isEmpty()) {
             note.append(EventErrorCode.DUPLICATE_HOSTED_DATE.getMessage()).append("\n");
@@ -494,5 +704,6 @@ public class EventServiceImpl implements EventService {
                 .note(note.toString())
                 .build();
     }
+
 }
 

@@ -1,14 +1,13 @@
 package com.sep490.g28.hvh.be.service;
 
+import com.sep490.g28.hvh.be.dto.event.request.RejectEventRequest;
 import com.sep490.g28.hvh.be.dto.event.request.SaveEventRequest;
-import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponse;
-import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponseForManager;
-import com.sep490.g28.hvh.be.dto.event.response.EventFeedResponse;
-import org.springframework.data.repository.query.Param;
+import com.sep490.g28.hvh.be.dto.event.response.*;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
 import java.util.List;
-import com.sep490.g28.hvh.be.dto.event.response.EditEventResponse;
+
 import com.sep490.g28.hvh.be.dto.event.request.EditEventRequest;
 import java.util.UUID;
 
@@ -30,6 +29,22 @@ public interface EventService {
     EventDetailsResponse getEventDetails(UUID id);
 
     void saveEvent(SaveEventRequest saveEventRequest);
+
+    void approveEventByManager(UUID eventId);
+
+    void rejectEventByManager(UUID eventId, RejectEventRequest request);
+
+    void approveEventByAdmin(UUID eventId);
+
+    void rejectEventByAdmin(UUID eventId, RejectEventRequest request);
+
+    Page<EventSimpleResponseForManager> getPendingEventsForManager(int pageNumber, int pageSize, String eventName);
+
+    Page<EventSimpleResponseForManager> getApprovedEventsForManager(int pageNumber, int pageSize, String eventName);
+
+    Page<EventSimpleResponseForAdmin> getPendingEventsForAdmin(int pageNumber, int pageSize, String eventName);
+
+    Page<EventSimpleResponseForAdmin> getRunningEventsForAdmin(int pageNumber, int pageSize, String eventName);
 
     EventDetailsResponseForManager getEventDetailsByManager(UUID id);
 }

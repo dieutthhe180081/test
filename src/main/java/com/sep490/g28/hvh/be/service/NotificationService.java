@@ -14,5 +14,9 @@ public interface NotificationService {
 //    List<UserNotification> getLatestNotification(OffsetDateTime cursor);
 
     void sendEventCreatedNotification(Event event, Host host);
-    void sendVerifyEventByOrgManagerNotification(Event event, boolean approved);
+    void sendEventApprovedByOrgManagerNotification(Event event);
+    void sendEventRejectedByOrgManagerNotification(Event event, String reason);
+
+    void sendEventApprovedByAdminNotification(Event event);
+    void sendEventRejectedByAdminNotification(Event event, String reason);
 }

@@ -1,11 +1,9 @@
 package com.sep490.g28.hvh.be.controller;
 
+import com.sep490.g28.hvh.be.dto.event.request.RejectEventRequest;
 import com.sep490.g28.hvh.be.dto.event.request.SaveEventRequest;
-import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponse;
-import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponseForManager;
-import com.sep490.g28.hvh.be.dto.event.response.EventFeedResponse;
+import com.sep490.g28.hvh.be.dto.event.response.*;
 import com.sep490.g28.hvh.be.dto.event.request.EditEventRequest;
-import com.sep490.g28.hvh.be.dto.event.response.EditEventResponse;
 import com.sep490.g28.hvh.be.service.EventService;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -14,6 +12,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.validator.constraints.UUID;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -75,6 +74,116 @@ public class EventController {
     public ResponseEntity<String> saveEvent(@Valid @RequestBody SaveEventRequest request) {
         eventService.saveEvent(request);
         return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasRole('ORG_MANAGER')")
+    @PutMapping("/event/manager/{eventId}/approve")
+    public ResponseEntity<String> approveEventByManager(@PathVariable java.util.UUID eventId) {
+        eventService.approveEventByManager(eventId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasRole('ORG_MANAGER')")
+    @PutMapping("/event/manager/{eventId}/reject")
+    public ResponseEntity<String> rejectEventByManager(
+            @PathVariable java.util.UUID eventId,
+            @Valid @RequestBody RejectEventRequest request
+    ) {
+        eventService.rejectEventByManager(eventId, request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasRole('ORG_MANAGER')")
+    @GetMapping("/event/manager/pending")
+    public ResponseEntity<Page<EventSimpleResponseForManager>> getPendingEventsByManager(
+            @RequestParam(defaultValue = "0")
+            @Min(value = 0, message = "INVALID_PAGE_NUMBER")
+            int pageNumber,
+
+            @RequestParam(defaultValue = "10")
+            @Min(value = 1, message = "INVALID_PAGE_SIZE")
+            @Max(value = 100, message = "INVALID_PAGE_SIZE")
+            int pageSize,
+
+            @RequestParam(required = false)
+            String name
+
+    ) {
+
+        return ResponseEntity.ok(eventService.getPendingEventsForManager(pageNumber, pageSize, name));
+    }
+
+    @PreAuthorize("hasRole('ORG_MANAGER')")
+    @GetMapping("/event/manager/approved")
+    public ResponseEntity<Page<EventSimpleResponseForManager>> getApprovedEventsByManager(
+            @RequestParam(defaultValue = "0")
+            @Min(value = 0, message = "INVALID_PAGE_NUMBER")
+            int pageNumber,
+
+            @RequestParam(defaultValue = "10")
+            @Min(value = 1, message = "INVALID_PAGE_SIZE")
+            @Max(value = 100, message = "INVALID_PAGE_SIZE")
+            int pageSize,
+
+            @RequestParam(required = false)
+            String name
+    ) {
+        return ResponseEntity.ok(eventService.getApprovedEventsForManager(pageNumber, pageSize, name));
+    }
+
+    @PreAuthorize("hasRole('SYS_ADMIN')")
+    @PutMapping("/event/admin/{eventId}/approve")
+    public ResponseEntity<String> approveEventByAdmin(@PathVariable java.util.UUID eventId) {
+        eventService.approveEventByAdmin(eventId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasRole('SYS_ADMIN')")
+    @PutMapping("/event/admin/{eventId}/reject")
+    public ResponseEntity<String> rejectEventByAdmin(
+            @PathVariable java.util.UUID eventId,
+            @Valid @RequestBody RejectEventRequest request
+    ) {
+        eventService.rejectEventByAdmin(eventId, request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasRole('SYS_ADMIN')")
+    @GetMapping("/event/admin/pending")
+    public ResponseEntity<Page<EventSimpleResponseForAdmin>> getPendingEventsByAdmin(
+            @RequestParam(defaultValue = "0")
+            @Min(value = 0, message = "INVALID_PAGE_NUMBER")
+            int pageNumber,
+
+            @RequestParam(defaultValue = "10")
+            @Min(value = 1, message = "INVALID_PAGE_SIZE")
+            @Max(value = 100, message = "INVALID_PAGE_SIZE")
+            int pageSize,
+
+            @RequestParam(required = false)
+            String name
+
+    ) {
+
+        return ResponseEntity.ok(eventService.getPendingEventsForAdmin(pageNumber, pageSize, name));
+    }
+
+    @PreAuthorize("hasRole('SYS_ADMIN')")
+    @GetMapping("/event/admin/running")
+    public ResponseEntity<Page<EventSimpleResponseForAdmin>> getRunningEventsByAdmin(
+            @RequestParam(defaultValue = "0")
+            @Min(value = 0, message = "INVALID_PAGE_NUMBER")
+            int pageNumber,
+
+            @RequestParam(defaultValue = "10")
+            @Min(value = 1, message = "INVALID_PAGE_SIZE")
+            @Max(value = 100, message = "INVALID_PAGE_SIZE")
+            int pageSize,
+
+            @RequestParam(required = false)
+            String name
+    ) {
+        return ResponseEntity.ok(eventService.getRunningEventsForAdmin(pageNumber, pageSize, name));
     }
 
     @PreAuthorize("hasRole('ORG_MANAGER')")

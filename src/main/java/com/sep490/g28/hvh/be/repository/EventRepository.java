@@ -1,6 +1,8 @@
 package com.sep490.g28.hvh.be.repository;
 
+import com.sep490.g28.hvh.be.constant.EEventStatus;
 import com.sep490.g28.hvh.be.entity.Event;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -58,4 +60,34 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
             @Param("activitySubDomainIds") List<Short> activitySubDomainIds,
             OffsetDateTime since,
             Pageable pageable);
+
+    @Query(value = """
+            SELECT e.*
+            FROM events e
+            WHERE e.organization_id = :organizationId
+            AND (e.status IN (:status))
+            AND (:name IS NULL OR e.name ILIKE CONCAT('%', :name, '%'))
+            -- #pageable
+            """,
+            nativeQuery = true)
+    Page<Event> findEventsByOrganizationIdAnd(
+            @Param("organizationId") UUID organizationId,
+            @Param("status") List<String> status,
+            @Param("name") String name,
+            Pageable pageable
+    );
+
+    @Query(value = """
+            SELECT e.*
+            FROM events e
+            WHERE (e.status IN (:status))
+            AND (:name IS NULL OR e.name ILIKE CONCAT('%', :name, '%'))
+            -- #pageable
+            """,
+            nativeQuery = true)
+    Page<Event> findEventsByAdminAnd(
+            @Param("status") List<String> status,
+            @Param("name") String name,
+            Pageable pageable
+    );
 }

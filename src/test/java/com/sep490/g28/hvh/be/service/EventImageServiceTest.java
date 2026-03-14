@@ -7,7 +7,6 @@ import com.sep490.g28.hvh.be.entity.EventImage;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.integration.storage.StoragePathGenerator;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
-import com.sep490.g28.hvh.be.repository.EventImageRepository;
 import com.sep490.g28.hvh.be.service.impl.EventImageServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,13 +15,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -80,9 +77,8 @@ public class EventImageServiceTest {
     // ==== addEventImages (3 params) ===================================
     // TC01 addImages == null
     @Test
-    void addEventImages_nullRequest_shouldThrow() {
-        assertThrows(NullPointerException.class,
-                () -> service.addEventImages(event, null));
+    void addEventImages_nullRequest_shouldReturnEmptyList() {
+        assertTrue(service.addEventImages(event, null).isEmpty());
     }
 
     // TC02 add 1 image
@@ -155,6 +151,13 @@ public class EventImageServiceTest {
         assertEquals(2, result.size());
         assertEquals(2, event.getImages().size());
     }
+
+    // TC06 empty request
+    @Test
+    void addEventImages_emptyRequest_shouldReturnEmptyList() {
+        assertTrue(service.addEventImages(event,  List.of()).isEmpty());
+    }
+
 
     // ==== updateEventImages ===================================
     // TC01 reqImages null
