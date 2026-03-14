@@ -673,16 +673,16 @@ public class EventServiceImpl implements EventService {
         LocalDate recruitmentEndDate = null;
 
         //get specified info of SUMMITED status
-        if(eventStatus.toString().equals("SUBMITTED")){
-            startDate = event.getStartDate();
-            recruitmentEndDate = event.getRecruitmentEndDate();
-        }
+//        if(eventStatus.toString().equals("SUBMITTED")){
+//            startDate = event.getStartDate();
+//            recruitmentEndDate = event.getRecruitmentEndDate();
+//        }
 
         //get specified info of RECRUITING status
-        if(eventStatus.toString().equals("RECRUITING")){
-            startDate = event.getStartDate();
-            recruitmentEndDate = event.getRecruitmentEndDate();
-        }
+//        if(eventStatus.toString().equals("RECRUITING")){
+        startDate = event.getStartDate();
+        recruitmentEndDate = event.getRecruitmentEndDate();
+//        }
 
         return EventDetailsResponseForManager.builder()
                 .id(event.getId())
