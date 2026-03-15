@@ -348,6 +348,8 @@ public class EventServiceImpl implements EventService {
                 .servingPlaceType(event.getServingPlaceType())
                 .startDate(event.getStartDate())
                 .recruitmentEndDate(event.getRecruitmentEndDate())
+                .checkInLocation(event.getCheckInLocation())
+                .checkInAccuracyMeters(event.getCheckInAccuracyMeters())
                 .hostPhone(hostPhone)
                 .orgName(orgName)
                 .eventSessions(eventSessions)
