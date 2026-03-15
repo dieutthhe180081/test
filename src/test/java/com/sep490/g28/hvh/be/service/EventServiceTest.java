@@ -7,6 +7,7 @@ import com.sep490.g28.hvh.be.constant.EServingPlaceType;
 import com.sep490.g28.hvh.be.dto.event.request.SaveEventRequest;
 import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponse;
 import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponseForManager;
+import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponseForSystemAdmin;
 import com.sep490.g28.hvh.be.dto.event.response.EventFeedResponse;
 import com.sep490.g28.hvh.be.entity.*;
 import com.sep490.g28.hvh.be.exception.AppException;
@@ -24,10 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.domain.*;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -135,155 +133,160 @@ public class EventServiceTest {
 
     // ==== getEventFeeds ===================================
     // ===== TC1 =====
-//    @Test
-//    void getEventFeeds_search_success() {
-//
-//        Event event = mockEvent();
-//
-//        Slice<Event> slice = new SliceImpl<>(List.of(event));
-//
-//        when(eventRepository.search(
-//                any(),
-//                any(),
-//                any(),
-//                any(),
-//                any(Pageable.class)
-//        )).thenReturn(slice);
-//
-//        when(storageService.getSignedUrlAsync("img1"))
-//                .thenReturn(CompletableFuture.completedFuture("signed-url"));
-//
-//        EventFeedResponse response = eventService.getEventFeeds(
-//                0,
-//                10,
-//                false,
-//                "Sự kiện",
-//                "Hà Nội",
-//                LocalDate.of(2026, 3, 5),
-//                LocalDate.of(2026, 3, 10),
-//                null
-//        );
-//
-//        assertEquals(1, response.getEvents().size());
-//        assertEquals("signed-url", response.getEvents().getFirst().getImageUrl());
-//
-//        verify(eventRepository).search(
-//                any(),
-//                any(),
-//                any(),
-//                any(),
-//                any(Pageable.class)
-//        );
-//    }
-//
-//    // ===== TC2 =====
-//    @Test
-//    void getEventFeeds_refresh_success() {
-//
-//        Event event = mockEvent();
-//
-//        Slice<Event> slice = new SliceImpl<>(List.of(event));
-//
-//        when(eventRepository.refresh(
-//                any(),
-//                any(),
-//                any(),
-//                any(),
-//                any(),
-//                any(Pageable.class)
-//        )).thenReturn(slice);
-//
-//        when(storageService.getSignedUrlAsync("img1"))
-//                .thenReturn(CompletableFuture.completedFuture("signed-url"));
-//
-//        EventFeedResponse response = eventService.getEventFeeds(
-//                0,
-//                10,
-//                true,
-//                null,
-//                null,
-//                null,
-//                null,
-//                null
-//        );
-//
-//        assertEquals(1, response.getEvents().size());
-//
-//        verify(eventRepository).refresh(
-//                any(),
-//                any(),
-//                any(),
-//                any(),
-//                any(),
-//                any(Pageable.class)
-//        );
-//    }
-//
-//    // ===== TC3 =====
-//    @Test
-//    void getEventFeeds_event_without_images() {
-//
-//        Event event = mockEvent();
-//        event.setImages(null);
-//
-//        Slice<Event> slice = new SliceImpl<>(List.of(event));
-//
-//        when(eventRepository.search(
-//                any(),
-//                any(),
-//                any(),
-//                any(),
-//                any(Pageable.class)
-//        )).thenReturn(slice);
-//
-//        EventFeedResponse response = eventService.getEventFeeds(
-//                0,
-//                10,
-//                false,
-//                null,
-//                null,
-//                null,
-//                null,
-//                null
-//        );
-//
-//        assertNull(response.getEvents().getFirst().getImageUrl());
-//    }
-//
-//
-//    // ===== TC4 =====
-//    @Test
-//    void getEventFeeds_should_return_null_next_page_when_no_next_slice() {
-//
-//        Event event = mockEvent();
-//
-//        Slice<Event> slice = new SliceImpl<>(List.of(event), PageRequest.of(0,10), false);
-//
-//        when(eventRepository.search(
-//                any(),
-//                any(),
-//                any(),
-//                any(),
-//                any(Pageable.class)
-//        )).thenReturn(slice);
-//
-//        when(storageService.getSignedUrlAsync("img1"))
-//                .thenReturn(CompletableFuture.completedFuture("signed-url"));
-//
-//        EventFeedResponse response = eventService.getEventFeeds(
-//                0,
-//                10,
-//                false,
-//                null,
-//                null,
-//                null,
-//                null,
-//                null
-//        );
-//
-//        assertFalse(response.isHasMore());
-//        assertNull(response.getNextCursor());
-//    }
+    @Test
+    void getEventFeeds_search_success() {
+
+        Event event = mockEvent();
+
+        Page<Event> page = new PageImpl<>(List.of(event));
+
+        when(eventRepository.search(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(Pageable.class)
+        )).thenReturn(page);
+
+        when(storageService.getSignedUrlAsync("img1"))
+                .thenReturn(CompletableFuture.completedFuture("signed-url"));
+
+        EventFeedResponse response = eventService.getEventFeeds(
+                0,
+                10,
+                false,
+                "Sự kiện",
+                "Hà Nội",
+                LocalDate.of(2026, 3, 5),
+                LocalDate.of(2026, 3, 10),
+                null
+        );
+
+        assertEquals(1, response.getEvents().size());
+        assertEquals("signed-url", response.getEvents().getFirst().getImageUrl());
+
+        verify(eventRepository).search(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(Pageable.class)
+        );
+    }
+
+    // ===== TC2 =====
+    @Test
+    void getEventFeeds_refresh_success() {
+
+        Event event = mockEvent();
+
+        Page<Event> page = new PageImpl<>(List.of(event));
+
+        when(eventRepository.refresh(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(Pageable.class)
+        )).thenReturn(page);
+
+        when(storageService.getSignedUrlAsync("img1"))
+                .thenReturn(CompletableFuture.completedFuture("signed-url"));
+
+        EventFeedResponse response = eventService.getEventFeeds(
+                0,
+                10,
+                true,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+
+        assertEquals(1, response.getEvents().size());
+
+        verify(eventRepository).refresh(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(Pageable.class)
+        );
+    }
+
+    // ===== TC3 =====
+    @Test
+    void getEventFeeds_event_without_images() {
+
+        Event event = mockEvent();
+        event.setImages(null);
+
+        Page<Event> page = new PageImpl<>(List.of(event));
+
+        when(eventRepository.searchWithActivitySubDomain(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(Pageable.class)
+        )).thenReturn(page);
+
+        EventFeedResponse response = eventService.getEventFeeds(
+                0,
+                10,
+                false,
+                null,
+                null,
+                null,
+                null,
+                List.of(Short.valueOf("1"), Short.valueOf("2"))
+        );
+
+        assertNull(response.getEvents().getFirst().getImageUrl());
+    }
+
+
+    // ===== TC4 =====
+    @Test
+    void getEventFeeds_should_return_null_next_page_when_no_next_slice() {
+
+        Event event = mockEvent();
+
+        Page<Event> page = new PageImpl<>(
+                List.of(event),
+                PageRequest.of(0, 10),
+                1 // total elements
+        );
+
+        when(eventRepository.search(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(Pageable.class)
+        )).thenReturn(page);
+
+        when(storageService.getSignedUrlAsync("img1"))
+                .thenReturn(CompletableFuture.completedFuture("signed-url"));
+
+        EventFeedResponse response = eventService.getEventFeeds(
+                0,
+                10,
+                false,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+
+        assertFalse(response.isHasMore());
+        assertNull(response.getNextCursor());
+    }
 
     // ==== getEventDetails ===================================
     // ===== TC1 =====
@@ -601,4 +604,91 @@ public class EventServiceTest {
 //        assertNotNull(response.getStartDate());
 //        assertNotNull(response.getRecruitmentEndDate());
 //    }
+
+    // ==== getEventDetailsBySystemAdmin ===================================
+    // ===== TC1 =====
+    @Test
+    void getEventDetailsBySystemAdmin_success() {
+
+        Event event = mockEvent();
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        when(storageService.getSignedUrlAsync("img1"))
+                .thenReturn(CompletableFuture.completedFuture("url1"));
+
+        when(storageService.getSignedUrlAsync("img2"))
+                .thenReturn(CompletableFuture.completedFuture("url2"));
+
+        EventDetailsResponseForSystemAdmin response =
+                eventService.getEventDetailsBySystemAdmin(eventId);
+
+        assertEquals("Charity Event", response.getName());
+        assertEquals(2, response.getImageUrls().size());
+        assertEquals(1, response.getEventSessions().size());
+
+        verify(eventRepository).findById(eventId);
+    }
+
+    // ===== TC2 =====
+    @Test
+    void getEventDetailsBySystemAdmin_event_not_exist() {
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(
+                AppException.class,
+                () -> eventService.getEventDetailsBySystemAdmin(eventId)
+        );
+
+        assertEquals(
+                EventErrorCode.EVENT_NOT_EXISTED.getCode(),
+                ex.getCode()
+        );
+    }
+
+    // ===== TC3 =====
+    @Test
+    void getEventDetailsBySystemAdmin_conflict_sessions_exist() {
+
+        Event event = mockEvent();
+
+        EventSession conflict = new EventSession();
+        conflict.setId(UUID.randomUUID());
+        conflict.setStartDateTime(OffsetDateTime.now());
+        conflict.setEndDateTime(OffsetDateTime.now().plusHours(1));
+        conflict.setExpectedVolAmount(3);
+        conflict.setExpectedSerAmount(6);
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        when(storageService.getSignedUrlAsync("img1"))
+                .thenReturn(CompletableFuture.completedFuture("url1"));
+
+        when(storageService.getSignedUrlAsync("img2"))
+                .thenReturn(CompletableFuture.completedFuture("url2"));
+
+        when(eventSessionService.findConflictSessionDateOfHost(
+                any(),
+                any(),
+                anyList()
+        )).thenReturn(List.of(conflict));
+
+        EventDetailsResponseForSystemAdmin response =
+                eventService.getEventDetailsBySystemAdmin(eventId);
+
+        verify(eventSessionService).findConflictSessionDateOfHost(
+                any(),
+                any(),
+                anyList()
+        );
+
+        assertEquals(1, response.getConflictSessions().size());
+        assertFalse(response.getConflictSessions().isEmpty());
+        assertTrue(response.getNote()
+                .contains(EventErrorCode.DUPLICATE_HOSTED_DATE.getMessage()));
+    }
 }

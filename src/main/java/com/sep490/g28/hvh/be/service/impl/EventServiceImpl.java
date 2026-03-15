@@ -73,8 +73,10 @@ public class EventServiceImpl implements EventService {
         //Get the slice based on the current action is refresh (swipe up) or load more (scroll end)
         Page<Event> page = null;
 
-        //If the action is refresh, get the slice within 1 hour ago
+
         if(activitySubDomains == null || activitySubDomains.isEmpty()) {
+
+            //If the action is refresh, get the slice within 1 hour ago
             if (refresh) {
                 OffsetDateTime oneHourAgo = OffsetDateTime.now().minusHours(1);
                 page = eventRepository.refresh(name, address, startDate, endDate, oneHourAgo, pageable);
@@ -86,7 +88,6 @@ public class EventServiceImpl implements EventService {
             if (refresh) {
                 OffsetDateTime oneHourAgo = OffsetDateTime.now().minusHours(1);
                 page = eventRepository.refreshWithActivitySubDomain(name, address, startDate, endDate, activitySubDomains,oneHourAgo, pageable);
-                //Else if the action is load more, keep getting the slice with current searching params
             } else {
                 page = eventRepository.searchWithActivitySubDomain(name, address, startDate, endDate, activitySubDomains, pageable);
             }
