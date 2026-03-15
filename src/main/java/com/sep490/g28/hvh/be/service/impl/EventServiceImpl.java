@@ -356,6 +356,15 @@ public class EventServiceImpl implements EventService {
                         es.getExpectedSerAmount()
                 )).toList();
 
+        //get lat and lng of check in location
+        Double lat = 0.0;
+        Double lng = 0.0;
+
+        if(event.getCheckInLocation() != null) {
+            lat = GeoUtils.getLat(event.getCheckInLocation());
+            lng = GeoUtils.getLng(event.getCheckInLocation());
+        }
+
         return EventDetailsResponse.builder()
                 .id(event.getId())
                 .name(event.getName())
@@ -367,7 +376,8 @@ public class EventServiceImpl implements EventService {
                 .servingPlaceType(event.getServingPlaceType())
                 .startDate(event.getStartDate())
                 .recruitmentEndDate(event.getRecruitmentEndDate())
-                .checkInLocation(event.getCheckInLocation())
+                .latCheckInLocation(lat)
+                .lngCheckInLocation(lng)
                 .checkInAccuracyMeters(event.getCheckInAccuracyMeters())
                 .hostPhone(hostPhone)
                 .orgName(orgName)

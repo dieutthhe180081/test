@@ -27,7 +27,8 @@ public class EventDetailsResponse {
     private EServingPlaceType servingPlaceType;
     private LocalDate startDate;
     private LocalDate recruitmentEndDate;
-    private Point checkInLocation;
+    private Double latCheckInLocation;
+    private Double lngCheckInLocation;
     private Double checkInAccuracyMeters;
     private String hostPhone;
     private String orgName;
