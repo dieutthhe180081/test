@@ -241,7 +241,7 @@ public class EventServiceTest {
                 false,
                 null,
                 null,
-                null,
+                LocalDate.of(2026, 3, 5),
                 null,
                 List.of(Short.valueOf("1"), Short.valueOf("2"))
         );
@@ -543,6 +543,25 @@ public class EventServiceTest {
                 .contains(EventErrorCode.DUPLICATE_HOSTED_DATE.getMessage()));
     }
 
+    // ===== TC4 =====
+    @Test
+    void getEventDetailsByManager_null_activity_sub_domain() {
+
+        Event event = mockEvent();
+
+        event.setActivitySubDomain(null);
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        when(storageService.getSignedUrlAsync(any()))
+                .thenReturn(CompletableFuture.completedFuture("url"));
+
+        EventDetailsResponseForManager response = eventService.getEventDetailsByManager(eventId);
+
+        assertEquals("", response.getActivitySubDomain());
+    }
+
 //    // ===== TC4 =====
 //    @Test
 //    void getEventDetailsByManager_status_recruiting_should_return_dates() {
@@ -690,5 +709,24 @@ public class EventServiceTest {
         assertFalse(response.getConflictSessions().isEmpty());
         assertTrue(response.getNote()
                 .contains(EventErrorCode.DUPLICATE_HOSTED_DATE.getMessage()));
+    }
+
+    // ===== TC4 =====
+    @Test
+    void getEventDetailsBySystemAdmin_null_activity_sub_domain() {
+
+        Event event = mockEvent();
+
+        event.setActivitySubDomain(null);
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        when(storageService.getSignedUrlAsync(any()))
+                .thenReturn(CompletableFuture.completedFuture("url"));
+
+        EventDetailsResponseForSystemAdmin response = eventService.getEventDetailsBySystemAdmin(eventId);
+
+        assertEquals("", response.getActivitySubDomain());
     }
 }
