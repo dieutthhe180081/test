@@ -5,14 +5,8 @@ import com.sep490.g28.hvh.be.constant.EOrgRegistrationStatus;
 import com.sep490.g28.hvh.be.constant.EOrgType;
 import com.sep490.g28.hvh.be.dto.organization.request.OrganizationRegistrationVerifyRequest;
 import com.sep490.g28.hvh.be.dto.organization.request.RegisterOrganizationRequest;
-import com.sep490.g28.hvh.be.dto.organization.response.OrganizationRegistrationDetailsResponse;
-import com.sep490.g28.hvh.be.dto.organization.response.OrganizationRegistrationSimpleResponse;
-import com.sep490.g28.hvh.be.dto.organization.response.OrganizationSimpleResponse;
-import com.sep490.g28.hvh.be.dto.organization.response.RegisterOrganizationResponse;
-import com.sep490.g28.hvh.be.entity.Organization;
-import com.sep490.g28.hvh.be.entity.OrganizationManager;
-import com.sep490.g28.hvh.be.entity.OrganizationRegistration;
-import com.sep490.g28.hvh.be.entity.SystemAdmin;
+import com.sep490.g28.hvh.be.dto.organization.response.*;
+import com.sep490.g28.hvh.be.entity.*;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.AppCommonErrorCode;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.OrganizationErrorCode;
@@ -27,12 +21,15 @@ import com.sep490.g28.hvh.be.service.impl.OrganizationServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -78,28 +75,37 @@ public class OrganizationServiceTest {
     @Mock
     EmailService emailService;
 
+    @Mock
+    HostRepository hostRepository;
+
+    @Mock
+    EventRepository eventRepository;
+
+    @InjectMocks
     OrganizationServiceImpl organizationService;
 
     UUID id;
     SystemAdmin admin;
+    UUID orgId;
 
     @BeforeEach
     void setup() {
 
-        organizationService = new OrganizationServiceImpl(
-                organizationRegistrationRepository,
-                organizationRepository,
-                organizationManagerRepository,
-                userRepository,
-                storageService,
-                storagePathGenerator,
-                otpService,
-                systemAdminRepository,
-                currentUserProvider,
-                authClient,
-                emailService
-        );
+//        organizationService = new OrganizationServiceImpl(
+//                organizationRegistrationRepository,
+//                organizationRepository,
+//                organizationManagerRepository,
+//                userRepository,
+//                storageService,
+//                storagePathGenerator,
+//                otpService,
+//                systemAdminRepository,
+//                currentUserProvider,
+//                authClient,
+//                emailService
+//        );
         id = UUID.randomUUID();
+        orgId = UUID.randomUUID();
 
     }
 
@@ -172,6 +178,30 @@ public class OrganizationServiceTest {
                 "GOVERNMENT_AGENCY_BASED",
                 15
         };
+    }
+
+    private Organization mockOrganization() {
+
+        Organization org = new Organization();
+        org.setId(orgId);
+        org.setName("Test Org");
+        org.setCreatedAt(OffsetDateTime.now());
+        org.setLegalDocument(null);
+        org.setOtherEvidences(null);
+
+        return org;
+    }
+
+    private OrganizationManager mockManager() {
+
+        OrganizationManager manager = new OrganizationManager();
+        manager.setId(UUID.randomUUID());
+        manager.setFullName("Manager Name");
+        manager.setEmail("manager@test.com");
+        manager.setPhone("0123456789");
+        manager.setCid("123456");
+
+        return manager;
     }
 
     // ==== registerOrganization ===================================
@@ -611,5 +641,109 @@ public class OrganizationServiceTest {
 
         verify(organizationRepository)
                 .search(isNull(), isNull(), any(Pageable.class));
+    }
+
+    // ===== getOrganizationDetailsBySystemAdmin ============================================
+    // ===== TC1 =====
+    @Test
+    void getOrganizationDetailsBySystemAdmin_success() {
+
+        Organization org = mockOrganization();
+        org.setLegalDocument("doc1 doc2");
+        org.setOtherEvidences("ev1 ev2");
+        OrganizationManager manager = mockManager();
+
+        when(organizationRepository.findById(orgId))
+                .thenReturn(Optional.of(org));
+
+        when(organizationManagerRepository.findByOrganizationId(orgId))
+                .thenReturn(manager);
+
+        when(hostRepository.countHostByOrganizationId(orgId))
+                .thenReturn(5L);
+
+        when(eventRepository.findAllByOrganizationId(orgId))
+                .thenReturn(Collections.emptyList());
+
+        when(storageService.getSignedUrlAsync(any()))
+                .thenReturn(CompletableFuture.completedFuture("signed-url"));
+
+        OrganizationDetailsResponseForSystemAdmin response =
+                organizationService.getOrganizationDetailsBySystemAdmin(orgId);
+
+        assertEquals(manager.getFullName(), response.getManagerName());
+        assertEquals(manager.getEmail(), response.getManagerEmail());
+        assertEquals(5L, response.getTotalHosts());
+    }
+
+    // ===== TC2 =====
+    @Test
+    void getOrganizationDetailsBySystemAdmin_org_not_exist() {
+
+        when(organizationRepository.findById(orgId))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                AppException.class,
+                () -> organizationService.getOrganizationDetailsBySystemAdmin(orgId)
+        );
+    }
+
+    // ===== TC3 =====
+    @Test
+    void getOrganizationDetailsBySystemAdmin_no_manager_found() {
+
+        Organization org = mockOrganization();
+
+        when(organizationRepository.findById(orgId))
+                .thenReturn(Optional.of(org));
+
+        when(organizationManagerRepository.findByOrganizationId(orgId))
+                .thenReturn(null);
+
+        when(hostRepository.countHostByOrganizationId(orgId))
+                .thenReturn(0L);
+
+        when(eventRepository.findAllByOrganizationId(orgId))
+                .thenReturn(Collections.emptyList());
+
+        OrganizationDetailsResponseForSystemAdmin response =
+                organizationService.getOrganizationDetailsBySystemAdmin(orgId);
+
+        assertNull(response.getManagerId());
+        assertTrue(response.getNote()
+                .contains(OrganizationErrorCode.NO_ORGANIZATION_MANAGER_FOUND.getMessage()));
+    }
+
+    // ===== TC4 =====
+    @Test
+    void getOrganizationDetailsBySystemAdmin_calculate_honor_hours() {
+
+        Organization org = mockOrganization();
+        OrganizationManager manager = mockManager();
+
+        EventSession session = new EventSession();
+        session.setStartDateTime(OffsetDateTime.now());
+        session.setEndDateTime(OffsetDateTime.now().plusHours(3));
+
+        Event event = new Event();
+        event.setDateTimes(List.of(session));
+
+        when(organizationRepository.findById(orgId))
+                .thenReturn(Optional.of(org));
+
+        when(organizationManagerRepository.findByOrganizationId(orgId))
+                .thenReturn(manager);
+
+        when(hostRepository.countHostByOrganizationId(orgId))
+                .thenReturn(2L);
+
+        when(eventRepository.findAllByOrganizationId(orgId))
+                .thenReturn(List.of(event));
+
+        OrganizationDetailsResponseForSystemAdmin response =
+                organizationService.getOrganizationDetailsBySystemAdmin(orgId);
+
+        assertEquals(3, response.getTotalHonorHours());
     }
 }
