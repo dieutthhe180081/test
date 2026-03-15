@@ -67,30 +67,48 @@ public class EventServiceImpl implements EventService {
         Pageable pageable = PageRequest.of(
                 pageNumber,
                 pageSize,
-                Sort.by(Sort.Direction.ASC, "created_at")
+                Sort.by(Sort.Direction.ASC, "createdAt")
         );
 
         //Get the slice based on the current action is refresh (swipe up) or load more (scroll end)
-        Slice<Event> slice;
+        Page<Event> page = null;
 
         //If the action is refresh, get the slice within 1 hour ago
-        if (refresh) {
-            OffsetDateTime oneHourAgo = OffsetDateTime.now().minusHours(1);
-            slice = eventRepository.refresh(name, address, startDate, endDate, activitySubDomains, oneHourAgo, pageable);
-            //Else if the action is load more, keep getting the slice with current searching params
+        if(activitySubDomains == null || activitySubDomains.isEmpty()) {
+            if (refresh) {
+                OffsetDateTime oneHourAgo = OffsetDateTime.now().minusHours(1);
+                page = eventRepository.refresh(name, address, startDate, endDate, oneHourAgo, pageable);
+                //Else if the action is load more, keep getting the slice with current searching params
+            } else {
+                page = eventRepository.search(name, address, startDate, endDate, pageable);
+            }
         } else {
-            slice = eventRepository.search(name, address, startDate, endDate, activitySubDomains, pageable);
+            if (refresh) {
+                OffsetDateTime oneHourAgo = OffsetDateTime.now().minusHours(1);
+                page = eventRepository.refreshWithActivitySubDomain(name, address, startDate, endDate, activitySubDomains,oneHourAgo, pageable);
+                //Else if the action is load more, keep getting the slice with current searching params
+            } else {
+                page = eventRepository.searchWithActivitySubDomain(name, address, startDate, endDate, activitySubDomains, pageable);
+            }
         }
 
+        for(Event e : page.getContent()) {
+            log.info("CONTENT OF SLICE: {a}" + e.getStatus());
+        }
+
+
         //map the slice content (list of events) to EventSimpleResponse
-        List<EventSimpleResponse> eventSimpleResponseList = Optional.of(slice.getContent())
-                .map(list -> list.stream().filter(e -> e.getStatus().equals(EEventStatus.RECRUITING))
+        List<EventSimpleResponse> eventSimpleResponseList = Optional.of(page.getContent())
+                .map(list -> list.stream()
+//                        .filter(e -> e.getStatus().equals(EEventStatus.RECRUITING))
                         .map(e -> {
 
                                     String firstEventImageUrl = null;
 
                                     //get signed URL of file
-                                    if (e.getImages() != null) {
+                                    if (e.getImages() != null && !e.getImages().isEmpty()) {
+
+                                        log.info("image of event: " + e.getImages());
 
                                         List<EventImage> eventImageList = e.getImages();
 
@@ -129,8 +147,8 @@ public class EventServiceImpl implements EventService {
         // (equivalent to call the api one more time)
         return new EventFeedResponse(
                 eventSimpleResponseList,
-                slice.hasNext() ? String.valueOf(pageNumber + 1) : null,
-                slice.hasNext()
+                page.hasNext() ? String.valueOf(pageNumber + 1) : null,
+                page.hasNext()
         );
     }
 

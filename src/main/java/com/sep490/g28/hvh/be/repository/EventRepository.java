@@ -17,20 +17,31 @@ import java.util.UUID;
 
 public interface EventRepository extends JpaRepository<Event, UUID> {
 
-    @Query(value = """
-            SELECT e.*
-            FROM events e
-            LEFT JOIN activity_sub_domains asd 
-                ON e.activity_sub_domain_id = asd.id
+    @Query("""
+            SELECT e
+            FROM Event e
+            WHERE (:name IS NULL OR e.name ILIKE CONCAT('%', CAST(:name AS string), '%'))
+            AND (:address IS NULL OR e.address ILIKE CONCAT('%', CAST(:address AS string), '%'))
+            AND (CAST(:startDate AS DATE) IS NULL OR e.startDate >= :startDate)
+            AND (CAST(:endDate AS DATE) IS NULL OR e.startDate <= :endDate)
+            """)
+    Page<Event> search(
+            @Param("name") String name,
+            @Param("address") String address,
+            @Param("startDate")LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            Pageable pageable);
+
+    @Query("""
+            SELECT e
+            FROM Event e
             WHERE (:name IS NULL OR e.name ILIKE CONCAT('%', :name, '%'))
             AND (:address IS NULL OR e.address ILIKE CONCAT('%', :address, '%'))
-            AND (CAST(:startDate AS DATE) IS NULL OR e.start_date >= :startDate)
-            AND (CAST(:endDate AS DATE) IS NULL OR e.start_date <= :endDate)
-            AND (asd.id IN (:activitySubDomainIds))
-            -- #pageable
-            """,
-            nativeQuery = true)
-    Slice<Event> search(
+            AND (CAST(:startDate AS DATE) IS NULL OR e.startDate >= :startDate)
+            AND (CAST(:endDate AS DATE) IS NULL OR e.startDate <= :endDate)
+            AND (e.activitySubDomain.id IN (:activitySubDomainIds))
+            """)
+    Page<Event> searchWithActivitySubDomain(
             @Param("name") String name,
             @Param("address") String address,
             @Param("startDate")LocalDate startDate,
@@ -38,21 +49,34 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
             @Param("activitySubDomainIds") List<Short> activitySubDomainIds,
             Pageable pageable);
 
-    @Query(value = """
-            SELECT e.*
-            FROM events e
-            LEFT JOIN activity_sub_domains asd 
-                ON e.activity_sub_domain_id = asd.id
+    @Query("""
+            SELECT e
+            FROM Event e
             WHERE (:name IS NULL OR e.name ILIKE CONCAT('%', :name, '%'))
             AND (:address IS NULL OR e.address ILIKE CONCAT('%', :address, '%'))
-            AND (:startDate IS NULL OR e.start_date >= :startDate)
-            AND (:endDate IS NULL OR e.start_date <= :endDate)
-            AND (asd.id IN (:activitySubDomainIds))
-            AND e.created_at > :since
-            -- #pageable
-            """,
-            nativeQuery = true)
-    Slice<Event> refresh(
+            AND (:startDate IS NULL OR e.startDate >= :startDate)
+            AND (:endDate IS NULL OR e.startDate <= :endDate)
+            AND e.createdAt > :since
+            """)
+    Page<Event> refresh(
+            @Param("name") String name,
+            @Param("address") String address,
+            @Param("startDate")LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            OffsetDateTime since,
+            Pageable pageable);
+
+    @Query("""
+            SELECT e
+            FROM Event e
+            WHERE (:name IS NULL OR e.name ILIKE CONCAT('%', :name, '%'))
+            AND (:address IS NULL OR e.address ILIKE CONCAT('%', :address, '%'))
+            AND (:startDate IS NULL OR e.startDate >= :startDate)
+            AND (:endDate IS NULL OR e.startDate <= :endDate)
+            AND (e.activitySubDomain.id IN (:activitySubDomainIds))
+            AND e.createdAt > :since
+            """)
+    Page<Event> refreshWithActivitySubDomain(
             @Param("name") String name,
             @Param("address") String address,
             @Param("startDate")LocalDate startDate,
@@ -85,7 +109,7 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
             -- #pageable
             """,
             nativeQuery = true)
-    Page<Event> findEventsByAdminAnd(
+    Page<Event>  findEventsByAdminAnd(
             @Param("status") List<String> status,
             @Param("name") String name,
             Pageable pageable
