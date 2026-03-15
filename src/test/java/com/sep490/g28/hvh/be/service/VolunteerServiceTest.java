@@ -444,6 +444,8 @@ public class VolunteerServiceTest {
 
         admin = new SystemAdmin();
         admin.setId(UUID.randomUUID());
+        VolunteerRegistrationVerifyRequest request = approveRequest();
+        request.setFullName(null);
 
         when(currentUserProvider.getId()).thenReturn(admin.getId());
         when(systemAdminRepository.getReferenceById(any())).thenReturn(admin);
@@ -457,7 +459,7 @@ public class VolunteerServiceTest {
         when(authClient.createAccount(any(), any(), any(), any()))
                 .thenReturn(UUID.randomUUID());
 
-        volunteerService.verifyVolRegistration(id, approveRequest());
+        volunteerService.verifyVolRegistration(id, request);
 
         verify(volunteerRepository).save(any());
         verify(emailService).sendApproveRegisterVolAccountEmail(any(), any());

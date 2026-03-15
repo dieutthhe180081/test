@@ -411,7 +411,10 @@ public class EventSessionServiceTest {
     @Test
     void validateAndResolveStartDate_duplicateDay_shouldThrow() {
 
-        OffsetDateTime base = start(20);
+        OffsetDateTime base = OffsetDateTime.of(
+                2030, 1, 1, 10, 0, 0, 0,
+                ZoneOffset.of("+07:00")
+        ).plusDays(20);
 
         EventSession s1 = session(base);
         EventSession s2 = session(base.plus(Duration.ofHours(2)));

@@ -3,6 +3,7 @@ package com.sep490.g28.hvh.be.service.impl;
 import com.sep490.g28.hvh.be.entity.User;
 import com.sep490.g28.hvh.be.exception.AppException;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.AppCommonErrorCode;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.HostErrorCode;
 import com.sep490.g28.hvh.be.integration.authServer.AuthClient;
 import com.sep490.g28.hvh.be.integration.cache.OtpService;
 import com.sep490.g28.hvh.be.integration.email.EmailService;
@@ -25,12 +26,20 @@ public class EmailOtpServiceImpl implements EmailOtpService {
 
     @Override
     public void sendVerifyVolAccountRegistrationOtp(String email){
+        //check email used by any account
+        if (userRepository.existsByEmail(email)) {
+            throw new AppException(AppCommonErrorCode.EMAIL_USED);
+        }
         String otp = otpService.getVolAccountRegistrationOtp(email);
         emailService.sendVolAccountRegistrationOtp(email, otp);
     }
 
     @Override
     public void sendVerifyOrganizationRegistrationOtp(String email){
+        //check email used by any account
+        if (userRepository.existsByEmail(email)) {
+            throw new AppException(AppCommonErrorCode.EMAIL_USED);
+        }
         String otp = otpService.getOrgRegistrationOtp(email);
         emailService.sendOrgRegistrationOtp(email, otp);
     }

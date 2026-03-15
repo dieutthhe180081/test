@@ -42,7 +42,6 @@ public class ActivityDomainController {
         return ResponseEntity.ok().build();
     }
 
-    @PreAuthorize("hasRole('SYS_ADMIN')")
     @GetMapping("/activity-domains")
     public ResponseEntity<Page<ActivityDomainDetailsResponse>> getActivityDomains(
             @RequestParam(defaultValue = "0")

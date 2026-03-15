@@ -59,6 +59,23 @@ public class EmailOtpServiceTest {
                 .sendVolAccountRegistrationOtp(email, "123456");
     }
 
+    @Test
+    void sendVerifyVolAccountRegistrationOtp_emailUsed_shouldThrow() {
+        String email = "exist@mail.com";
+
+        when(userRepository.existsByEmail(email))
+                .thenReturn(true);
+
+        AppException ex = assertThrows(
+                AppException.class,
+                () -> emailOtpService.sendVerifyVolAccountRegistrationOtp(email)
+        );
+
+        assertEquals(AppCommonErrorCode.EMAIL_USED.getCode(), ex.getCode());
+
+        verify(emailService, never()).sendVerifyForgotPasswordOtp(any(), any());
+    }
+
     // ===== sendVerifyOrganizationRegistrationOtp =====
     @Test
     void sendVerifyOrganizationRegistrationOtp_success() {
@@ -71,6 +88,23 @@ public class EmailOtpServiceTest {
         verify(otpService).getOrgRegistrationOtp(email);
         verify(emailService)
                 .sendOrgRegistrationOtp(email, "654321");
+    }
+
+    @Test
+    void sendVerifyOrganizationRegistrationOtp_emailUsed_shouldThrow() {
+        String email = "exist@mail.com";
+
+        when(userRepository.existsByEmail(email))
+                .thenReturn(true);
+
+        AppException ex = assertThrows(
+                AppException.class,
+                () -> emailOtpService.sendVerifyOrganizationRegistrationOtp(email)
+        );
+
+        assertEquals(AppCommonErrorCode.EMAIL_USED.getCode(), ex.getCode());
+
+        verify(emailService, never()).sendVerifyForgotPasswordOtp(any(), any());
     }
 
     // ===== sendVerifyForgotPasswordOtp =====

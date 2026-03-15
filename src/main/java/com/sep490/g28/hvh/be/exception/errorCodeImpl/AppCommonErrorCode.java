@@ -24,6 +24,7 @@ public enum AppCommonErrorCode implements ErrorCode {
     OTP_TOO_MANY_REQUESTS(1008, "Bạn đã gửi quá nhiểu yêu cầu nhận mã OTP. Hãy thử lại sau 7-10 phút nữa", HttpStatus.TOO_MANY_REQUESTS),
     EMAIL_NOT_USED(1009, "Email hiện chưa được sử dụng cho tài khoản nào.", HttpStatus.NOT_FOUND),
     ACCOUNT_INACTIVE(1010, "Tải khoản đang bị khóa!", HttpStatus.BAD_REQUEST),
+    EMAIL_USED(1011, "Email hiện đã được sử dụng cho 1 tài khoản khác.", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;
