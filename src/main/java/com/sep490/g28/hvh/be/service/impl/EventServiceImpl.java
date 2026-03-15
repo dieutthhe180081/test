@@ -625,10 +625,12 @@ public class EventServiceImpl implements EventService {
 
         UUID hostId = null;
         String hostPhone = "";
+        String hostEmail = "";
         String hostName = "";
         if (event.getHost() != null) {
             hostId = event.getHost().getId();
             hostPhone = event.getHost().getPhone();
+            hostEmail = event.getHost().getEmail();
             hostName = event.getHost().getFullName();
         }
 
@@ -695,8 +697,13 @@ public class EventServiceImpl implements EventService {
                 .servingPlaceType(event.getServingPlaceType())
                 .startDate(startDate)
                 .recruitmentEndDate(recruitmentEndDate)
+                .autoApprove(event.isAutoApprove())
+                .checkInLocation(event.getCheckInLocation())
+                .checkInAccuracyMeters(event.getCheckInAccuracyMeters())
+                .createdAt(event.getCreatedAt())
                 .hostId(hostId)
                 .hostPhone(hostPhone)
+                .hostEmail(hostEmail)
                 .hostName(hostName)
                 .status(eventStatus)
                 .eventSessions(eventSessions)

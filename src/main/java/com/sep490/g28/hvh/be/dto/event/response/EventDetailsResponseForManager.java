@@ -7,8 +7,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import org.locationtech.jts.geom.Point;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,8 +29,13 @@ public class EventDetailsResponseForManager {
     private EServingPlaceType servingPlaceType;
     private LocalDate startDate;
     private LocalDate recruitmentEndDate;
+    private boolean autoApprove;
+    private Point checkInLocation;
+    private Double checkInAccuracyMeters;
+    private OffsetDateTime createdAt;
     private UUID hostId;
     private String hostName;
+    private String hostEmail;
     private String hostPhone;
     private EEventStatus status;
     private List<EventSessionDetailsResponse> eventSessions;
