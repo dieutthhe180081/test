@@ -1,4 +1,4 @@
-package com.sep490.g28.hvh.be.validation.volunteer;
+package com.sep490.g28.hvh.be.validation.activityDomain;
 
 import com.sep490.g28.hvh.be.dto.activityDomain.request.UpdateActivitySubDomainRequest;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.ValidationErrorCode;

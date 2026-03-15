@@ -61,7 +61,7 @@ public class EventController {
         return ResponseEntity.ok(eventService.submitEvent(request));
     }
 
-    @GetMapping("/event/event-details/{id}")
+    @GetMapping("/volunteer/event/event-details/{id}")
     public ResponseEntity<EventDetailsResponse> getEventDetails(
             @PathVariable(name = "id") @UUID(message = "INVALID_UUID") String inputId
     ) {
@@ -69,6 +69,7 @@ public class EventController {
         return ResponseEntity.ok(eventService.getEventDetails(id));
     }
 
+    @PreAuthorize("hasRole('VOL')")
     @PostMapping("/event/save-event")
     public ResponseEntity<String> saveEvent(@Valid @RequestBody SaveEventRequest request) {
         eventService.saveEvent(request);
@@ -76,14 +77,14 @@ public class EventController {
     }
 
     @PreAuthorize("hasRole('ORG_MANAGER')")
-    @PutMapping("/event/manager/{eventId}/approve")
+    @PutMapping("/org-manager/event/{eventId}/approve")
     public ResponseEntity<String> approveEventByManager(@PathVariable java.util.UUID eventId) {
         eventService.approveEventByManager(eventId);
         return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("hasRole('ORG_MANAGER')")
-    @PutMapping("/event/manager/{eventId}/reject")
+    @PutMapping("/org-manager/event/{eventId}/reject")
     public ResponseEntity<String> rejectEventByManager(
             @PathVariable java.util.UUID eventId,
             @Valid @RequestBody RejectEventRequest request
@@ -93,7 +94,7 @@ public class EventController {
     }
 
     @PreAuthorize("hasRole('ORG_MANAGER')")
-    @GetMapping("/event/manager/pending")
+    @GetMapping("/org-manager/event/pending")
     public ResponseEntity<Page<EventSimpleResponseForManager>> getPendingEventsByManager(
             @RequestParam(defaultValue = "0")
             @Min(value = 0, message = "INVALID_PAGE_NUMBER")
@@ -113,7 +114,7 @@ public class EventController {
     }
 
     @PreAuthorize("hasRole('ORG_MANAGER')")
-    @GetMapping("/event/manager/approved")
+    @GetMapping("/org-manager/event/approved")
     public ResponseEntity<Page<EventSimpleResponseForManager>> getApprovedEventsByManager(
             @RequestParam(defaultValue = "0")
             @Min(value = 0, message = "INVALID_PAGE_NUMBER")
@@ -131,14 +132,14 @@ public class EventController {
     }
 
     @PreAuthorize("hasRole('SYS_ADMIN')")
-    @PutMapping("/event/admin/{eventId}/approve")
+    @PutMapping("/sys-admin/event/{eventId}/approve")
     public ResponseEntity<String> approveEventByAdmin(@PathVariable java.util.UUID eventId) {
         eventService.approveEventByAdmin(eventId);
         return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("hasRole('SYS_ADMIN')")
-    @PutMapping("/event/admin/{eventId}/reject")
+    @PutMapping("/sys-admin/event/{eventId}/reject")
     public ResponseEntity<String> rejectEventByAdmin(
             @PathVariable java.util.UUID eventId,
             @Valid @RequestBody RejectEventRequest request
@@ -148,7 +149,7 @@ public class EventController {
     }
 
     @PreAuthorize("hasRole('SYS_ADMIN')")
-    @GetMapping("/event/admin/pending")
+    @GetMapping("/sys-admin/event/pending")
     public ResponseEntity<Page<EventSimpleResponseForAdmin>> getPendingEventsByAdmin(
             @RequestParam(defaultValue = "0")
             @Min(value = 0, message = "INVALID_PAGE_NUMBER")
@@ -168,7 +169,7 @@ public class EventController {
     }
 
     @PreAuthorize("hasRole('SYS_ADMIN')")
-    @GetMapping("/event/admin/running")
+    @GetMapping("/sys-admin/event/running")
     public ResponseEntity<Page<EventSimpleResponseForAdmin>> getRunningEventsByAdmin(
             @RequestParam(defaultValue = "0")
             @Min(value = 0, message = "INVALID_PAGE_NUMBER")
@@ -183,5 +184,23 @@ public class EventController {
             String name
     ) {
         return ResponseEntity.ok(eventService.getRunningEventsForAdmin(pageNumber, pageSize, name));
+    }
+
+    @PreAuthorize("hasRole('ORG_MANAGER')")
+    @GetMapping("/org-manager/event/event-details/{id}")
+    public ResponseEntity<EventDetailsResponseForManager> getEventDetailsByManager(
+            @PathVariable(name = "id") @UUID(message = "INVALID_UUID") String inputId
+    ) {
+        java.util.UUID id = java.util.UUID.fromString(inputId);
+        return ResponseEntity.ok(eventService.getEventDetailsByManager(id));
+    }
+
+    @PreAuthorize("hasRole('SYS_ADMIN')")
+    @GetMapping("/sys-admin/event/event-details/{id}")
+    public ResponseEntity<EventDetailsResponseForSystemAdmin> getEventDetailsBySystemAdmin(
+            @PathVariable(name = "id") @UUID(message = "INVALID_UUID") String inputId
+    ) {
+        java.util.UUID id = java.util.UUID.fromString(inputId);
+        return ResponseEntity.ok(eventService.getEventDetailsBySystemAdmin(id));
     }
 }

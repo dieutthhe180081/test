@@ -6,15 +6,10 @@ import com.sep490.g28.hvh.be.constant.EOrgType;
 import com.sep490.g28.hvh.be.constant.ERole;
 import com.sep490.g28.hvh.be.dto.organization.request.OrganizationRegistrationVerifyRequest;
 import com.sep490.g28.hvh.be.dto.organization.request.RegisterOrganizationRequest;
-import com.sep490.g28.hvh.be.dto.organization.response.OrganizationRegistrationDetailsResponse;
-import com.sep490.g28.hvh.be.dto.organization.response.OrganizationRegistrationSimpleResponse;
-import com.sep490.g28.hvh.be.dto.organization.response.OrganizationSimpleResponse;
-import com.sep490.g28.hvh.be.dto.organization.response.RegisterOrganizationResponse;
-import com.sep490.g28.hvh.be.entity.Organization;
-import com.sep490.g28.hvh.be.entity.OrganizationManager;
-import com.sep490.g28.hvh.be.entity.OrganizationRegistration;
-import com.sep490.g28.hvh.be.entity.SystemAdmin;
+import com.sep490.g28.hvh.be.dto.organization.response.*;
+import com.sep490.g28.hvh.be.entity.*;
 import com.sep490.g28.hvh.be.exception.AppException;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.EventErrorCode;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.OrganizationErrorCode;
 import com.sep490.g28.hvh.be.integration.authServer.AuthClient;
 import com.sep490.g28.hvh.be.integration.cache.OtpService;
@@ -31,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -55,6 +51,8 @@ public class OrganizationServiceImpl implements OrganizationService {
     CurrentUserProvider currentUserProvider;
     AuthClient authClient;
     EmailService emailService;
+    HostRepository hostRepository;
+    EventRepository eventRepository;
 
     @Override
     public RegisterOrganizationResponse registerOrganization(RegisterOrganizationRequest request) {
@@ -373,6 +371,7 @@ public class OrganizationServiceImpl implements OrganizationService {
             organization.setDhaRegistered(organizationRegistration.getDhaRegistered());
             organization.setOrgType(organizationRegistration.getOrgType());
             organization.setOrgIntroduction(organizationRegistration.getOrgIntroduction());
+            organization.setLegalDocument(organizationRegistration.getLegalDocument());
             organization.setOtherEvidences(organizationRegistration.getOtherEvidences());
             organization.setCreateBy(currentAdmin);
 
@@ -438,5 +437,116 @@ public class OrganizationServiceImpl implements OrganizationService {
                 .map(OrganizationSimpleResponse::from).toList();
 
         return new PageImpl<>(organizations, pageable, organizations.size());
+    }
+
+    @Override
+    public OrganizationDetailsResponseForSystemAdmin getOrganizationDetailsBySystemAdmin(UUID ordId) {
+        //get the organization from db
+        Organization organization = organizationRepository.findById(ordId).orElseThrow(
+                () -> new AppException(OrganizationErrorCode.ORGANIZATION_NOT_EXISTED)
+        );
+
+        StringBuilder note = new StringBuilder();
+
+        //get manager info
+
+        UUID managerId = null;
+        String managerName = null;
+        String managerEmail = null;
+        String managerPhone = null;
+        String managerCID = null;
+
+        OrganizationManager organizationManager = organizationManagerRepository.findByOrganizationId(ordId);
+
+        if(organizationManager == null) {
+            note.append(OrganizationErrorCode.NO_ORGANIZATION_MANAGER_FOUND.getMessage()).append("\n");
+        } else {
+            managerId = organizationManager.getId();
+            managerName = organizationManager.getFullName();
+            managerEmail = organizationManager.getEmail();
+            managerPhone = organizationManager.getPhone();
+            managerCID = organizationManager.getCid();
+        }
+
+        //get total of hosts
+        Long totalHosts = hostRepository.countHostByOrganizationId(ordId);
+
+        //get total honor hours
+        long totalHonorHours = 0;
+        List<Event> events = eventRepository.findAllByOrganizationId(ordId);
+
+        for(Event e : events) {
+
+            for(EventSession es : e.getDateTimes()) {
+                totalHonorHours += Duration.between(es.getStartDateTime(), es.getEndDateTime()).toHours();
+            }
+        }
+
+        //get signed urls
+        List<CompletableFuture<String>> legalDocumentsFutures = new ArrayList<>();
+        if(organization.getLegalDocument() != null) {
+            String[] legalDocuments = organization.getLegalDocument().split("\\s+");
+            List<String> legalDocumentsList = new ArrayList<>(Arrays.asList(legalDocuments));
+            for (String legalDocument : legalDocumentsList) {
+                CompletableFuture<String> legalDocumentFuture =
+                        storageService.getSignedUrlAsync(legalDocument);
+                legalDocumentsFutures.add(legalDocumentFuture);
+            }
+        }
+
+        List<CompletableFuture<String>> otherEvidencesFutures = new ArrayList<>();
+        if(organization.getOtherEvidences() != null) {
+            String[] otherEvidences = organization.getOtherEvidences().split("\\s+");
+            List<String> otherEvidencesList = new ArrayList<>(Arrays.asList(otherEvidences));
+            for (String otherEvidence : otherEvidencesList) {
+                CompletableFuture<String> otherEvidenceFuture =
+                        storageService.getSignedUrlAsync(otherEvidence);
+                otherEvidencesFutures.add(otherEvidenceFuture);
+            }
+        }
+
+        List<String> legalDocumentsUrls = new ArrayList<>();
+        List<String> otherEvidencesUrls = new ArrayList<>();
+        try {
+
+            CompletableFuture.allOf(legalDocumentsFutures.toArray(new CompletableFuture[0])).join();
+
+            CompletableFuture.allOf(otherEvidencesFutures.toArray(new CompletableFuture[0])).join();
+
+            for (CompletableFuture<String> legalDocumentsFuture : legalDocumentsFutures) {
+                legalDocumentsUrls.add(legalDocumentsFuture.join());
+            }
+
+            for (CompletableFuture<String> otherEvidenceFuture : otherEvidencesFutures) {
+                otherEvidencesUrls.add(otherEvidenceFuture.join());
+            }
+
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof AppException ae) {
+                note.append(ae.getMessage()).append("\n");
+            } else {
+                throw cause instanceof RuntimeException re ? re : e;
+            }
+        }
+
+        return OrganizationDetailsResponseForSystemAdmin.builder()
+                .id(organization.getId())
+                .name(organization.getName())
+                .dhaRegistered(organization.getDhaRegistered())
+                .orgType(organization.getOrgType())
+                .orgIntroduction(organization.getOrgIntroduction())
+                .createdAt(organization.getCreatedAt())
+                .legalDocumentUrls(legalDocumentsUrls)
+                .otherEvidencesUrls(otherEvidencesUrls)
+                .managerId(managerId)
+                .managerName(managerName)
+                .managerEmail(managerEmail)
+                .managerPhone(managerPhone)
+                .managerCID(managerCID)
+                .totalHosts(totalHosts)
+                .totalHonorHours(totalHonorHours)
+                .note(note.toString())
+                .build();
     }
 }

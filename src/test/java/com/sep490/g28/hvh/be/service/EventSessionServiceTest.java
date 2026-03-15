@@ -14,10 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -165,8 +162,18 @@ public class EventSessionServiceTest {
     @Test
     void addEventSessions_duplicateDay_shouldThrow() {
 
-        EditEventSessionRequest r1 = sessionReq(start(20), start(20).plusHours(2));
-        EditEventSessionRequest r2 = sessionReq(start(20).plusHours(3), start(20).plusHours(5));
+        OffsetDateTime base = OffsetDateTime.of(
+                2030, 1, 1, 10, 0, 0, 0,
+                ZoneOffset.of("+07:00")
+        ).plusDays(20);
+        OffsetDateTime start1 = base;
+        OffsetDateTime end1 = base.plusHours(1);
+
+        OffsetDateTime start2 = base.plusHours(2);
+        OffsetDateTime end2 = base.plusHours(3);
+
+        EditEventSessionRequest r1 = sessionReq(start1, end1);
+        EditEventSessionRequest r2 = sessionReq(start2, end2);
 
         assertThrows(AppException.class,
                 () -> service.addEventSessionsForCreateEvent(

@@ -6,14 +6,16 @@ import com.sep490.g28.hvh.be.constant.EServedTarget;
 import com.sep490.g28.hvh.be.constant.EServingPlaceType;
 import com.sep490.g28.hvh.be.dto.event.request.SaveEventRequest;
 import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponse;
+import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponseForManager;
+import com.sep490.g28.hvh.be.dto.event.response.EventDetailsResponseForSystemAdmin;
 import com.sep490.g28.hvh.be.dto.event.response.EventFeedResponse;
 import com.sep490.g28.hvh.be.entity.*;
 import com.sep490.g28.hvh.be.exception.AppException;
-import com.sep490.g28.hvh.be.exception.errorCodeImpl.AppCommonErrorCode;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.EventErrorCode;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.VolunteerErrorCode;
 import com.sep490.g28.hvh.be.integration.storage.StorageService;
 import com.sep490.g28.hvh.be.repository.EventRepository;
+import com.sep490.g28.hvh.be.repository.EventSessionRepository;
 import com.sep490.g28.hvh.be.repository.VolunteerRepository;
 import com.sep490.g28.hvh.be.repository.VolunteerSavedEventRepository;
 import com.sep490.g28.hvh.be.service.impl.EventServiceImpl;
@@ -23,12 +25,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.domain.*;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -54,18 +55,27 @@ public class EventServiceTest {
     StorageService storageService;
 
     @Mock
+    EventSessionRepository eventSessionRepository;
+
+    @Mock
     CurrentUserProvider currentUserProvider;
 
     @InjectMocks
     EventServiceImpl eventService;
 
+    @Mock
+    EventSessionService eventSessionService;
+
     UUID volunteerId;
     UUID eventId;
+    UUID hostId;
 
     @BeforeEach
     void setup() {
+
         volunteerId = UUID.randomUUID();
         eventId = UUID.randomUUID();
+        hostId = UUID.randomUUID();
     }
 
     private Event mockEvent() {
@@ -86,6 +96,8 @@ public class EventServiceTest {
         event.setOrganization(org);
 
         Host host = new Host();
+        host.setId(hostId);
+        host.setFullName("Host A");
         host.setPhone("0901234567");
         event.setHost(host);
 
@@ -101,7 +113,14 @@ public class EventServiceTest {
 
         event.setImages(List.of(img1, img2));
 
-        EventSession day1 = new EventSession();
+        EventSession session = new EventSession();
+        session.setId(UUID.randomUUID());
+        session.setStartDateTime(OffsetDateTime.now());
+        session.setEndDateTime(OffsetDateTime.now().plusHours(2));
+        session.setExpectedVolAmount(5);
+        session.setExpectedSerAmount(10);
+
+        event.setDateTimes(List.of(session));
 
         return event;
     }
@@ -112,23 +131,22 @@ public class EventServiceTest {
         return req;
     }
 
-    // ==== registerOrganization ===================================
+    // ==== getEventFeeds ===================================
     // ===== TC1 =====
     @Test
     void getEventFeeds_search_success() {
 
         Event event = mockEvent();
 
-        Slice<Event> slice = new SliceImpl<>(List.of(event));
+        Page<Event> page = new PageImpl<>(List.of(event));
 
         when(eventRepository.search(
                 any(),
                 any(),
                 any(),
                 any(),
-                any(),
                 any(Pageable.class)
-        )).thenReturn(slice);
+        )).thenReturn(page);
 
         when(storageService.getSignedUrlAsync("img1"))
                 .thenReturn(CompletableFuture.completedFuture("signed-url"));
@@ -141,14 +159,13 @@ public class EventServiceTest {
                 "Hà Nội",
                 LocalDate.of(2026, 3, 5),
                 LocalDate.of(2026, 3, 10),
-                List.of(Short.valueOf("20"), Short.valueOf("30"))
+                null
         );
 
         assertEquals(1, response.getEvents().size());
         assertEquals("signed-url", response.getEvents().getFirst().getImageUrl());
 
         verify(eventRepository).search(
-                any(),
                 any(),
                 any(),
                 any(),
@@ -163,7 +180,7 @@ public class EventServiceTest {
 
         Event event = mockEvent();
 
-        Slice<Event> slice = new SliceImpl<>(List.of(event));
+        Page<Event> page = new PageImpl<>(List.of(event));
 
         when(eventRepository.refresh(
                 any(),
@@ -171,9 +188,8 @@ public class EventServiceTest {
                 any(),
                 any(),
                 any(),
-                any(),
                 any(Pageable.class)
-        )).thenReturn(slice);
+        )).thenReturn(page);
 
         when(storageService.getSignedUrlAsync("img1"))
                 .thenReturn(CompletableFuture.completedFuture("signed-url"));
@@ -197,7 +213,6 @@ public class EventServiceTest {
                 any(),
                 any(),
                 any(),
-                any(),
                 any(Pageable.class)
         );
     }
@@ -209,16 +224,16 @@ public class EventServiceTest {
         Event event = mockEvent();
         event.setImages(null);
 
-        Slice<Event> slice = new SliceImpl<>(List.of(event));
+        Page<Event> page = new PageImpl<>(List.of(event));
 
-        when(eventRepository.search(
+        when(eventRepository.searchWithActivitySubDomain(
                 any(),
                 any(),
                 any(),
                 any(),
                 any(),
                 any(Pageable.class)
-        )).thenReturn(slice);
+        )).thenReturn(page);
 
         EventFeedResponse response = eventService.getEventFeeds(
                 0,
@@ -226,9 +241,9 @@ public class EventServiceTest {
                 false,
                 null,
                 null,
+                LocalDate.of(2026, 3, 5),
                 null,
-                null,
-                null
+                List.of(Short.valueOf("1"), Short.valueOf("2"))
         );
 
         assertNull(response.getEvents().getFirst().getImageUrl());
@@ -241,16 +256,19 @@ public class EventServiceTest {
 
         Event event = mockEvent();
 
-        Slice<Event> slice = new SliceImpl<>(List.of(event), PageRequest.of(0,10), false);
+        Page<Event> page = new PageImpl<>(
+                List.of(event),
+                PageRequest.of(0, 10),
+                1 // total elements
+        );
 
         when(eventRepository.search(
                 any(),
                 any(),
                 any(),
                 any(),
-                any(),
                 any(Pageable.class)
-        )).thenReturn(slice);
+        )).thenReturn(page);
 
         when(storageService.getSignedUrlAsync("img1"))
                 .thenReturn(CompletableFuture.completedFuture("signed-url"));
@@ -435,5 +453,280 @@ public class EventServiceTest {
         );
 
         verify(volunteerSavedEventRepository, never()).save(any());
+    }
+
+    // ==== getEventDetailsByManager ===================================
+    // ===== TC1 =====
+    @Test
+    void getEventDetailsByManager_success() {
+
+        Event event = mockEvent();
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        when(storageService.getSignedUrlAsync("img1"))
+                .thenReturn(CompletableFuture.completedFuture("url1"));
+
+        when(storageService.getSignedUrlAsync("img2"))
+                .thenReturn(CompletableFuture.completedFuture("url2"));
+
+        EventDetailsResponseForManager response =
+                eventService.getEventDetailsByManager(eventId);
+
+        assertEquals("Charity Event", response.getName());
+        assertEquals(2, response.getImageUrls().size());
+        assertEquals("Host A", response.getHostName());
+        assertEquals(1, response.getEventSessions().size());
+
+        verify(eventRepository).findById(eventId);
+    }
+
+    // ===== TC2 =====
+    @Test
+    void getEventDetailsByManager_event_not_exist() {
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(
+                AppException.class,
+                () -> eventService.getEventDetailsByManager(eventId)
+        );
+
+        assertEquals(
+                EventErrorCode.EVENT_NOT_EXISTED.getCode(),
+                ex.getCode()
+        );
+    }
+
+    // ===== TC3 =====
+    @Test
+    void getEventDetailsByManager_conflict_sessions_exist() {
+
+        Event event = mockEvent();
+
+        EventSession conflict = new EventSession();
+        conflict.setId(UUID.randomUUID());
+        conflict.setStartDateTime(OffsetDateTime.now());
+        conflict.setEndDateTime(OffsetDateTime.now().plusHours(1));
+        conflict.setExpectedVolAmount(3);
+        conflict.setExpectedSerAmount(6);
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        when(storageService.getSignedUrlAsync("img1"))
+                .thenReturn(CompletableFuture.completedFuture("url1"));
+
+        when(storageService.getSignedUrlAsync("img2"))
+                .thenReturn(CompletableFuture.completedFuture("url2"));
+
+        when(eventSessionService.findConflictSessionDateOfHost(
+                any(),
+                any(),
+                anyList()
+        )).thenReturn(List.of(conflict));
+
+        EventDetailsResponseForManager response =
+                eventService.getEventDetailsByManager(eventId);
+
+        verify(eventSessionService).findConflictSessionDateOfHost(
+                any(),
+                any(),
+                anyList()
+        );
+
+        assertEquals(1, response.getConflictSessions().size());
+        assertFalse(response.getConflictSessions().isEmpty());
+        assertTrue(response.getNote()
+                .contains(EventErrorCode.DUPLICATE_HOSTED_DATE.getMessage()));
+    }
+
+    // ===== TC4 =====
+    @Test
+    void getEventDetailsByManager_null_activity_sub_domain() {
+
+        Event event = mockEvent();
+
+        event.setActivitySubDomain(null);
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        when(storageService.getSignedUrlAsync(any()))
+                .thenReturn(CompletableFuture.completedFuture("url"));
+
+        EventDetailsResponseForManager response = eventService.getEventDetailsByManager(eventId);
+
+        assertEquals("", response.getActivitySubDomain());
+    }
+
+//    // ===== TC4 =====
+//    @Test
+//    void getEventDetailsByManager_status_recruiting_should_return_dates() {
+//
+//        Event event = mockEvent();
+//        event.setStatus(EEventStatus.RECRUITING);
+//        event.setStartDate(LocalDate.now());
+//        event.setRecruitmentEndDate(LocalDate.now().plusDays(5));
+//
+//        when(eventRepository.findById(eventId))
+//                .thenReturn(Optional.of(event));
+//
+//        when(storageService.getSignedUrlAsync("img1"))
+//                .thenReturn(CompletableFuture.completedFuture("url1"));
+//
+//        when(storageService.getSignedUrlAsync("img2"))
+//                .thenReturn(CompletableFuture.completedFuture("url2"));
+//
+//        when(eventSessionService.findConflictSessionDateOfHost(
+//                any(),
+//                any(),
+//                anyList()
+//        )).thenReturn(Collections.emptyList());
+//
+//        EventDetailsResponseForManager response =
+//                eventService.getEventDetailsByManager(eventId);
+//
+//        assertNotNull(response.getStartDate());
+//        assertNotNull(response.getRecruitmentEndDate());
+//    }
+//
+//    // ===== TC5 =====
+//    @Test
+//    void getEventDetailsByManager_status_submitted_should_return_dates() {
+//
+//        Event event = mockEvent();
+//        event.setStatus(EEventStatus.SUBMITTED);
+//        event.setStartDate(LocalDate.now());
+//        event.setRecruitmentEndDate(LocalDate.now().plusDays(5));
+//
+//        when(eventRepository.findById(eventId))
+//                .thenReturn(Optional.of(event));
+//
+//        when(storageService.getSignedUrlAsync("img1"))
+//                .thenReturn(CompletableFuture.completedFuture("url1"));
+//
+//        when(storageService.getSignedUrlAsync("img2"))
+//                .thenReturn(CompletableFuture.completedFuture("url2"));
+//
+//        when(eventSessionService.findConflictSessionDateOfHost(
+//                any(),
+//                any(),
+//                anyList()
+//        )).thenReturn(Collections.emptyList());
+//
+//        EventDetailsResponseForManager response =
+//                eventService.getEventDetailsByManager(eventId);
+//
+//        assertNotNull(response.getStartDate());
+//        assertNotNull(response.getRecruitmentEndDate());
+//    }
+
+    // ==== getEventDetailsBySystemAdmin ===================================
+    // ===== TC1 =====
+    @Test
+    void getEventDetailsBySystemAdmin_success() {
+
+        Event event = mockEvent();
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        when(storageService.getSignedUrlAsync("img1"))
+                .thenReturn(CompletableFuture.completedFuture("url1"));
+
+        when(storageService.getSignedUrlAsync("img2"))
+                .thenReturn(CompletableFuture.completedFuture("url2"));
+
+        EventDetailsResponseForSystemAdmin response =
+                eventService.getEventDetailsBySystemAdmin(eventId);
+
+        assertEquals("Charity Event", response.getName());
+        assertEquals(2, response.getImageUrls().size());
+        assertEquals(1, response.getEventSessions().size());
+
+        verify(eventRepository).findById(eventId);
+    }
+
+    // ===== TC2 =====
+    @Test
+    void getEventDetailsBySystemAdmin_event_not_exist() {
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(
+                AppException.class,
+                () -> eventService.getEventDetailsBySystemAdmin(eventId)
+        );
+
+        assertEquals(
+                EventErrorCode.EVENT_NOT_EXISTED.getCode(),
+                ex.getCode()
+        );
+    }
+
+    // ===== TC3 =====
+    @Test
+    void getEventDetailsBySystemAdmin_conflict_sessions_exist() {
+
+        Event event = mockEvent();
+
+        EventSession conflict = new EventSession();
+        conflict.setId(UUID.randomUUID());
+        conflict.setStartDateTime(OffsetDateTime.now());
+        conflict.setEndDateTime(OffsetDateTime.now().plusHours(1));
+        conflict.setExpectedVolAmount(3);
+        conflict.setExpectedSerAmount(6);
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        when(storageService.getSignedUrlAsync("img1"))
+                .thenReturn(CompletableFuture.completedFuture("url1"));
+
+        when(storageService.getSignedUrlAsync("img2"))
+                .thenReturn(CompletableFuture.completedFuture("url2"));
+
+        when(eventSessionService.findConflictSessionDateOfHost(
+                any(),
+                any(),
+                anyList()
+        )).thenReturn(List.of(conflict));
+
+        EventDetailsResponseForSystemAdmin response =
+                eventService.getEventDetailsBySystemAdmin(eventId);
+
+        verify(eventSessionService).findConflictSessionDateOfHost(
+                any(),
+                any(),
+                anyList()
+        );
+
+        assertEquals(1, response.getConflictSessions().size());
+        assertFalse(response.getConflictSessions().isEmpty());
+        assertTrue(response.getNote()
+                .contains(EventErrorCode.DUPLICATE_HOSTED_DATE.getMessage()));
+    }
+
+    // ===== TC4 =====
+    @Test
+    void getEventDetailsBySystemAdmin_null_activity_sub_domain() {
+
+        Event event = mockEvent();
+
+        event.setActivitySubDomain(null);
+
+        when(eventRepository.findById(eventId))
+                .thenReturn(Optional.of(event));
+
+        when(storageService.getSignedUrlAsync(any()))
+                .thenReturn(CompletableFuture.completedFuture("url"));
+
+        EventDetailsResponseForSystemAdmin response = eventService.getEventDetailsBySystemAdmin(eventId);
+
+        assertEquals("", response.getActivitySubDomain());
     }
 }
