@@ -1,4 +1,4 @@
-package com.sep490.g28.hvh.be.validation.volunteer;
+package com.sep490.g28.hvh.be.validation.organization;
 
 import com.sep490.g28.hvh.be.dto.organization.request.RegisterOrganizationRequest;
 import com.sep490.g28.hvh.be.exception.errorCodeImpl.ValidationErrorCode;
