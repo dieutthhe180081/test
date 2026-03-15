@@ -694,6 +694,15 @@ public class EventServiceImpl implements EventService {
             note.append(EventErrorCode.DUPLICATE_HOSTED_DATE.getMessage()).append("\n");
         }
 
+        //get lat and lng of check in location
+        Double lat = 0.0;
+        Double lng = 0.0;
+
+        if(event.getCheckInLocation() != null) {
+            lat = GeoUtils.getLat(event.getCheckInLocation());
+            lng = GeoUtils.getLng(event.getCheckInLocation());
+        }
+
         LocalDate startDate = null;
         LocalDate recruitmentEndDate = null;
 
@@ -721,7 +730,8 @@ public class EventServiceImpl implements EventService {
                 .startDate(startDate)
                 .recruitmentEndDate(recruitmentEndDate)
                 .autoApprove(event.isAutoApprove())
-                .checkInLocation(event.getCheckInLocation())
+                .latCheckInLocation(lat)
+                .lngCheckInLocation(lng)
                 .checkInAccuracyMeters(event.getCheckInAccuracyMeters())
                 .createdAt(event.getCreatedAt())
                 .hostId(hostId)
@@ -819,6 +829,15 @@ public class EventServiceImpl implements EventService {
             note.append(EventErrorCode.DUPLICATE_HOSTED_DATE.getMessage()).append("\n");
         }
 
+        //get lat and lng of check in location
+        Double lat = 0.0;
+        Double lng = 0.0;
+
+        if(event.getCheckInLocation() != null) {
+            lat = GeoUtils.getLat(event.getCheckInLocation());
+            lng = GeoUtils.getLng(event.getCheckInLocation());
+        }
+
         LocalDate startDate = null;
         LocalDate recruitmentEndDate = null;
 
@@ -837,7 +856,8 @@ public class EventServiceImpl implements EventService {
                 .startDate(startDate)
                 .recruitmentEndDate(recruitmentEndDate)
                 .autoApprove(event.isAutoApprove())
-                .checkInLocation(event.getCheckInLocation())
+                .latCheckInLocation(lat)
+                .lngCheckInLocation(lng)
                 .checkInAccuracyMeters(event.getCheckInAccuracyMeters())
                 .createdAt(event.getCreatedAt())
                 .hostPhone(hostPhone)

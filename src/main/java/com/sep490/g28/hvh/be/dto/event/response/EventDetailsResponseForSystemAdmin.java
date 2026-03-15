@@ -30,7 +30,8 @@ public class EventDetailsResponseForSystemAdmin {
     private LocalDate startDate;
     private LocalDate recruitmentEndDate;
     private boolean autoApprove;
-    private Point checkInLocation;
+    private Double latCheckInLocation;
+    private Double lngCheckInLocation;
     private Double checkInAccuracyMeters;
     private OffsetDateTime createdAt;
     private String hostPhone;
