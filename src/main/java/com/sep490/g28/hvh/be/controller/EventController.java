@@ -194,4 +194,13 @@ public class EventController {
         java.util.UUID id = java.util.UUID.fromString(inputId);
         return ResponseEntity.ok(eventService.getEventDetailsByManager(id));
     }
+
+    @PreAuthorize("hasRole('SYS_ADMIN')")
+    @GetMapping("/sys-admin/event/event-details/{id}")
+    public ResponseEntity<EventDetailsResponseForSystemAdmin> getEventDetailsBySystemAdmin(
+            @PathVariable(name = "id") @UUID(message = "INVALID_UUID") String inputId
+    ) {
+        java.util.UUID id = java.util.UUID.fromString(inputId);
+        return ResponseEntity.ok(eventService.getEventDetailsBySystemAdmin(id));
+    }
 }
