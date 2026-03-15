@@ -2,10 +2,7 @@ package com.sep490.g28.hvh.be.service;
 
 import com.sep490.g28.hvh.be.dto.organization.request.OrganizationRegistrationVerifyRequest;
 import com.sep490.g28.hvh.be.dto.organization.request.RegisterOrganizationRequest;
-import com.sep490.g28.hvh.be.dto.organization.response.OrganizationRegistrationDetailsResponse;
-import com.sep490.g28.hvh.be.dto.organization.response.OrganizationRegistrationSimpleResponse;
-import com.sep490.g28.hvh.be.dto.organization.response.OrganizationSimpleResponse;
-import com.sep490.g28.hvh.be.dto.organization.response.RegisterOrganizationResponse;
+import com.sep490.g28.hvh.be.dto.organization.response.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import org.springframework.data.domain.Page;
@@ -25,4 +22,6 @@ public interface OrganizationService {
 
     Page<OrganizationSimpleResponse> getOrganizations(
             int pageNumber, int pageSize, String name, List<String> orgTypeLists);
+
+    OrganizationDetailsResponseForSystemAdmin getOrganizationDetailsBySystemAdmin(UUID ordId);
 }

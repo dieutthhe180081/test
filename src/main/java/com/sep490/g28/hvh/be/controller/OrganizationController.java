@@ -2,10 +2,7 @@ package com.sep490.g28.hvh.be.controller;
 
 import com.sep490.g28.hvh.be.dto.organization.request.OrganizationRegistrationVerifyRequest;
 import com.sep490.g28.hvh.be.dto.organization.request.RegisterOrganizationRequest;
-import com.sep490.g28.hvh.be.dto.organization.response.OrganizationRegistrationDetailsResponse;
-import com.sep490.g28.hvh.be.dto.organization.response.OrganizationRegistrationSimpleResponse;
-import com.sep490.g28.hvh.be.dto.organization.response.OrganizationSimpleResponse;
-import com.sep490.g28.hvh.be.dto.organization.response.RegisterOrganizationResponse;
+import com.sep490.g28.hvh.be.dto.organization.response.*;
 import com.sep490.g28.hvh.be.service.OrganizationService;
 import com.sep490.g28.hvh.be.validation.OrganizationRegistrationStatus;
 import jakarta.validation.Valid;
@@ -24,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/organization")
+@RequestMapping("/api/v1")
 @Validated
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
@@ -32,7 +29,7 @@ public class OrganizationController {
 
     OrganizationService organizationService;
 
-    @PostMapping("/register-org")
+    @PostMapping("/organization/register-org")
     public ResponseEntity<RegisterOrganizationResponse> registerOrganization(
             @Valid @RequestBody RegisterOrganizationRequest request
     ) {
@@ -40,7 +37,7 @@ public class OrganizationController {
     }
 
     @PreAuthorize("hasRole('SYS_ADMIN')")
-    @GetMapping("/registrations")
+    @GetMapping("/organization/registrations")
     public ResponseEntity<Page<OrganizationRegistrationSimpleResponse>> getRegistrations(
             @RequestParam(defaultValue = "0")
             @Min(value = 0, message = "INVALID_PAGE_NUMBER") int pageNumber,
@@ -54,7 +51,7 @@ public class OrganizationController {
     }
 
     @PreAuthorize("hasRole('SYS_ADMIN')")
-    @GetMapping("/registrations/{id}")
+    @GetMapping("/organization/registrations/{id}")
     public ResponseEntity<OrganizationRegistrationDetailsResponse> getRegistrationsDetails(
             @PathVariable(name = "id") @UUID(message = "INVALID_UUID") String inputId
     ) {
@@ -63,7 +60,7 @@ public class OrganizationController {
     }
 
     @PreAuthorize("hasRole('SYS_ADMIN')")
-    @PostMapping("/registrations/{id}/verify")
+    @PostMapping("/organization/registrations/{id}/verify")
     public ResponseEntity<String> verifyOrgRegistration(
             @PathVariable(name = "id") @UUID(message = "INVALID_UUID") String inputId,
             @RequestBody @Valid OrganizationRegistrationVerifyRequest request
@@ -73,7 +70,7 @@ public class OrganizationController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/organizations")
+    @GetMapping("/organization/organizations")
     public ResponseEntity<Page<OrganizationSimpleResponse>> getOrganizations(
             @RequestParam(defaultValue = "0")
             @Min(value = 0, message = "INVALID_PAGE_NUMBER") int pageNumber,
@@ -84,5 +81,14 @@ public class OrganizationController {
             @RequestParam(required = false) List<String> orgTypes
             ) {
         return ResponseEntity.ok(organizationService.getOrganizations(pageNumber, pageSize, name, orgTypes));
+    }
+
+    @PreAuthorize("hasRole('SYS_ADMIN')")
+    @GetMapping("/sys-admin/organization/organizations/{id}")
+    public ResponseEntity<OrganizationDetailsResponseForSystemAdmin> getOrganizationDetailsBySystemAdmin(
+            @PathVariable(name = "id") @UUID(message = "INVALID_UUID") String inputId
+    ) {
+        java.util.UUID id = java.util.UUID.fromString(inputId);
+        return ResponseEntity.ok(organizationService.getOrganizationDetailsBySystemAdmin(id));
     }
 }

@@ -114,4 +114,11 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
             @Param("name") String name,
             Pageable pageable
     );
+
+    @Query("""
+            SELECT e
+            FROM Event e
+            WHERE :orgId IS NULL OR e.organization.id = :orgId
+            """)
+    List<Event> findAllByOrganizationId(UUID orgId);
 }
