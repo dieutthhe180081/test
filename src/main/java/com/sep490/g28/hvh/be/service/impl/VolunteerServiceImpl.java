@@ -24,6 +24,7 @@ import com.sep490.g28.hvh.be.repository.VolunteerRepository;
 import com.sep490.g28.hvh.be.repository.IdentityVerificationRepository;
 import com.sep490.g28.hvh.be.service.VolunteerService;
 import com.sep490.g28.hvh.be.util.RandomStringUtil;
+import com.sep490.g28.hvh.be.util.StringNormalizeUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -98,6 +99,7 @@ public class VolunteerServiceImpl implements VolunteerService {
         verification.setCid(request.getCid());
         verification.setEmail(request.getEmail());
         verification.setPhone(request.getPhone());
+        verification.setFullName(StringNormalizeUtil.normalizeVietnameseName(request.getFullName()));
 
         verification.setCidFront(cidFrontPath);
         verification.setCidBack(cidBackPath);
@@ -244,7 +246,9 @@ public class VolunteerServiceImpl implements VolunteerService {
             volunteer.setCid(identityVerification.getCid());
             volunteer.setEmail(identityVerification.getEmail());
             volunteer.setPhone(identityVerification.getPhone());
-            volunteer.setFullName(normalizeVietnameseName(request.getFullName()));
+            if (request.getFullName() != null ) {
+                volunteer.setFullName(normalizeVietnameseName(request.getFullName()));
+            }
             volunteer.setCreatedBy(currentAdmin);
 
             volunteerRepository.save(volunteer);
