@@ -559,7 +559,7 @@ public class EventServiceImpl implements EventService {
                 EEventStatus.ONGOING,
                 EEventStatus.UPCOMING,
                 EEventStatus.ENDED,
-                EEventStatus.FINISHED,
+                EEventStatus.COMPLETED,
                 EEventStatus.CANCELLED
         ).map(Enum::name).toList();
 
