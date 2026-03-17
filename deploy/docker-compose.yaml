@@ -1,0 +1,20 @@
+name: hvh
+services:
+  loki:
+    image: grafana/loki:2.9.8
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+  grafana:
+    image: grafana/grafana:10.4.3
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+
+  promtail:
+    image: grafana/promtail:2.9.8
+    restart: unless-stopped
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./promtail-config.yaml:/etc/promtail/config.yaml
+#  hvh-spring-app

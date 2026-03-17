@@ -1,0 +1,36 @@
+server:
+  http_listen_port: 9080
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: spring-app
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: spring-app
+#          __path__: /logs/*.log
+          __path__: /var/lib/docker/containers/*/*.log
+
+    pipeline_stages:
+      # 1. Hiểu log Docker + lấy metadata container
+      - docker: {}
+      # 2. Chỉ giữ log của container của app hvh của mình
+      - match:
+          selector: '{container="hvh-spring-app"}'
+          stages:
+
+            # 3. Parse MDC từ log
+            - regex:
+                expression: 'traceId=(?P<traceId>\S+) userId=(?P<userId>\S+) role=(?P<role>\S+)'
+
+            # 4. Đẩy thành label để query nhanh
+            - labels:
+                traceId:
+                userId:
+                role:

@@ -1,29 +1,17 @@
 <configuration>
 
-    <!-- DEV: log đẹp -->
-<!--    <springProfile name="dev">-->
-        <appender name="CONSOLE"
-                  class="ch.qos.logback.core.ConsoleAppender">
-            <encoder>
-                <pattern>
-                    %d{HH:mm:ss.SSS} %-5level [%thread] [%X{traceId}] [%X{userId}] %logger{36} - %msg%n
-                </pattern>
-            </encoder>
-        </appender>
-<!--    </springProfile>-->
+    <appender name="CONSOLE"
+              class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>
+                <!--%d{HH:mm:ss.SSS} %-5level [%thread] [%X{traceId}] [%X{userId}] %logger{36} - %msg%n-->
+                %d{yyyy-MM-dd HH:mm:ss} %-5level traceId=%X{traceId} userId=%X{userId} role=%X{role} %logger - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
 
-    <!-- PROD: log JSON cho Grafana hiện tại chưa cắm vào :vv-->
-<!--    <springProfile name="prod">-->
-<!--        <appender name="CONSOLE"-->
-<!--                  class="ch.qos.logback.core.ConsoleAppender">-->
-<!--            <encoder class="net.logstash.logback.encoder.LogstashEncoder">-->
-<!--                <includeMdc>true</includeMdc>-->
-<!--            </encoder>-->
-<!--        </appender>-->
-<!--    </springProfile>-->
-
+<!--    log from level INFO would be written to console -->
     <root level="INFO">
-        <!--  log to stdout aka console      -->
         <appender-ref ref="CONSOLE"/>
     </root>
 
