@@ -33,3 +33,5 @@ build/
 .vscode/
 /src/main/resources/serviceAccountKey.json
 /logs/app.log
+/deploy/.env.dev
+/deploy/.env.prod

@@ -1,0 +1,14 @@
+name: hvh-deploy
+services:
+  app:
+    container_name: hvh-springboot-app
+    image: huyendieu8304/hvh:1.0
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.dev
+#      - .env.prod
+
+
+
