@@ -13,18 +13,6 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-#  postgres:
-#    image: postgres:16
-#    container_name: hvh-postgres
-#    restart: unless-stopped
-#    ports:
-#      - "5432:5432"
-#    environment:
-#      POSTGRES_DB: hvh-db
-#      POSTGRES_USER: postgres
-#      POSTGRES_PASSWORD: password
-#    volumes:
-#      - postgres_data:/var/lib/postgresql/data
   rabbitmq:
     image: rabbitmq:3.13-management
     container_name: rabbitmq
@@ -37,7 +25,23 @@ services:
       RABBITMQ_DEFAULT_PASS: admin
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+  loki:
+    image: grafana/loki:2.9.8
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+  grafana:
+    image: grafana/grafana:10.4.3
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
 
+  promtail:
+    image: grafana/promtail:2.9.8
+    restart: unless-stopped
+    volumes:
+      - ./promtail-config-local-run.yaml:/etc/promtail/config.yaml
+      - ../logs:/logs
 
 volumes:
   postgres_data:
