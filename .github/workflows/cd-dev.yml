@@ -18,22 +18,12 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-#      # build image
-#      - name: Build image
-#        run: |
-#          docker build -t huyendieu8304/hvh:latest ./docker-file
-#
-#      # push
-#      - name: Push image
-#        run: |
-#          docker push huyendieu8304/hvh:latest
-
       - name: Set version
         run: echo "VERSION=0.0.${{ github.run_number }}" >> $GITHUB_ENV
 
       - name: Build image
         run: |
-          docker build -t huyendieu8304/hvh:${{ env.VERSION }} ./docker-file
+          docker build -t huyendieu8304/hvh:${{ env.VERSION }} ./Dockerfile
           docker tag huyendieu8304/hvh:${{ env.VERSION }} huyendieu8304/hvh:latest
 
       - name: Push image
