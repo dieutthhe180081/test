@@ -1,0 +1,54 @@
+name: Deploy-dev
+
+on:
+  push:
+    branches: [ "dev" ]
+
+jobs:
+  build-push-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # login docker hub
+      - name: Login Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+#      # build image
+#      - name: Build image
+#        run: |
+#          docker build -t huyendieu8304/hvh:latest ./docker-file
+#
+#      # push
+#      - name: Push image
+#        run: |
+#          docker push huyendieu8304/hvh:latest
+
+      - name: Set version
+        run: echo "VERSION=0.0.${{ github.run_number }}" >> $GITHUB_ENV
+
+      - name: Build image
+        run: |
+          docker build -t huyendieu8304/hvh:${{ env.VERSION }} ./docker-file
+          docker tag huyendieu8304/hvh:${{ env.VERSION }} huyendieu8304/hvh:latest
+
+      - name: Push image
+        run: |
+          docker push huyendieu8304/hvh:${{ env.VERSION }}
+          docker push huyendieu8304/hvh:latest
+
+      # todo deploy qua SSH
+      - name: Deploy to VM
+        uses: appleboy/ssh-action@v0.1.9
+        with:
+          host: ${{ secrets.GCP_VM_IP }}
+          username: ${{ secrets.GCP_VM_USER }}
+          key: ${{ secrets.GCP_VM_SSH_KEY }}
+          script: |
+            cd ~/deploy
+            docker compose pull
+            docker compose up -d --remove-orphans
