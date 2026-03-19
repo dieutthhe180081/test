@@ -23,7 +23,7 @@ jobs:
 
       - name: Build image
         run: |
-          docker build -t huyendieu8304/hvh:${{ env.VERSION }} ./Dockerfile
+          docker build -t huyendieu8304/hvh:${{ env.VERSION }} .
           docker tag huyendieu8304/hvh:${{ env.VERSION }} huyendieu8304/hvh:latest
 
       - name: Push image
