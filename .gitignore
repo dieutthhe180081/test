@@ -35,3 +35,5 @@ build/
 /logs/app.log
 /deploy/.env.dev
 /deploy/.env.prod
+/serviceAccountKey.json
+/deploy/FCM_SAKey.json
