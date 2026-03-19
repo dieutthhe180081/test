@@ -41,7 +41,7 @@ jobs:
           docker push huyendieu8304/hvh:${{ env.VERSION }}
           docker push huyendieu8304/hvh:latest
 
-      # todo deploy qua SSH
+      # deploy qua SSH
       - name: Deploy to VM
         uses: appleboy/ssh-action@v0.1.9
         with:
@@ -49,6 +49,6 @@ jobs:
           username: ${{ secrets.GCP_VM_USER }}
           key: ${{ secrets.GCP_VM_SSH_KEY }}
           script: |
-            cd ~/deploy
+            cd /home/dieutthhe180081/deploy
             docker compose pull
             docker compose up -d --remove-orphans
