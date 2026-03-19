@@ -1,6 +1,30 @@
-name: HVH
+name: hvh
 
 services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: hvh-postgres-postgis
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: hvh-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+#  postgres:
+#    image: postgres:16
+#    container_name: hvh-postgres
+#    restart: unless-stopped
+#    ports:
+#      - "5432:5432"
+#    environment:
+#      POSTGRES_DB: hvh-db
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: password
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
   rabbitmq:
     image: rabbitmq:3.13-management
     container_name: rabbitmq
@@ -16,4 +40,5 @@ services:
 
 
 volumes:
+  postgres_data:
   rabbitmq_data:

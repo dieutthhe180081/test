@@ -1,15 +1,15 @@
 package com.sep490.g28.hvh.be.controller;
 
 import com.sep490.g28.hvh.be.auth.CurrentUserProvider;
-import com.sep490.g28.hvh.be.dto.user.RegisterVolunteerAccountRequest;
+import com.sep490.g28.hvh.be.dto.organization.request.RegisterOrganizationRequest;
+import com.sep490.g28.hvh.be.dto.organization.response.RegisterOrganizationResponse;
 import com.sep490.g28.hvh.be.integration.cache.OtpService;
-import com.sep490.g28.hvh.be.integration.mail.EmailService;
+import com.sep490.g28.hvh.be.service.OrganizationService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,17 +20,18 @@ import java.util.Map;
 @RequestMapping("/test")
 @Validated
 @RequiredArgsConstructor
+@Slf4j
 public class TestController {
 
-    @PostMapping(
-            value = "/register",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
-    public ResponseEntity<String> registerVolunteer(
-            @Valid @ModelAttribute RegisterVolunteerAccountRequest request
-    ) {
-        return ResponseEntity.ok("OK");
-    }
+//    @PostMapping(
+//            value = "/register",
+//            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+//    )
+//    public ResponseEntity<String> registerVolunteer(
+//            @Valid @ModelAttribute RegisterVolunteerAccountRequest request
+//    ) {
+//        return ResponseEntity.ok("OK");
+//    }
 
     // test ConstraintViolationException (method-level)
     @GetMapping("/phone")
@@ -46,10 +47,11 @@ public class TestController {
 
     private final CurrentUserProvider currentUserProvider;
 //    @PreAuthorize("hasAnyRole('SYS_ADMIN', 'VOL')")
-    @PreAuthorize("hasRole('SYS_ADMIN')")
+//    @PreAuthorize("hasRole('SYS_ADMIN')")
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> me() {
 
+        log.info("test logging");
         return ResponseEntity.ok(Map.of(
                 "userId", currentUserProvider.getId(),
                 "email", currentUserProvider.getEmail(),
@@ -69,31 +71,39 @@ public class TestController {
 //        return ResponseEntity.ok("OK");
 //    }
 
-    private final EmailService emailService;
-    @GetMapping("/mail")
-    public ResponseEntity<String> testMail(@RequestParam String email) {
-
-        emailService.sendApproveRegisterVolAccountEmail(email);
-        return ResponseEntity.ok("OK");
-
-    }
+//    private final EmailService emailService;
+//    @GetMapping("/mail")
+//    public ResponseEntity<String> testMail(@RequestParam String email) {
+//
+//        emailService.sendApproveRegisterVolAccountEmail(email);
+//        return ResponseEntity.ok("OK");
+//
+//    }
 
     private final OtpService otpService;
 
     @GetMapping("/otp")
     public ResponseEntity<String> getOtp() {
+        log.info("test logging without authenticated");
 
-        return ResponseEntity.ok(otpService.getVerifyRegisterOtp("huyendieu8304@gmail.com"));
+        return ResponseEntity.ok(otpService.getVolAccountRegistrationOtp("huyendieu8304@gmail.com"));
     }
 
     @GetMapping("/otp-verify")
     public ResponseEntity<String> testOtp(@RequestParam String otp) {
-        if (otpService.verifyVerifyRegisterOtp("huyendieu8304@gmail.com", otp)){
+        if (otpService.verifyVolAccountRegistrationOtp("huyendieu8304@gmail.com", otp)){
         return ResponseEntity.ok("OK");
         }
         return ResponseEntity.ok("oh nooooo");
     }
 
-    // TODO set up docker and test redis
+    OrganizationService organizationService;
+
+    @PostMapping("/register-org")
+    public ResponseEntity<RegisterOrganizationResponse> registerOrganization(
+            @Valid @RequestBody RegisterOrganizationRequest request
+    ) {
+        return ResponseEntity.ok(organizationService.registerOrganization(request));
+    }
 
 }

@@ -8,6 +8,12 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
+/**
+ * OpenAPI (Swagger) configuration for the application.
+ *
+ * <p>Defines basic API metadata and server information
+ * used to generate OpenAPI documentation.</p>
+ */
 @Configuration
 //@Profile("dev")
 public class OpenApiConfig {

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -17,7 +18,19 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * convert jwt claim to Granted Authority and get the current user info
+ * Converts JWT claims into Spring Security authentication data.
+ *
+ * <p>This converter:
+ * <ul>
+ *   <li>Extracts user information from JWT claims</li>
+ *   <li>Maps the user role to {@link GrantedAuthority}</li>
+ *   <li>Builds a {@link JwtAuthenticationToken}</li>
+ *   <li>Attaches {@link CurrentUser} to {@link Authentication#getDetails()}</li>
+ * </ul>
+ * </p>
+ *
+ * <p>Used by Spring Security OAuth2 Resource Server
+ * to authenticate requests backed by Supabase JWT.</p>
  */
 @Component
 @RequiredArgsConstructor

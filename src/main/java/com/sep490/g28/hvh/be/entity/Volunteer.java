@@ -19,10 +19,10 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Volunteer {
     @Id
-    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
+    @Column(updatable = false)
     private UUID id;
 
-    @Column(unique = true, nullable = false, columnDefinition = "uuid")
+    @Column(unique = true, updatable = false, nullable = false)
     private UUID vid; //volunteer id
 
     @Column(unique = true, nullable = false, length = 12)
@@ -34,17 +34,23 @@ public class Volunteer {
     @Column(unique = true, nullable = false, length = 10)
     private String phone;
 
+    @Column(name = "phone_verified", nullable = false)
+    private boolean phoneVerified = false;
+
     @Column(unique = true, length = 50)
     private String nickname;
 
     @Column(name = "full_name", length = 100)
     private String fullName;
 
+    @Column(length = 100)
+    private String bio;
+
     private boolean gender; //1: male, 0: female
 
     private LocalDate dob;
 
-    private Short level;
+    private Short level = 0;
 
     @Column(name = "avatar_url")
     private String avatarUrl;
@@ -70,14 +76,35 @@ public class Volunteer {
     private String sid; //student id
 
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(
+            name = "created_at",
+            nullable = false,
+            updatable = false,
+            columnDefinition = "TIMESTAMP WITH TIME ZONE"
+    )
     private OffsetDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
+    @Column(
+            name = "updated_at",
+            nullable = false,
+            columnDefinition = "TIMESTAMP WITH TIME ZONE"
+    )
     private OffsetDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", referencedColumnName = "id")
-    private SystemAdmin created_by;
+    private SystemAdmin createdBy;
+
+    @Column(name = "credit_score", nullable = false)
+    private Short creditScore = 0;
+
+    @Column(name = "honor_score", nullable = false)
+    private Short honorScore = 0;
+
+    @PrePersist
+    void prePersist() {
+        if (creditScore == null) creditScore = 0;
+        if (honorScore == null) honorScore = 0;
+    }
 }

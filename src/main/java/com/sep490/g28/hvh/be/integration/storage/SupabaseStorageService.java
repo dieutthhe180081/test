@@ -1,85 +1,136 @@
 package com.sep490.g28.hvh.be.integration.storage;
 
-import com.sep490.g28.hvh.be.config.SupabaseConfig;
+import com.sep490.g28.hvh.be.config.SupabaseProperties;
+import com.sep490.g28.hvh.be.exception.AppException;
+import com.sep490.g28.hvh.be.exception.SupabaseException;
+import com.sep490.g28.hvh.be.exception.errorCodeImpl.SupabaseErrorCode;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
+/**
+ * Supabase-based implementation of {@link StorageService}.
+ * <p>
+ * Responsibilities:
+ * <ul>
+ *   <li>Upload files directly to Supabase Storage (server-side)</li>
+ *   <li>Generate signed URLs for upload/view</li>
+ * </ul>
+ *
+ * <p>Notes:</p>
+ * <ul>
+ *   <li>Uses Supabase service role key</li>
+ *   <li>All paths are scoped to a single bucket</li>
+ * </ul>
+ */
 @Slf4j
 @Service
 public class SupabaseStorageService implements StorageService {
     private final RestTemplate restTemplate;
-    private final SupabaseConfig supabaseConfig;
+    private final SupabaseProperties supabaseProperties;
+    private final Executor taskExecutor;
 
     public SupabaseStorageService(
             @Qualifier("supabaseRestTemplate") RestTemplate restTemplate,
-            SupabaseConfig config
+            SupabaseProperties config, Executor taskExecutor
     ) {
         this.restTemplate = restTemplate;
-        this.supabaseConfig = config;
-    }
-
-    //user
-    //user/{user-id}/{tên loại file}
-
-    //event - lưu thông tin của event
-    //{event/{event-id}/
-
-    //organization - lưu thông tin của organization
-
-    public String upload(MultipartFile file, String path) throws IOException {
-        String url = supabaseConfig.getUrl()
-                + "/storage/v1/object/"
-                + supabaseConfig.getBucket()
-                + "/" + path;
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        headers.setContentLength(file.getSize());
-
-        InputStreamResource resource = new InputStreamResource(file.getInputStream()) {
-            @Override
-            public long contentLength() throws IOException {
-                return file.getSize();
-            }
-        };
-
-        HttpEntity<Resource> request =
-                new HttpEntity<>(resource, headers);
-
-        ResponseEntity<Void> res = restTemplate.exchange(
-                url,
-                HttpMethod.PUT,
-                request,
-                Void.class
-        );
-
-        if (!res.getStatusCode().is2xxSuccessful()) {
-            throw new IllegalStateException("Upload failed");
-        }
-
-        return path;
-
+        this.supabaseProperties = config;
+        this.taskExecutor = taskExecutor;
     }
 
     /**
-     * get the signed url, which the client could use to view the content in the path
-     * @param path the path of the file in the bucket
-     * @return a String of signed url, expire in 1 hour
+     * Generate signed upload URL for client-side upload.
+     * By default, the url would expire in 10 minutes
+     *
+     * @param path             file path in bucket
+     * @return signed upload URL
      */
-    public String createSignedUrl(String path) {
-        String url = supabaseConfig.getUrl()
+    @Override
+    public String getUploadUrl(String path) {
+        String url = supabaseProperties.getUrl()
+                + "/storage/v1/object/upload/sign/"
+                + supabaseProperties.getBucket()
+                + "/" + path;
+
+        //expired in 1 hour
+        Map<String, Object> body = Map.of(
+                "expiresIn", 600
+        );
+
+        try {
+            ResponseEntity<Map> res = restTemplate.postForEntity(url, body, Map.class);
+            log.info("Get upload url for file with path: {}", path);
+            return (String) Objects.requireNonNull(res.getBody()).get("url");
+        } catch (Exception e) {
+            if (e instanceof SupabaseException se) {
+                int status = se.getStatus();
+                if (status == 500) {
+                    throw new AppException(SupabaseErrorCode.INTERNAL_SERVER_ERROR);
+                }
+            }
+            throw new AppException(SupabaseErrorCode.STORAGE_GET_UPLOAD_URL_FAIL);
+        }
+    }
+
+    @Override
+    public CompletableFuture<String> getUploadUrlAsync(String path) {
+//        return CompletableFuture.completedFuture(getUploadUrl(path));
+        return CompletableFuture.supplyAsync(() -> getUploadUrl(path), taskExecutor);
+    }
+
+    @Override
+    public void deleteFile(String path) {
+        String url = supabaseProperties.getUrl()
+                + "/storage/v1/object/"
+                + supabaseProperties.getBucket()
+                + "/" + path;
+
+        try {
+            restTemplate.delete(url);
+            log.info("Delete file in path: {}", path);
+        } catch (Exception e) {
+            if (e instanceof SupabaseException se) {
+                int status = se.getStatus();
+                if (status == 400) {
+                    throw new AppException(SupabaseErrorCode.STORAGE_FILE_NOT_EXISTED);
+                } else if (status == 500) {
+                    throw new AppException(SupabaseErrorCode.INTERNAL_SERVER_ERROR);
+                }
+            }
+            throw new AppException(SupabaseErrorCode.STORAGE_DELETE_FILE_FAIL);
+        }
+    }
+
+    @Override
+    public CompletableFuture<Void> deleteFileAsync(String path) {
+        return CompletableFuture.runAsync(() -> deleteFile(path), taskExecutor);
+    }
+
+    /**
+     * Create a signed URL for viewing/downloading a file.
+     *
+     * @param path file path in bucket
+     * @return signed URL (default 1 hour expiry)
+     */
+    @Override
+    public String getSignedUrl(String path) {
+        String url = supabaseProperties.getUrl()
                 + "/storage/v1/object/sign/"
-                + supabaseConfig.getBucket()
+                + supabaseProperties.getBucket()
                 + "/" + path;
         //expired in 1 hour
         Map<String, Object> body = Map.of(
@@ -89,50 +140,65 @@ public class SupabaseStorageService implements StorageService {
         try {
             ResponseEntity<Map> res =
                     restTemplate.postForEntity(url, body, Map.class);
+            log.info("Get signed url for file in path: {}", path);
+            return (String) Objects.requireNonNull(res.getBody()).get("signedURL");
 
-            return (String) res.getBody().get("signedURL");
-
-        } catch (HttpClientErrorException e) {
-
-            // status code
-            int status = e.getStatusCode().value();
-
-            // raw body: {"statusCode":"404","error":"not_found","message":"Object not found"}
-            String responseBody = e.getResponseBodyAsString();
-            //todo xu li exception
-//            ObjectMapper mapper = new ObjectMapper();
-//            Map<String, Object> err =
-//                    mapper.readValue(e.getResponseBodyAsString(), Map.class);
-//
-//            String message = (String) err.get("message");
-            throw new RuntimeException(
-                    "Supabase error " + status + ": " + responseBody
-            );
+        } catch (Exception e) {
+            if (e instanceof SupabaseException se) {
+                int status = se.getStatus();
+                if (status == 400) {
+                    throw new AppException(SupabaseErrorCode.STORAGE_FILE_NOT_EXISTED);
+                } else if (status == 500) {
+                    throw new AppException(SupabaseErrorCode.INTERNAL_SERVER_ERROR);
+                }
+            }
+            throw new AppException(SupabaseErrorCode.STORAGE_GET_SIGNED_URL_FAIL);
         }
     }
 
-    /**
-     * get upload url, clients could use the sign url to upload file from their device
-     * @param path the location of the file in the bucket
-     * @param expiresInSeconds expiration time of the upload url (in seconds)
-     * @return a String of signed upload url
-     */
     @Override
-    public String getUploadUrl(String path, int expiresInSeconds) {
-        String url = supabaseConfig.getUrl()
-                + "/storage/v1/object/upload/sign/"
-                + supabaseConfig.getBucket()
+    public CompletableFuture<String> getSignedUrlAsync(String path) {
+        return CompletableFuture.supplyAsync(() -> getSignedUrl(path), taskExecutor);
+    }
+
+    @Override
+    public void upload(MultipartFile file, String path) {
+        String url = supabaseProperties.getUrl()
+                + "/storage/v1/object/"
+                + supabaseProperties.getBucket()
                 + "/" + path;
 
-        //expired in 1 hour
-        Map<String, Object> body = Map.of(
-                "expiresIn", expiresInSeconds
-        );
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentLength(file.getSize());
 
-        ResponseEntity<Map> res = restTemplate.postForEntity(url, body, Map.class);
+        try {
+            InputStreamResource resource = new InputStreamResource(file.getInputStream()) {
+                @Override
+                public long contentLength() throws IOException {
+                    return file.getSize();
+                }
+            };
+            HttpEntity<Resource> request =
+                    new HttpEntity<>(resource, headers);
 
-        log.info("Get upload url successfully: {}", res.getBody());
-        //todo xem lai cho nay, de gay loi
-        return (String) res.getBody().get("url");
+            restTemplate.exchange(
+                    url,
+                    HttpMethod.PUT,
+                    request,
+                    Void.class
+            );
+            log.info("Upload file to path: {}", path);
+        } catch (IOException e) {
+            log.error("Error occur while upload file: {}",e.getMessage());
+        } catch (Exception e){
+            if (e instanceof SupabaseException se) {
+                int status = se.getStatus();
+                if (status == 500) {
+                    throw new AppException(SupabaseErrorCode.INTERNAL_SERVER_ERROR);
+                }
+            }
+            throw new AppException(SupabaseErrorCode.STORAGE_UPLOAD_FAIL);
+        }
     }
 }
