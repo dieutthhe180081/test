@@ -1,7 +1,7 @@
 name: hvh-deploy
 services:
   app:
-    container_name: hvh-springboot-app
+    container_name: hvh-app
     image: huyendieu8304/hvh:latest
     restart: unless-stopped
 #    ports:
