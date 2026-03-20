@@ -5,9 +5,8 @@ on:
     branches: [ "dev" ]
 
 jobs:
-  build-push-deploy:
+  build-and-push:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
 
@@ -23,15 +22,18 @@ jobs:
 
       - name: Build image
         run: |
-          docker build -t huyendieu8304/hvh:${{ env.VERSION }} .
-          docker tag huyendieu8304/hvh:${{ env.VERSION }} huyendieu8304/hvh:latest
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/hvh:${{ env.VERSION }} .
+          docker tag ${{ secrets.DOCKER_USERNAME }}/hvh:${{ env.VERSION }} ${{ secrets.DOCKER_USERNAME }}/hvh:latest
 
       - name: Push image
         run: |
-          docker push huyendieu8304/hvh:${{ env.VERSION }}
-          docker push huyendieu8304/hvh:latest
-
-      # deploy qua SSH
+          docker push ${{ secrets.DOCKER_USERNAME }}/hvh:${{ env.VERSION }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/hvh:latest
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push # run after job build-and-push success
+    steps:
+      # deploy to VM via SSH
       - name: Deploy to VM
         uses: appleboy/ssh-action@v0.1.9
         with:
@@ -42,3 +44,4 @@ jobs:
             cd /home/dieutthhe180081/deploy
             docker compose pull
             docker compose up -d --remove-orphans
+            docker image prune -f
